@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation } from "react-router-dom";
 import {
   NAV_LINKS, STATS, PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
-  CON_CLIENTS, PORTFOLIO_ITEMS, CITIES, REGIONS,
+  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS,
 } from "./data/content";
 
 // ===== NAV =====
