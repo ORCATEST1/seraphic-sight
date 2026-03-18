@@ -324,7 +324,6 @@ function Contact() {
           callback: (token) => setTurnstileToken(token),
           "expired-callback": () => setTurnstileToken(null),
           "error-callback": () => setTurnstileToken(null),
-          size: "invisible",
           execution: "render",
         });
       }
