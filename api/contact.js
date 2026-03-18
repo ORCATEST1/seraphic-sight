@@ -1,8 +1,21 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { name, email, phone, type, address, desc, timeline } = req.body;
+  const { name, email, phone, type, address, desc, timeline, turnstileToken } = req.body;
 
+  // Verify Turnstile token
+  const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      secret: process.env.TURNSTILE_SECRET_KEY,
+      response: turnstileToken,
+    }),
+  });
+  const verifyData = await verifyRes.json();
+  if (!verifyData.success) return res.status(400).json({ error: "Bot detected" });
+
+  // Send email via Resend
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -10,8 +23,8 @@ export default async function handler(req, res) {
       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: "onboarding@resend.dev",
-      to: "jperez.jp2297@gmail.com",
+      from: "quotes@seraphicsight.com",
+      to: "Joseph@SeraphicSight.com",
       reply_to: email,
       subject: `New Quote Request — ${type}`,
       html: `
