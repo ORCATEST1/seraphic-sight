@@ -1,21 +1,8 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { name, email, phone, type, address, desc, timeline, turnstileToken } = req.body;
+  const { name, email, phone, type, address, desc, timeline } = req.body;
 
-  // Verify Turnstile token
-  const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      secret: process.env.TURNSTILE_SECRET_KEY,
-      response: turnstileToken,
-    }),
-  });
-  const verifyData = await verifyRes.json();
-  if (!verifyData.success) return res.status(400).json({ error: "Bot detected" });
-
-  // Send email via Resend
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -43,5 +30,14 @@ export default async function handler(req, res) {
   });
 
   if (response.ok) return res.status(200).json({ ok: true });
+  const error = await response.text();
+  console.error("Resend error:", error);
   return res.status(500).json({ error: "Failed to send" });
 }
+```
+
+Save, then push:
+```
+git add .
+git commit -m "Simplify contact API, verified domain"
+git push
