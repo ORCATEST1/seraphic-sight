@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     },
     body: JSON.stringify({
       from: "onboarding@resend.dev",
-      to: "Joseph@SeraphicSight.com",
+      to: "jperez.jp2297@gmail.com",
       reply_to: email,
       subject: `New Quote Request — ${type}`,
       html: `
