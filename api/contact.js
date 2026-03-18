@@ -34,10 +34,3 @@ export default async function handler(req, res) {
   console.error("Resend error:", error);
   return res.status(500).json({ error: "Failed to send" });
 }
-```
-
-Save, then push:
-```
-git add .
-git commit -m "Simplify contact API, verified domain"
-git push
