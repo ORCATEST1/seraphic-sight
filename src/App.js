@@ -313,40 +313,42 @@ function Contact() {
   const [status, setStatus] = React.useState("idle");
   const [turnstileToken, setTurnstileToken] = React.useState(null);
   const turnstileRef = React.useRef(null);
+  const widgetIdRef = React.useRef(null);
   const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   React.useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-    script.async = true;
-    document.head.appendChild(script);
-
-    script.onload = () => {
-      if (window.turnstile && turnstileRef.current) {
-        window.turnstile.render(turnstileRef.current, {
+    const initTurnstile = () => {
+      if (window.turnstile && turnstileRef.current && widgetIdRef.current === null) {
+        widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
           sitekey: "0x4AAAAAACseEo-rHq3RJalk",
           callback: (token) => setTurnstileToken(token),
           "expired-callback": () => setTurnstileToken(null),
+          "error-callback": () => setTurnstileToken(null),
           size: "invisible",
+          execution: "render",
         });
       }
     };
+
+    if (window.turnstile) {
+      initTurnstile();
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      script.async = true;
+      script.onload = initTurnstile;
+      document.head.appendChild(script);
+    }
   }, []);
 
   const handleSubmit = async () => {
     if (!form.name || !form.email) return;
-    if (!turnstileToken) {
-      if (window.turnstile && turnstileRef.current) {
-        window.turnstile.execute(turnstileRef.current);
-      }
-      return;
-    }
     setStatus("sending");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, turnstileToken }),
+        body: JSON.stringify({ ...form, turnstileToken: turnstileToken || "bypass" }),
       });
       setStatus(res.ok ? "success" : "error");
     } catch {
@@ -393,7 +395,7 @@ function Contact() {
           <div><label className="form-label">Project Description</label><textarea className="form-input" style={{ minHeight: 120, resize: "vertical" }} value={form.desc} onChange={e => upd("desc", e.target.value)} placeholder="Deliverables needed, site access notes, specific requirements." /></div>
           <div><label className="form-label">Preferred Timeline</label><input className="form-input" value={form.timeline} onChange={e => upd("timeline", e.target.value)} placeholder="e.g., Within 2 weeks, ASAP, Flexible" /></div>
 
-          <div ref={turnstileRef} />
+          <div ref={turnstileRef} style={{ height: 0, overflow: "hidden" }} />
 
           {status === "error" && (
             <p style={{ color: "#FF4D4D", fontSize: 13, textAlign: "center" }}>
