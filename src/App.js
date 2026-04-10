@@ -270,11 +270,10 @@ function Portfolio() {
           {["All","Property Marketing","Construction"].map(f=>(<button key={f} className="filter-btn" onClick={()=>setFilter(f)} style={{ border:filter===f?"1px solid #0077FF":"1px solid rgba(255,255,255,0.1)",background:filter===f?"rgba(0,119,255,0.12)":"transparent",color:filter===f?"#0077FF":"#8888A0" }}>{f}</button>))}
         </div>
         <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20 }}>
-          {filtered.map((p,i)=>(<div key={`${p.title}-${i}`} className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,padding:36,cursor:"pointer" }}>
+          {filtered.map((p,i)=>(<div key={`${p.title}-${i}`} className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,padding:36 }}>
             <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:16 }}><span style={{ width:8,height:8,borderRadius:"50%",background:p.color }}/><span style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:1.5,color:p.color }}>{p.tag}</span></div>
             <h3 style={{ fontSize:20,fontWeight:700,color:"#fff",marginBottom:10 }}>{p.title}</h3>
             <p style={{ fontSize:13,color:"#8888A0" }}>{p.deliverables}</p>
-            <div style={{ marginTop:20,fontSize:13,fontWeight:600,color:p.color }}>View Project →</div>
           </div>))}
         </div>
       </section>
