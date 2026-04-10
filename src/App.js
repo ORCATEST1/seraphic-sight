@@ -264,7 +264,7 @@ function Portfolio() {
   const filtered = filter==="All" ? PORTFOLIO_ITEMS : PORTFOLIO_ITEMS.filter(p=>p.tag===filter);
   return (
     <div>
-      <PageHero tag="Portfolio" title="Recent Work" subtitle="Selected projects across property marketing and construction documentation."/>
+      <PageHero tag="Portfolio" title="5 Years of Work Across SoCal" subtitle="Aerial photography, video, 360° tours, and DroneDeploy site documentation — from San Diego to Bakersfield, residential to commercial."/>
       <section style={{ padding:"0 24px 100px",maxWidth:1200,margin:"0 auto" }}>
         <div style={{ display:"flex",justifyContent:"center",gap:12,marginBottom:48,flexWrap:"wrap" }}>
           {["All","Property Marketing","Construction"].map(f=>(<button key={f} className="filter-btn" onClick={()=>setFilter(f)} style={{ border:filter===f?"1px solid #0077FF":"1px solid rgba(255,255,255,0.1)",background:filter===f?"rgba(0,119,255,0.12)":"transparent",color:filter===f?"#0077FF":"#8888A0" }}>{f}</button>))}
@@ -275,6 +275,10 @@ function Portfolio() {
             <h3 style={{ fontSize:20,fontWeight:700,color:"#fff",marginBottom:10 }}>{p.title}</h3>
             <p style={{ fontSize:13,color:"#8888A0" }}>{p.deliverables}</p>
           </div>))}
+        </div>
+        <div style={{ marginTop:56,textAlign:"center",padding:"32px 24px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14 }}>
+          <p style={{ fontSize:13,color:"#6666A0",marginBottom:6 }}>Photo and video gallery in progress</p>
+          <p style={{ fontSize:13,color:"#8888A0" }}>Want to see samples from a specific project type or region? <Link to="/contact" style={{ color:"#0077FF",textDecoration:"none",fontWeight:600 }}>Request a sample →</Link></p>
         </div>
       </section>
     </div>

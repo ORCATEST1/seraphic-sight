@@ -184,15 +184,18 @@ export const CON_CLIENTS = [
 
 // ===== PORTFOLIO =====
 export const PORTFOLIO_ITEMS = [
-  { title: "Luxury Estate – Temecula", tag: "Property Marketing", deliverables: "Aerial Photo · Drone Video · 360° Tour", color: "#0077FF" },
-  { title: "Ground-Up Commercial – Riverside", tag: "Construction", deliverables: "Progress Monitoring · Orthomosaic", color: "#00BFA6" },
-  { title: "New Development – Palm Springs", tag: "Property Marketing", deliverables: "Aerial Photo · Aerial Mapping", color: "#0077FF" },
-  { title: "Infrastructure Project – Bakersfield", tag: "Construction", deliverables: "DroneDeploy · As-Built Docs", color: "#00BFA6" },
-  { title: "Multi-Family Complex – San Diego", tag: "Property Marketing", deliverables: "Drone Video · 360° Tour · Photo", color: "#0077FF" },
-  { title: "School Facility – Inland Empire", tag: "Construction", deliverables: "Progress Monitoring · Site Viz", color: "#00BFA6" },
-  { title: "Ranch Property – Porterville", tag: "Property Marketing", deliverables: "Aerial Photo · Aerial Mapping", color: "#0077FF" },
-  { title: "Solar Installation – Barstow", tag: "Construction", deliverables: "Orthomosaic · Progress Docs", color: "#00BFA6" },
-  { title: "Hillside Residence – Temecula", tag: "Property Marketing", deliverables: "Drone Video · Twilight Shoot", color: "#0077FF" },
+  { title: "Luxury Estate – Temecula Wine Country", tag: "Property Marketing", deliverables: "Aerial Photo · Cinematic Video · 360° Tour", color: "#0077FF" },
+  { title: "Residential Subdivision – Murrieta", tag: "Construction", deliverables: "DroneDeploy Progress Monitoring · Orthomosaic", color: "#00BFA6" },
+  { title: "Desert Modern Estate – Palm Springs", tag: "Property Marketing", deliverables: "Aerial Photo · Drone Video · Twilight Shoot", color: "#0077FF" },
+  { title: "Commercial Development – Riverside", tag: "Construction", deliverables: "GeoTIFF Mapping · As-Built Documentation", color: "#00BFA6" },
+  { title: "Coastal Listing – San Diego", tag: "Property Marketing", deliverables: "Aerial Photo · Cinematic Video · 360° Tour", color: "#0077FF" },
+  { title: "Solar Farm – Victorville", tag: "Construction", deliverables: "Orthomosaic · Progress Docs · DroneDeploy", color: "#00BFA6" },
+  { title: "Large Lot Land – Porterville", tag: "Property Marketing", deliverables: "Aerial Photo · Orthomosaic Site Map", color: "#0077FF" },
+  { title: "Mixed-Use Build – Ontario", tag: "Construction", deliverables: "Progress Monitoring · Site Visualization", color: "#00BFA6" },
+  { title: "Mid-Century Estate – Palm Desert", tag: "Property Marketing", deliverables: "Aerial Photo · Drone Video · Social Cuts", color: "#0077FF" },
+  { title: "Industrial Complex – Fontana", tag: "Construction", deliverables: "DroneDeploy · Orthomosaic · Timestamped Docs", color: "#00BFA6" },
+  { title: "Hillside Residence – Corona", tag: "Property Marketing", deliverables: "Cinematic Video · 360° Tour · Twilight Shoot", color: "#0077FF" },
+  { title: "Agricultural Land – Bakersfield", tag: "Property Marketing", deliverables: "Aerial Photo · Orthomosaic Mapping", color: "#0077FF" },
 ];
 
 // ===== SERVICE AREA =====
