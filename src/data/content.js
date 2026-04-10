@@ -11,7 +11,7 @@ export const NAV_LINKS = [
 // ===== TRUST BAR =====
 export const STATS = [
   { value: "FAA Part 107", label: "Certified" },
-  { value: "Fully", label: "Insured" },
+  { value: "Fully Insured", label: "COI Available" },
   { value: "3–4 Day", label: "Turnaround" },
   { value: "So. & Central", label: "California" },
 ];
@@ -30,8 +30,8 @@ export const PROP_SERVICES = [
   },
   {
     icon: "🏠",
-    title: "Matterport 3D Tours",
-    desc: "Immersive virtual walkthroughs that let buyers explore every room remotely. Hosted, shareable, and embeddable on any listing platform.",
+    title: "360° Virtual Tours",
+    desc: "Immersive virtual walkthroughs shot with the Ricoh Theta Z1 and Insta360 X. Buyers explore every room remotely — hosted, shareable, and embeddable on any listing platform.",
   },
   {
     icon: "🗺️",
@@ -64,7 +64,7 @@ export const PROP_PRICING = [
     features: [
       "25–30 edited photos (aerial + ground)",
       "Cinematic property video (90–120 sec)",
-      "Matterport 3D virtual tour",
+      "360° virtual tour (Ricoh Theta Z1)",
       "Digital delivery in 3–4 business days",
     ],
   },
@@ -75,7 +75,7 @@ export const PROP_PRICING = [
     features: [
       "30–40 edited photos (aerial + ground)",
       "Cinematic video (2–3 min, fully produced)",
-      "Matterport 3D virtual tour",
+      "360° virtual tour (Ricoh Theta Z1)",
       "Aerial orthomosaic / site map",
       "Branded agent intro option",
     ],
@@ -83,7 +83,7 @@ export const PROP_PRICING = [
 ];
 
 export const PROP_ADDONS = [
-  { name: "Matterport 3D Tour (standalone)", price: "$175" },
+  { name: "360° Virtual Tour (standalone)", price: "$125" },
   { name: "Additional aerial video (per min, edited)", price: "$100" },
   { name: "Twilight / golden hour shoot", price: "$150" },
   { name: "Aerial orthomosaic map", price: "$200" },
@@ -100,7 +100,7 @@ export const PROP_PROCESS = [
   {
     num: "02",
     title: "We Capture the Property",
-    desc: "Our FAA-certified pilot arrives on site and captures aerial photography, video, Matterport, and any other requested deliverables.",
+    desc: "Our FAA-certified pilot arrives on site and captures aerial photography, video, 360° virtual tours, and any other requested deliverables.",
   },
   {
     num: "03",
@@ -181,11 +181,11 @@ export const CON_CLIENTS = [
 
 // ===== PORTFOLIO =====
 export const PORTFOLIO_ITEMS = [
-  { title: "Luxury Estate – Temecula", tag: "Property Marketing", deliverables: "Aerial Photo · Drone Video · Matterport", color: "#0077FF" },
+  { title: "Luxury Estate – Temecula", tag: "Property Marketing", deliverables: "Aerial Photo · Drone Video · 360° Tour", color: "#0077FF" },
   { title: "Ground-Up Commercial – Riverside", tag: "Construction", deliverables: "Progress Monitoring · Orthomosaic", color: "#00BFA6" },
   { title: "New Development – Palm Springs", tag: "Property Marketing", deliverables: "Aerial Photo · Aerial Mapping", color: "#0077FF" },
   { title: "Infrastructure Project – Bakersfield", tag: "Construction", deliverables: "DroneDeploy · As-Built Docs", color: "#00BFA6" },
-  { title: "Multi-Family Complex – San Diego", tag: "Property Marketing", deliverables: "Drone Video · Matterport · Photo", color: "#0077FF" },
+  { title: "Multi-Family Complex – San Diego", tag: "Property Marketing", deliverables: "Drone Video · 360° Tour · Photo", color: "#0077FF" },
   { title: "School Facility – Inland Empire", tag: "Construction", deliverables: "Progress Monitoring · Site Viz", color: "#00BFA6" },
   { title: "Ranch Property – Porterville", tag: "Property Marketing", deliverables: "Aerial Photo · Aerial Mapping", color: "#0077FF" },
   { title: "Solar Installation – Barstow", tag: "Construction", deliverables: "Orthomosaic · Progress Docs", color: "#00BFA6" },

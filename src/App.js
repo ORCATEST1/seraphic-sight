@@ -92,7 +92,7 @@ function Footer() {
             <div style={{ width:26,height:26,borderRadius:7,background:"linear-gradient(135deg,#0077FF,#00BFA6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:"#fff" }}>S</div>
             <span style={{ color:"#fff",fontWeight:700,fontSize:15 }}>Seraphic Sight</span>
           </Link>
-          <p style={{ fontSize:11,color:"#555570" }}>© 2025 Seraphic Sight. FAA Part 107 Certified. Fully Insured.</p>
+          <p style={{ fontSize:11,color:"#555570" }}>© 2026 Seraphic Sight. FAA Part 107 Certified. Fully Insured.</p>
         </div>
         <div style={{ display:"flex",gap:24,flexWrap:"wrap" }}>
           {NAV_LINKS.map(p=><Link key={p} to={R[p]} style={{ color:"#A0A0B0",textDecoration:"none",fontSize:12,fontWeight:500 }}>{p}</Link>)}
@@ -140,7 +140,7 @@ function Home() {
           <div className="card-hover" style={{ background:"linear-gradient(180deg,rgba(0,119,255,0.06),rgba(0,119,255,0.02))",border:"1px solid rgba(0,119,255,0.12)",borderRadius:16,padding:44 }}>
             <div style={{ fontSize:28,marginBottom:20 }}>📸</div>
             <h3 style={{ fontSize:22,fontWeight:700,color:"#fff",marginBottom:10 }}>Property Marketing</h3>
-            <p style={{ color:"#8888A0",lineHeight:1.7,fontSize:14,marginBottom:24 }}>Aerial photography, drone video, Matterport 3D tours, and complete marketing packages. Send us the APN — we handle the rest.</p>
+            <p style={{ color:"#8888A0",lineHeight:1.7,fontSize:14,marginBottom:24 }}>Aerial photography, drone video, 360° virtual tours, and complete marketing packages. Send us the APN — we handle the rest.</p>
             <Link to="/property-marketing"><button className="btn-primary" style={{ width:"100%" }}>View Services →</button></Link>
           </div>
           <div className="card-hover" style={{ background:"linear-gradient(180deg,rgba(0,191,166,0.06),rgba(0,191,166,0.02))",border:"1px solid rgba(0,191,166,0.12)",borderRadius:16,padding:44 }}>
