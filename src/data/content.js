@@ -26,7 +26,7 @@ export const PROP_SERVICES = [
   {
     icon: "🎬",
     title: "Drone Video",
-    desc: "Cinematic aerial video with smooth flight paths, professional editing, and licensed music. Perfect for listings, social media, and agent branding.",
+    desc: "Cinematic aerial video with smooth flight paths, professional editing, and licensed music. Delivered in 16:9 for MLS and YouTube, plus vertical 9:16 cuts for Instagram Reels and TikTok.",
   },
   {
     icon: "🏠",
@@ -51,7 +51,7 @@ export const PROP_PRICING = [
     price: "$249",
     popular: false,
     features: [
-      "15–20 edited aerial photos",
+      "15–20 edited aerial photos, MLS-ready",
       "1 property overview video (60–90 sec)",
       "Professional editing with music",
       "Digital delivery in 3–4 business days",
@@ -62,8 +62,9 @@ export const PROP_PRICING = [
     price: "$399",
     popular: true,
     features: [
-      "25–30 edited photos (aerial + ground)",
+      "25–30 edited photos (aerial + ground), MLS-ready",
       "Cinematic property video (90–120 sec)",
+      "Vertical social cuts (9:16 for Reels / TikTok)",
       "360° virtual tour (Ricoh Theta Z1)",
       "Digital delivery in 3–4 business days",
     ],
@@ -73,8 +74,9 @@ export const PROP_PRICING = [
     price: "$599",
     popular: false,
     features: [
-      "30–40 edited photos (aerial + ground)",
+      "30–40 edited photos (aerial + ground), MLS-ready",
       "Cinematic video (2–3 min, fully produced)",
+      "Vertical social cuts (9:16 for Reels / TikTok)",
       "360° virtual tour (Ricoh Theta Z1)",
       "Aerial orthomosaic / site map",
       "Branded agent intro option",
@@ -84,6 +86,7 @@ export const PROP_PRICING = [
 
 export const PROP_ADDONS = [
   { name: "360° Virtual Tour (standalone)", price: "$125" },
+  { name: "Social media vertical cuts (9:16 Reels / TikTok)", price: "$50" },
   { name: "Additional aerial video (per min, edited)", price: "$100" },
   { name: "Twilight / golden hour shoot", price: "$150" },
   { name: "Aerial orthomosaic map", price: "$200" },
@@ -114,12 +117,12 @@ export const CON_CAPABILITIES = [
   {
     icon: "🛰️",
     title: "DroneDeploy Automated Flights",
-    desc: "Pre-programmed flight paths ensure identical coverage every visit. No guesswork, no variation — just clean, consistent data capture across your entire project timeline.",
+    desc: "Pre-programmed flight paths ensure identical coverage every visit. Outputs delivered in GeoTIFF, LAS/LAZ, and DXF — compatible with Procore, Autodesk BIM 360, ArcGIS, and AutoCAD Civil3D.",
   },
   {
     icon: "🗺️",
     title: "Orthomosaic Mapping",
-    desc: "High-resolution, geo-referenced composite maps stitched from hundreds of overlapping images. Measure distances, calculate areas, and track site changes over time.",
+    desc: "High-resolution, geo-referenced composite maps stitched from hundreds of overlapping images. Delivered as GeoTIFF for direct import into ArcGIS, QGIS, or AutoCAD Civil3D. Measure distances, calculate areas, and track site changes over time.",
   },
   {
     icon: "📊",

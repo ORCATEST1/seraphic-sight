@@ -176,7 +176,7 @@ function Home() {
 function PropertyMarketing() {
   return (
     <div>
-      <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="Sell faster with professional aerial content and complete marketing packages. Send us the APN and your deliverable list — we handle the rest." accent="#0077FF"/>
+      <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="MLS-ready aerial content delivered in 3–4 business days. LAANC-authorized for controlled airspace. Send us the APN and your deliverable list — we handle the rest." accent="#0077FF"/>
       <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="What We Deliver" sub="Every service designed to move listings faster."/>
         <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
@@ -242,7 +242,7 @@ function Construction() {
           {CON_PRICING.map((p,i)=>(<div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,flexWrap:"wrap",gap:12 }}><span style={{ fontSize:14,color:"#C0C0D0" }}>{p.service}</span><span style={{ fontSize:15,fontWeight:700,color:"#00BFA6",flexShrink:0 }}>{p.price}</span></div>))}
         </div>
         <div style={{ marginTop:32,padding:24,background:"rgba(0,191,166,0.05)",border:"1px solid rgba(0,191,166,0.12)",borderRadius:12 }}>
-          <p style={{ fontSize:13,color:"#8888A0",lineHeight:1.8 }}><strong style={{ color:"#fff" }}>Every engagement includes:</strong> DroneDeploy automated flight plans · Orthomosaic maps and progress imagery · Organized, timestamped deliverables · Site superintendent coordination · COI provided upon request</p>
+          <p style={{ fontSize:13,color:"#8888A0",lineHeight:1.8 }}><strong style={{ color:"#fff" }}>Every engagement includes:</strong> DroneDeploy automated flight plans · GeoTIFF + LAS/LAZ deliverables · Procore / BIM 360 compatible outputs · Organized, timestamped progress imagery · Site superintendent coordination · COI provided upon request</p>
         </div>
       </section>
       <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
@@ -288,9 +288,15 @@ function ServiceArea() {
     <div>
       <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast — if your project is in our range, we'll be on site."/>
       <section style={{ padding:"0 24px 60px",maxWidth:1200,margin:"0 auto" }}>
-        <div style={{ maxWidth:900,margin:"0 auto 60px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",padding:48,textAlign:"center" }}>
-          <div style={{ fontSize:64,marginBottom:16 }}>🗺️</div>
-          <p style={{ color:"#8888A0",fontSize:14 }}>Interactive coverage map — embed your Google Map or custom graphic here</p>
+        <div style={{ maxWidth:900,margin:"0 auto 60px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",padding:48 }}>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:32,textAlign:"center" }}>
+            {[{n:"7",l:"Coverage Regions"},{n:"200+",l:"Cities & Communities"},{n:"400mi",l:"Coverage Radius"},{n:"Same Week",l:"Typical Availability"}].map((s,i)=>(
+              <div key={i}>
+                <div style={{ fontSize:32,fontWeight:800,color:"#fff",letterSpacing:"-1px" }}>{s.n}</div>
+                <div style={{ fontSize:11,fontWeight:600,color:"#6666A0",textTransform:"uppercase",letterSpacing:1.5,marginTop:6 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
         </div>
         <SectionTitle title="Coverage Regions"/>
         <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:20 }}>
