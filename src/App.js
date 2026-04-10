@@ -308,37 +308,10 @@ function ServiceArea() {
 function Contact() {
   const [form, setForm] = React.useState({
     name: "", email: "", phone: "", type: "Property Marketing",
-    address: "", desc: "", timeline: "",
+    address: "", desc: "", timeline: "", honeypot: "",
   });
   const [status, setStatus] = React.useState("idle");
-  const [turnstileToken, setTurnstileToken] = React.useState(null);
-  const turnstileRef = React.useRef(null);
-  const widgetIdRef = React.useRef(null);
   const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
-
-  React.useEffect(() => {
-    const initTurnstile = () => {
-      if (window.turnstile && turnstileRef.current && widgetIdRef.current === null) {
-        widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
-          sitekey: "0x4AAAAAACseEo-rHq3RJalk",
-          callback: (token) => setTurnstileToken(token),
-          "expired-callback": () => setTurnstileToken(null),
-          "error-callback": () => setTurnstileToken(null),
-          execution: "render",
-        });
-      }
-    };
-
-    if (window.turnstile) {
-      initTurnstile();
-    } else {
-      const script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-      script.async = true;
-      script.onload = initTurnstile;
-      document.head.appendChild(script);
-    }
-  }, []);
 
   const handleSubmit = async () => {
     if (!form.name || !form.email) return;
@@ -347,7 +320,7 @@ function Contact() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, turnstileToken: turnstileToken || "bypass" }),
+        body: JSON.stringify(form),
       });
       setStatus(res.ok ? "success" : "error");
     } catch {
@@ -374,6 +347,9 @@ function Contact() {
       <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need — APN, address, deliverables. We'll respond within 24 hours." />
       <section style={{ padding: "0 24px 100px", maxWidth: 640, margin: "0 auto" }}>
         <div style={{ display: "grid", gap: 24 }}>
+          <div style={{ display: "none" }}>
+            <input tabIndex="-1" autoComplete="off" value={form.honeypot} onChange={e => upd("honeypot", e.target.value)} />
+          </div>
           <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div><label className="form-label">Name *</label><input className="form-input" value={form.name} onChange={e => upd("name", e.target.value)} placeholder="Your name" /></div>
             <div><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="(000) 000-0000" /></div>
@@ -393,15 +369,11 @@ function Contact() {
           <div><label className="form-label">Project Address or APN</label><input className="form-input" value={form.address} onChange={e => upd("address", e.target.value)} placeholder="123 Main St or APN #" /></div>
           <div><label className="form-label">Project Description</label><textarea className="form-input" style={{ minHeight: 120, resize: "vertical" }} value={form.desc} onChange={e => upd("desc", e.target.value)} placeholder="Deliverables needed, site access notes, specific requirements." /></div>
           <div><label className="form-label">Preferred Timeline</label><input className="form-input" value={form.timeline} onChange={e => upd("timeline", e.target.value)} placeholder="e.g., Within 2 weeks, ASAP, Flexible" /></div>
-
-          <div ref={turnstileRef} style={{ height: 0, overflow: "hidden" }} />
-
           {status === "error" && (
             <p style={{ color: "#FF4D4D", fontSize: 13, textAlign: "center" }}>
               Something went wrong. Email us directly at Joseph@SeraphicSight.com
             </p>
           )}
-
           <button
             className="btn-primary"
             style={{ width: "100%", padding: 16, fontSize: 15, marginTop: 8, opacity: status === "sending" ? 0.6 : 1 }}
@@ -411,7 +383,6 @@ function Contact() {
             {status === "sending" ? "Sending…" : "Submit Quote Request"}
           </button>
         </div>
-
         <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
           {[{ label: "Email", value: "Joseph@SeraphicSight.com" }, { label: "Phone", value: "909.315.9891" }, { label: "Response Time", value: "Within 24 hours" }].map((c, i) => (
             <div key={i}>
