@@ -259,144 +259,123 @@ function Construction() {
 }
 
 // ===== PORTFOLIO =====
+
+// ---- MediaGallery -----------------------------------------------------------
+function MediaGallery({ images }) {
+  const [lightboxSrc, setLightboxSrc] = React.useState(null);
+  if (!images || images.length === 0) return null;
+  return (
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 6, marginTop: 12 }}>
+        {images.map((src, i) => (
+          <img key={i} src={src} alt="" onClick={() => setLightboxSrc(src)}
+            style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 6, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.08)' }} />
+        ))}
+      </div>
+      {lightboxSrc && (
+        <div onClick={() => setLightboxSrc(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <img src={lightboxSrc} alt="" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 8 }} />
+        </div>
+      )}
+    </>
+  );
+}
+
+// ---- VideoPlayer ------------------------------------------------------------
+function VideoPlayer({ url }) {
+  if (!url) return null;
+  return <video controls src={url} style={{ width: '100%', borderRadius: 8, marginTop: 12, background: '#000', display: 'block' }} />;
+}
+
+// ---- Tour360 ----------------------------------------------------------------
+function Tour360({ url }) {
+  if (!url) return null;
+  return <iframe src={url} title="360 Tour" allow="xr-spatial-tracking" sandbox="allow-scripts allow-same-origin allow-popups allow-pointer-lock"
+    style={{ width: '100%', height: 260, borderRadius: 8, border: 'none', marginTop: 12, display: 'block' }} />;
+}
+
+// ---- WalkthroughEmbed -------------------------------------------------------
+function WalkthroughEmbed({ url }) {
+  if (!url) return null;
+  return <iframe src={url} title="Walkthrough" style={{ width: '100%', height: 260, borderRadius: 8, border: 'none', marginTop: 12, display: 'block' }} />;
+}
+
+// ---- ModelViewer -------------------------------------------------------------
+function ModelViewer({ url }) {
+  if (!url) return null;
+  return React.createElement('model-viewer', { src: url, 'camera-controls': true, 'auto-rotate': true, ar: true,
+    style: { width: '100%', height: 260, borderRadius: 8, marginTop: 12, display: 'block', background: 'rgba(0,0,0,0.3)' } });
+}
+
+// ---- MediaSection -----------------------------------------------------------
+function MediaSection({ media, accentColor }) {
+  const [activeTab, setActiveTab] = React.useState(null);
+  if (!media) return null;
+  const tabs = [];
+  if (media.images && media.images.length > 0) tabs.push({ key: 'images', label: 'Photos' });
+  if (media.video)       tabs.push({ key: 'video',       label: 'Video' });
+  if (media.tour360)     tabs.push({ key: 'tour360',     label: '360' });
+  if (media.walkthrough) tabs.push({ key: 'walkthrough', label: 'Walkthrough' });
+  if (media.model3d)     tabs.push({ key: 'model3d',     label: '3D Model' });
+  if (tabs.length === 0) return null;
+  const current = activeTab || tabs[0].key;
+  return (
+    <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 16 }}>
+      {tabs.length > 1 && (
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+          {tabs.map((tab) => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+              style={{ padding: '3px 10px', fontSize: 11, fontWeight: 600, borderRadius: 20, cursor: 'pointer',
+                border: current === tab.key ? `1px solid ${accentColor}` : '1px solid rgba(255,255,255,0.12)',
+                background: current === tab.key ? `${accentColor}22` : 'transparent',
+                color: current === tab.key ? accentColor : '#6666A0', transition: 'all 0.15s' }}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {current === 'images'      && <MediaGallery     images={media.images} />}
+      {current === 'video'       && <VideoPlayer      url={media.video} />}
+      {current === 'tour360'     && <Tour360          url={media.tour360} />}
+      {current === 'walkthrough' && <WalkthroughEmbed url={media.walkthrough} />}
+      {current === 'model3d'     && <ModelViewer      url={media.model3d} />}
+    </div>
+  );
+}
+
 function Portfolio() {
-  const [filter, setFilter] = React.useState("All");
-  const filtered = filter==="All" ? PORTFOLIO_ITEMS : PORTFOLIO_ITEMS.filter(p=>p.tag===filter);
+  const [filter, setFilter] = React.useState('All');
+  const filtered = filter === 'All' ? PORTFOLIO_ITEMS : PORTFOLIO_ITEMS.filter((item) => item.tag === filter);
   return (
     <div>
-      <PageHero tag="Portfolio" title="5 Years of Work Across SoCal" subtitle="Aerial photography, video, 360° tours, and DroneDeploy site documentation — from San Diego to Bakersfield, residential to commercial."/>
-      <section style={{ padding:"0 24px 100px",maxWidth:1200,margin:"0 auto" }}>
-        <div style={{ display:"flex",justifyContent:"center",gap:12,marginBottom:48,flexWrap:"wrap" }}>
-          {["All","Property Marketing","Construction"].map(f=>(<button key={f} className="filter-btn" onClick={()=>setFilter(f)} style={{ border:filter===f?"1px solid #0077FF":"1px solid rgba(255,255,255,0.1)",background:filter===f?"rgba(0,119,255,0.12)":"transparent",color:filter===f?"#0077FF":"#8888A0" }}>{f}</button>))}
+      <PageHero tag="Portfolio" title="5 Years of Work Across SoCal"
+        subtitle="Aerial photography, video, 360 tours, and DroneDeploy site documentation from San Diego to Bakersfield, residential to commercial." />
+      <section style={{ padding: '0 24px 100px', maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 48, flexWrap: 'wrap' }}>
+          {['All', 'Property Marketing', 'Construction'].map((f) => (
+            <button key={f} className="filter-btn" onClick={() => setFilter(f)}
+              style={{ border: filter === f ? '1px solid #0077FF' : '1px solid rgba(255,255,255,0.1)',
+                background: filter === f ? 'rgba(0,119,255,0.12)' : 'transparent',
+                color: filter === f ? '#0077FF' : '#8888A0' }}>
+              {f}
+            </button>
+          ))}
         </div>
-        <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20 }}>
-          {filtered.map((p,i)=>(<div key={`${p.title}-${i}`} className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,padding:36 }}>
-            <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:16 }}><span style={{ width:8,height:8,borderRadius:"50%",background:p.color }}/><span style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:1.5,color:p.color }}>{p.tag}</span></div>
-            <h3 style={{ fontSize:20,fontWeight:700,color:"#fff",marginBottom:10 }}>{p.title}</h3>
-            <p style={{ fontSize:13,color:"#8888A0" }}>{p.deliverables}</p>
-          </div>))}
-        </div>
-        <div style={{ marginTop:56,textAlign:"center",padding:"32px 24px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14 }}>
-          <p style={{ fontSize:13,color:"#6666A0",marginBottom:6 }}>Photo and video gallery in progress</p>
-          <p style={{ fontSize:13,color:"#8888A0" }}>Want to see samples from a specific project type or region? <Link to="/contact" style={{ color:"#0077FF",textDecoration:"none",fontWeight:600 }}>Request a sample →</Link></p>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-// ===== SERVICE AREA =====
-function ServiceArea() {
-  return (
-    <div>
-      <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast — if your project is in our range, we'll be on site."/>
-      <section style={{ padding:"0 24px 60px",maxWidth:1200,margin:"0 auto" }}>
-        <div style={{ maxWidth:900,margin:"0 auto 60px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",padding:48 }}>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:32,textAlign:"center" }}>
-            {[{n:"7",l:"Coverage Regions"},{n:"200+",l:"Cities & Communities"},{n:"400mi",l:"Coverage Radius"},{n:"Same Week",l:"Typical Availability"}].map((s,i)=>(
-              <div key={i}>
-                <div style={{ fontSize:32,fontWeight:800,color:"#fff",letterSpacing:"-1px" }}>{s.n}</div>
-                <div style={{ fontSize:11,fontWeight:600,color:"#6666A0",textTransform:"uppercase",letterSpacing:1.5,marginTop:6 }}>{s.l}</div>
+        <div className="responsive-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+          {filtered.map((item, i) => (
+            <div key={`${item.title}-${i}`} className="card-hover"
+              style={{ background: `linear-gradient(135deg, ${item.color}08, ${item.color}03)`,
+                border: `1px solid ${item.color}18`, borderRadius: 14, padding: 36 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color }} />
+                <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1.5, color: item.color }}>
+                  {item.tag}
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
-        <SectionTitle title="Coverage Regions"/>
-        <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:20 }}>
-          {REGIONS.map((r,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{r.name}</h3><p style={{ fontSize:12,color:"#0077FF",fontWeight:500,marginBottom:12 }}>{r.cities}</p><p style={{ fontSize:13,color:"#8888A0",lineHeight:1.7 }}>{r.desc}</p></div>))}
-        </div>
-      </section>
-      <section style={{ padding:"60px 24px 100px",textAlign:"center" }}>
-        <p style={{ fontSize:15,color:"#8888A0",marginBottom:8 }}>Not sure if we cover your area?</p>
-        <p style={{ fontSize:18,fontWeight:700,color:"#fff" }}>Reach out — if you're in range, we'll be there.</p>
-      </section>
-    </div>
-  );
-}
-// ===== CONTACT =====
-function Contact() {
-  const [form, setForm] = React.useState({
-    name: "", email: "", phone: "", type: "Property Marketing",
-    address: "", desc: "", timeline: "", honeypot: "",
-  });
-  const [status, setStatus] = React.useState("idle");
-  const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
-
-  const handleSubmit = async () => {
-    if (!form.name || !form.email) return;
-    setStatus("sending");
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      setStatus(res.ok ? "success" : "error");
-    } catch {
-      setStatus("error");
-    }
-  };
-
-  if (status === "success") {
-    return (
-      <section style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px" }}>
-        <div>
-          <div style={{ fontSize: 64, marginBottom: 24 }}>✓</div>
-          <h2 style={{ fontSize: 34, fontWeight: 800, color: "#fff", marginBottom: 16 }}>Quote Request Received</h2>
-          <p style={{ color: "#8888A0", fontSize: 16, lineHeight: 1.7, maxWidth: 450, margin: "0 auto" }}>
-            Thank you. We'll review your project details and respond within 24 hours.
-          </p>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <div>
-      <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need — APN, address, deliverables. We'll respond within 24 hours." />
-      <section style={{ padding: "0 24px 100px", maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ display: "grid", gap: 24 }}>
-          <div style={{ display: "none" }}>
-            <input tabIndex="-1" autoComplete="off" value={form.honeypot} onChange={e => upd("honeypot", e.target.value)} />
-          </div>
-          <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div><label className="form-label">Name *</label><input className="form-input" value={form.name} onChange={e => upd("name", e.target.value)} placeholder="Your name" /></div>
-            <div><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="(000) 000-0000" /></div>
-          </div>
-          <div><label className="form-label">Email *</label><input className="form-input" value={form.email} onChange={e => upd("email", e.target.value)} placeholder="you@email.com" /></div>
-          <div>
-            <label className="form-label">Project Type</label>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              {["Property Marketing", "Construction & Development", "Other"].map(t => (
-                <button key={t} className="filter-btn" onClick={() => upd("type", t)}
-                  style={{ border: form.type === t ? "1px solid #0077FF" : "1px solid rgba(255,255,255,0.1)", background: form.type === t ? "rgba(0,119,255,0.12)" : "transparent", color: form.type === t ? "#0077FF" : "#8888A0" }}>
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div><label className="form-label">Project Address or APN</label><input className="form-input" value={form.address} onChange={e => upd("address", e.target.value)} placeholder="123 Main St or APN #" /></div>
-          <div><label className="form-label">Project Description</label><textarea className="form-input" style={{ minHeight: 120, resize: "vertical" }} value={form.desc} onChange={e => upd("desc", e.target.value)} placeholder="Deliverables needed, site access notes, specific requirements." /></div>
-          <div><label className="form-label">Preferred Timeline</label><input className="form-input" value={form.timeline} onChange={e => upd("timeline", e.target.value)} placeholder="e.g., Within 2 weeks, ASAP, Flexible" /></div>
-          {status === "error" && (
-            <p style={{ color: "#FF4D4D", fontSize: 13, textAlign: "center" }}>
-              Something went wrong. Email us directly at Joseph@SeraphicSight.com
-            </p>
-          )}
-          <button
-            className="btn-primary"
-            style={{ width: "100%", padding: 16, fontSize: 15, marginTop: 8, opacity: status === "sending" ? 0.6 : 1 }}
-            onClick={handleSubmit}
-            disabled={status === "sending"}
-          >
-            {status === "sending" ? "Sending…" : "Submit Quote Request"}
-          </button>
-        </div>
-        <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
-          {[{ label: "Email", value: "Joseph@SeraphicSight.com" }, { label: "Phone", value: "909.315.9891" }, { label: "Response Time", value: "Within 24 hours" }].map((c, i) => (
-            <div key={i}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#8888A0", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{c.value}</div>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{item.title}</h3>
+              <p style={{ fontSize: 13, color: '#8888A0' }}>{item.deliverables}</p>
+              <MediaSection media={item.media} accentColor={item.color} />
             </div>
           ))}
         </div>
@@ -405,7 +384,7 @@ function Contact() {
   );
 }
 
-// ===== MAIN APP =====
+
 export default function App() {
   return (
     <div>
@@ -421,4 +400,4 @@ export default function App() {
       <Footer/>
     </div>
   );
-}
+        }
