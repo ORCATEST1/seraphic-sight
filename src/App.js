@@ -385,6 +385,128 @@ function Portfolio() {
 }
 
 
+
+function ServiceArea() {
+  return (
+    <div>
+      <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast — if your project is in our range, we'll be on site."/>
+      <section style={{ padding:"0 24px 60px",maxWidth:1200,margin:"0 auto" }}>
+        <div style={{ maxWidth:900,margin:"0 auto 60px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",padding:48 }}>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:32,textAlign:"center" }}>
+            {[{n:"7",l:"Coverage Regions"},{n:"200+",l:"Cities & Communities"},{n:"400mi",l:"Coverage Radius"},{n:"Same Week",l:"Typical Availability"}].map((s,i)=>(
+              <div key={i}>
+                <div style={{ fontSize:32,fontWeight:800,color:"#fff",letterSpacing:"-1px" }}>{s.n}</div>
+                <div style={{ fontSize:11,fontWeight:600,color:"#6666A0",textTransform:"uppercase",letterSpacing:1.5,marginTop:6 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <SectionTitle title="Coverage Regions"/>
+        <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:20 }}>
+          {REGIONS.map((r,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{r.name}</h3><p style={{ fontSize:12,color:"#0077FF",fontWeight:500,marginBottom:12 }}>{r.cities}</p><p style={{ fontSize:13,color:"#8888A0",lineHeight:1.7 }}>{r.desc}</p></div>))}
+        </div>
+      </section>
+      <section style={{ padding:"60px 24px 100px",textAlign:"center" }}>
+        <p style={{ fontSize:15,color:"#8888A0",marginBottom:8 }}>Not sure if we cover your area?</p>
+        <p style={{ fontSize:18,fontWeight:700,color:"#fff" }}>Reach out — if you're in range, we'll be there.</p>
+      </section>
+    </div>
+  );
+}
+// ===== CONTACT =====
+function Contact() {
+  const [form, setForm] = React.useState({
+    name: "", email: "", phone: "", type: "Property Marketing",
+    address: "", desc: "", timeline: "", honeypot: "",
+  });
+  const [status, setStatus] = React.useState("idle");
+  const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSubmit = async () => {
+    if (!form.name || !form.email) return;
+    setStatus("sending");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      setStatus(res.ok ? "success" : "error");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  if (status === "success") {
+    return (
+      <section style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px" }}>
+        <div>
+          <div style={{ fontSize: 64, marginBottom: 24 }}>✓</div>
+          <h2 style={{ fontSize: 34, fontWeight: 800, color: "#fff", marginBottom: 16 }}>Quote Request Received</h2>
+          <p style={{ color: "#8888A0", fontSize: 16, lineHeight: 1.7, maxWidth: 450, margin: "0 auto" }}>
+            Thank you. We'll review your project details and respond within 24 hours.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <div>
+      <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need — APN, address, deliverables. We'll respond within 24 hours." />
+      <section style={{ padding: "0 24px 100px", maxWidth: 640, margin: "0 auto" }}>
+        <div style={{ display: "grid", gap: 24 }}>
+          <div style={{ display: "none" }}>
+            <input tabIndex="-1" autoComplete="off" value={form.honeypot} onChange={e => upd("honeypot", e.target.value)} />
+          </div>
+          <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div><label className="form-label">Name *</label><input className="form-input" value={form.name} onChange={e => upd("name", e.target.value)} placeholder="Your name" /></div>
+            <div><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="(000) 000-0000" /></div>
+          </div>
+          <div><label className="form-label">Email *</label><input className="form-input" value={form.email} onChange={e => upd("email", e.target.value)} placeholder="you@email.com" /></div>
+          <div>
+            <label className="form-label">Project Type</label>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              {["Property Marketing", "Construction & Development", "Other"].map(t => (
+                <button key={t} className="filter-btn" onClick={() => upd("type", t)}
+                  style={{ border: form.type === t ? "1px solid #0077FF" : "1px solid rgba(255,255,255,0.1)", background: form.type === t ? "rgba(0,119,255,0.12)" : "transparent", color: form.type === t ? "#0077FF" : "#8888A0" }}>
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div><label className="form-label">Project Address or APN</label><input className="form-input" value={form.address} onChange={e => upd("address", e.target.value)} placeholder="123 Main St or APN #" /></div>
+          <div><label className="form-label">Project Description</label><textarea className="form-input" style={{ minHeight: 120, resize: "vertical" }} value={form.desc} onChange={e => upd("desc", e.target.value)} placeholder="Deliverables needed, site access notes, specific requirements." /></div>
+          <div><label className="form-label">Preferred Timeline</label><input className="form-input" value={form.timeline} onChange={e => upd("timeline", e.target.value)} placeholder="e.g., Within 2 weeks, ASAP, Flexible" /></div>
+          {status === "error" && (
+            <p style={{ color: "#FF4D4D", fontSize: 13, textAlign: "center" }}>
+              Something went wrong. Email us directly at Joseph@SeraphicSight.com
+            </p>
+          )}
+          <button
+            className="btn-primary"
+            style={{ width: "100%", padding: 16, fontSize: 15, marginTop: 8, opacity: status === "sending" ? 0.6 : 1 }}
+            onClick={handleSubmit}
+            disabled={status === "sending"}
+          >
+            {status === "sending" ? "Sending…" : "Submit Quote Request"}
+          </button>
+        </div>
+        <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
+          {[{ label: "Email", value: "Joseph@SeraphicSight.com" }, { label: "Phone", value: "909.315.9891" }, { label: "Response Time", value: "Within 24 hours" }].map((c, i) => (
+            <div key={i}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#8888A0", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{c.value}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ===== MAIN APP =====
+
 export default function App() {
   return (
     <div>
