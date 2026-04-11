@@ -183,92 +183,101 @@ export const CON_CLIENTS = [
 ];
 
 // ===== PORTFOLIO =====
-// Each item's media fields map to your actual hosted content:
-//   images[]    → Cloudinary CDN URLs (move files from Drive → Cloudinary, copy URLs here)
-//   video       → Cloudinary video URL, or null
-//   tour360     → Momento360 embed URL, or null  (e.g. "https://momento360.com/e/u/...")
-//   walkthrough → DroneDeploy or SphereXG embed URL, or null
-//   model3d     → Cloudinary GLB file URL, or null
+// cloudinaryTag: images/videos with this tag in your Cloudinary account auto-load in this card.
+//   To tag media in Cloudinary: Media Library → select files → More options → Add tag
+// tour360:     Momento360 embed URL  (e.g. "https://momento360.com/e/u/...")
+// walkthrough: DroneDeploy or SphereXG embed URL
+// model3d:     Cloudinary GLB file secure_url
 export const PORTFOLIO_ITEMS = [
-  // Drive folder: "Hero shots"
+  // Drive folder: "Hero shots" → tag these in Cloudinary as: hero-shots
   {
     title: "Featured Aerials – SoCal Portfolio",
     tag: "Property Marketing",
     deliverables: "Signature Aerial Photography · Hero Shots · MLS-Ready",
     color: "#0077FF",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: "hero-shots",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "Bakersfield Lots"
+  // Drive folder: "Bakersfield Lots" → tag these in Cloudinary as: bakersfield-lots
   {
     title: "Residential & Agricultural Lots – Bakersfield",
     tag: "Property Marketing",
     deliverables: "Aerial Photo · Orthomosaic Mapping · Land Documentation",
     color: "#0077FF",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: "bakersfield-lots",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "Interior"
+  // Drive folder: "Interior" → tag these in Cloudinary as: interior
   {
     title: "Property Interiors – Southern California",
     tag: "Property Marketing",
     deliverables: "Interior Photography · Ground-Level Stills · MLS-Ready",
     color: "#0077FF",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: "interior",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "LA Commercial"
+  // Drive folder: "LA Commercial" → tag these in Cloudinary as: la-commercial
   {
     title: "Commercial Properties – Los Angeles",
     tag: "Property Marketing",
     deliverables: "Aerial Photo · Cinematic Video · Commercial Coverage",
     color: "#0077FF",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: "la-commercial",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "Mobile Homes"
+  // Drive folder: "Mobile Homes" → tag these in Cloudinary as: mobile-homes
   {
     title: "Mobile Home Communities – Southern California",
     tag: "Property Marketing",
     deliverables: "Aerial Photo · Community Overview · Site Documentation",
     color: "#0077FF",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: "mobile-homes",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "San Diego Multifamily"
+  // Drive folder: "San Diego Multifamily" → tag these in Cloudinary as: san-diego-multifamily
   {
     title: "Multifamily Portfolio – San Diego County",
     tag: "Property Marketing",
     deliverables: "Aerial Photo · Cinematic Video · Complex Overview",
     color: "#0077FF",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: "san-diego-multifamily",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Construction – DroneDeploy progress monitoring work
+  // Construction – DroneDeploy progress monitoring → tag in Cloudinary as: progress-monitoring
   {
     title: "Progress Monitoring – Active Build Sites",
     tag: "Construction",
     deliverables: "DroneDeploy Flights · Timestamped Progress Docs · Orthomosaic",
     color: "#00BFA6",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: "progress-monitoring",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Construction – orthomosaic + GeoTIFF mapping
+  // Construction – orthomosaic mapping → tag in Cloudinary as: orthomosaic
   {
     title: "Orthomosaic Mapping – Inland Empire",
     tag: "Construction",
     deliverables: "GeoTIFF · Aerial Survey · ArcGIS & AutoCAD Compatible",
     color: "#00BFA6",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: "orthomosaic",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // 360° tours via Momento360
+  // 360° tours – paste Momento360 embed URL into tour360 when ready
   {
     title: "360° Virtual Tours – Residential Listings",
     tag: "Property Marketing",
     deliverables: "360° Tour · Ricoh Theta Z1 · Hosted on Momento360",
     color: "#0077FF",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: null,
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Construction – SphereXG / DroneDeploy walkthroughs
+  // Construction walkthroughs – paste DroneDeploy or SphereXG embed URL into walkthrough when ready
   {
     title: "Site Walkthroughs – Commercial Construction",
     tag: "Construction",
     deliverables: "SphereXG Walkthrough · DroneDeploy · As-Built Documentation",
     color: "#00BFA6",
-    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+    cloudinaryTag: null,
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
 ];
 

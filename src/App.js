@@ -326,14 +326,42 @@ function ModelViewer3D({ url }) {
 }
 
 function PortfolioCard({ p }) {
+  const [images, setImages] = React.useState([]);
+  const [videoUrl, setVideoUrl] = React.useState(null);
+  const [fetched, setFetched] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+
+  const hasCld = !!p.cloudinaryTag;
   const tabs = [
-    p.media?.images?.length && "Photos",
-    p.media?.video && "Video",
+    (hasCld || images.length) && "Photos",
+    (hasCld || videoUrl) && "Video",
     p.media?.tour360 && "360° Tour",
     p.media?.walkthrough && "Walkthrough",
     p.media?.model3d && "3D Model",
   ].filter(Boolean);
   const [activeTab, setActiveTab] = React.useState(tabs[0]||null);
+
+  const fetchCloudinary = async () => {
+    if (!hasCld || fetched) return;
+    setFetched(true);
+    setLoading(true);
+    try {
+      const [imgRes, vidRes] = await Promise.all([
+        fetch(`/api/cloudinary-images?tag=${p.cloudinaryTag}&type=image`).then(r=>r.json()),
+        fetch(`/api/cloudinary-images?tag=${p.cloudinaryTag}&type=video`).then(r=>r.json()),
+      ]);
+      setImages(imgRes.urls||[]);
+      setVideoUrl(vidRes.urls?.[0]||null);
+    } catch { /* show nothing on error */ } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTab = (tab) => {
+    setActiveTab(tab);
+    fetchCloudinary();
+  };
+
   return (
     <div className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,padding:36 }}>
       <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:16 }}>
@@ -346,7 +374,7 @@ function PortfolioCard({ p }) {
         <>
           <div style={{ display:"flex",gap:8,marginTop:20,flexWrap:"wrap" }}>
             {tabs.map(tab=>(
-              <button key={tab} onClick={()=>setActiveTab(tab)}
+              <button key={tab} onClick={()=>handleTab(tab)}
                 style={{ padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:500,cursor:"pointer",
                   border:activeTab===tab?`1px solid ${p.color}`:"1px solid rgba(255,255,255,0.1)",
                   background:activeTab===tab?`${p.color}20`:"transparent",
@@ -355,11 +383,14 @@ function PortfolioCard({ p }) {
               </button>
             ))}
           </div>
-          {activeTab==="Photos"&&<MediaGallery images={p.media.images}/>}
-          {activeTab==="Video"&&<VideoPlayer url={p.media.video}/>}
-          {activeTab==="360° Tour"&&<Tour360 url={p.media.tour360}/>}
-          {activeTab==="Walkthrough"&&<WalkthroughEmbed url={p.media.walkthrough}/>}
-          {activeTab==="3D Model"&&<ModelViewer3D url={p.media.model3d}/>}
+          {loading&&(activeTab==="Photos"||activeTab==="Video")&&(
+            <p style={{ marginTop:16,fontSize:13,color:"#6666A0" }}>Loading...</p>
+          )}
+          {!loading&&activeTab==="Photos"&&<MediaGallery images={images}/>}
+          {!loading&&activeTab==="Video"&&<VideoPlayer url={videoUrl}/>}
+          {activeTab==="360° Tour"&&<Tour360 url={p.media?.tour360}/>}
+          {activeTab==="Walkthrough"&&<WalkthroughEmbed url={p.media?.walkthrough}/>}
+          {activeTab==="3D Model"&&<ModelViewer3D url={p.media?.model3d}/>}
         </>
       )}
     </div>
