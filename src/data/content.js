@@ -183,19 +183,93 @@ export const CON_CLIENTS = [
 ];
 
 // ===== PORTFOLIO =====
+// Each item's media fields map to your actual hosted content:
+//   images[]    → Cloudinary CDN URLs (move files from Drive → Cloudinary, copy URLs here)
+//   video       → Cloudinary video URL, or null
+//   tour360     → Momento360 embed URL, or null  (e.g. "https://momento360.com/e/u/...")
+//   walkthrough → DroneDeploy or SphereXG embed URL, or null
+//   model3d     → Cloudinary GLB file URL, or null
 export const PORTFOLIO_ITEMS = [
-  { title: "Luxury Estate – Temecula Wine Country", tag: "Property Marketing", deliverables: "Aerial Photo · Cinematic Video · 360° Tour", color: "#0077FF" },
-  { title: "Residential Subdivision – Murrieta", tag: "Construction", deliverables: "DroneDeploy Progress Monitoring · Orthomosaic", color: "#00BFA6" },
-  { title: "Desert Modern Estate – Palm Springs", tag: "Property Marketing", deliverables: "Aerial Photo · Drone Video · Twilight Shoot", color: "#0077FF" },
-  { title: "Commercial Development – Riverside", tag: "Construction", deliverables: "GeoTIFF Mapping · As-Built Documentation", color: "#00BFA6" },
-  { title: "Coastal Listing – San Diego", tag: "Property Marketing", deliverables: "Aerial Photo · Cinematic Video · 360° Tour", color: "#0077FF" },
-  { title: "Solar Farm – Victorville", tag: "Construction", deliverables: "Orthomosaic · Progress Docs · DroneDeploy", color: "#00BFA6" },
-  { title: "Large Lot Land – Porterville", tag: "Property Marketing", deliverables: "Aerial Photo · Orthomosaic Site Map", color: "#0077FF" },
-  { title: "Mixed-Use Build – Ontario", tag: "Construction", deliverables: "Progress Monitoring · Site Visualization", color: "#00BFA6" },
-  { title: "Mid-Century Estate – Palm Desert", tag: "Property Marketing", deliverables: "Aerial Photo · Drone Video · Social Cuts", color: "#0077FF" },
-  { title: "Industrial Complex – Fontana", tag: "Construction", deliverables: "DroneDeploy · Orthomosaic · Timestamped Docs", color: "#00BFA6" },
-  { title: "Hillside Residence – Corona", tag: "Property Marketing", deliverables: "Cinematic Video · 360° Tour · Twilight Shoot", color: "#0077FF" },
-  { title: "Agricultural Land – Bakersfield", tag: "Property Marketing", deliverables: "Aerial Photo · Orthomosaic Mapping", color: "#0077FF" },
+  // Drive folder: "Hero shots"
+  {
+    title: "Featured Aerials – SoCal Portfolio",
+    tag: "Property Marketing",
+    deliverables: "Signature Aerial Photography · Hero Shots · MLS-Ready",
+    color: "#0077FF",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // Drive folder: "Bakersfield Lots"
+  {
+    title: "Residential & Agricultural Lots – Bakersfield",
+    tag: "Property Marketing",
+    deliverables: "Aerial Photo · Orthomosaic Mapping · Land Documentation",
+    color: "#0077FF",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // Drive folder: "Interior"
+  {
+    title: "Property Interiors – Southern California",
+    tag: "Property Marketing",
+    deliverables: "Interior Photography · Ground-Level Stills · MLS-Ready",
+    color: "#0077FF",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // Drive folder: "LA Commercial"
+  {
+    title: "Commercial Properties – Los Angeles",
+    tag: "Property Marketing",
+    deliverables: "Aerial Photo · Cinematic Video · Commercial Coverage",
+    color: "#0077FF",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // Drive folder: "Mobile Homes"
+  {
+    title: "Mobile Home Communities – Southern California",
+    tag: "Property Marketing",
+    deliverables: "Aerial Photo · Community Overview · Site Documentation",
+    color: "#0077FF",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // Drive folder: "San Diego Multifamily"
+  {
+    title: "Multifamily Portfolio – San Diego County",
+    tag: "Property Marketing",
+    deliverables: "Aerial Photo · Cinematic Video · Complex Overview",
+    color: "#0077FF",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // Construction – DroneDeploy progress monitoring work
+  {
+    title: "Progress Monitoring – Active Build Sites",
+    tag: "Construction",
+    deliverables: "DroneDeploy Flights · Timestamped Progress Docs · Orthomosaic",
+    color: "#00BFA6",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // Construction – orthomosaic + GeoTIFF mapping
+  {
+    title: "Orthomosaic Mapping – Inland Empire",
+    tag: "Construction",
+    deliverables: "GeoTIFF · Aerial Survey · ArcGIS & AutoCAD Compatible",
+    color: "#00BFA6",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // 360° tours via Momento360
+  {
+    title: "360° Virtual Tours – Residential Listings",
+    tag: "Property Marketing",
+    deliverables: "360° Tour · Ricoh Theta Z1 · Hosted on Momento360",
+    color: "#0077FF",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
+  // Construction – SphereXG / DroneDeploy walkthroughs
+  {
+    title: "Site Walkthroughs – Commercial Construction",
+    tag: "Construction",
+    deliverables: "SphereXG Walkthrough · DroneDeploy · As-Built Documentation",
+    color: "#00BFA6",
+    media: { images: [], video: null, tour360: null, walkthrough: null, model3d: null },
+  },
 ];
 
 // ===== SERVICE AREA =====

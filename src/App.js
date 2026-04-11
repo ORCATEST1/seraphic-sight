@@ -258,6 +258,114 @@ function Construction() {
   );
 }
 
+// ===== MEDIA COMPONENTS =====
+function MediaGallery({ images }) {
+  const [lightbox, setLightbox] = React.useState(null);
+  if (!images || !images.length) return null;
+  return (
+    <>
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:8,marginTop:16 }}>
+        {images.map((src,i)=>(
+          <div key={i} onClick={()=>setLightbox(src)}
+            style={{ aspectRatio:"16/9",borderRadius:8,overflow:"hidden",cursor:"pointer",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)" }}>
+            <img src={src} alt={`Photo ${i+1}`} style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+          </div>
+        ))}
+      </div>
+      {lightbox&&(
+        <div onClick={()=>setLightbox(null)}
+          style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,cursor:"pointer" }}>
+          <img src={lightbox} alt="Full view" style={{ maxWidth:"90vw",maxHeight:"90vh",borderRadius:12,objectFit:"contain" }}/>
+          <div style={{ position:"absolute",top:24,right:32,color:"#fff",fontSize:28,lineHeight:1 }}>✕</div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function VideoPlayer({ url }) {
+  if (!url) return null;
+  return (
+    <div style={{ marginTop:16,borderRadius:12,overflow:"hidden",background:"#000" }}>
+      <video controls style={{ width:"100%",maxHeight:360,display:"block" }} src={url}/>
+    </div>
+  );
+}
+
+function Tour360({ url }) {
+  if (!url) return null;
+  return (
+    <div style={{ marginTop:16,borderRadius:12,overflow:"hidden",aspectRatio:"16/9" }}>
+      <iframe src={url} title="360° Tour" style={{ width:"100%",height:"100%",border:"none" }}
+        allow="xr-spatial-tracking; gyroscope; accelerometer" allowFullScreen/>
+    </div>
+  );
+}
+
+function WalkthroughEmbed({ url }) {
+  if (!url) return null;
+  return (
+    <div style={{ marginTop:16,borderRadius:12,overflow:"hidden",aspectRatio:"16/9" }}>
+      <iframe src={url} title="Site Walkthrough" style={{ width:"100%",height:"100%",border:"none" }} allowFullScreen/>
+    </div>
+  );
+}
+
+function ModelViewer3D({ url }) {
+  if (!url) return null;
+  return (
+    <div style={{ marginTop:16,borderRadius:12,overflow:"hidden",height:300 }}>
+      {React.createElement("model-viewer", {
+        src: url,
+        "camera-controls": "",
+        "auto-rotate": "",
+        style: { width:"100%",height:"100%",background:"rgba(0,0,0,0.3)" },
+      })}
+    </div>
+  );
+}
+
+function PortfolioCard({ p }) {
+  const tabs = [
+    p.media?.images?.length && "Photos",
+    p.media?.video && "Video",
+    p.media?.tour360 && "360° Tour",
+    p.media?.walkthrough && "Walkthrough",
+    p.media?.model3d && "3D Model",
+  ].filter(Boolean);
+  const [activeTab, setActiveTab] = React.useState(tabs[0]||null);
+  return (
+    <div className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,padding:36 }}>
+      <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:16 }}>
+        <span style={{ width:8,height:8,borderRadius:"50%",background:p.color }}/>
+        <span style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:1.5,color:p.color }}>{p.tag}</span>
+      </div>
+      <h3 style={{ fontSize:20,fontWeight:700,color:"#fff",marginBottom:10 }}>{p.title}</h3>
+      <p style={{ fontSize:13,color:"#8888A0" }}>{p.deliverables}</p>
+      {tabs.length>0&&(
+        <>
+          <div style={{ display:"flex",gap:8,marginTop:20,flexWrap:"wrap" }}>
+            {tabs.map(tab=>(
+              <button key={tab} onClick={()=>setActiveTab(tab)}
+                style={{ padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:500,cursor:"pointer",
+                  border:activeTab===tab?`1px solid ${p.color}`:"1px solid rgba(255,255,255,0.1)",
+                  background:activeTab===tab?`${p.color}20`:"transparent",
+                  color:activeTab===tab?p.color:"#8888A0" }}>
+                {tab}
+              </button>
+            ))}
+          </div>
+          {activeTab==="Photos"&&<MediaGallery images={p.media.images}/>}
+          {activeTab==="Video"&&<VideoPlayer url={p.media.video}/>}
+          {activeTab==="360° Tour"&&<Tour360 url={p.media.tour360}/>}
+          {activeTab==="Walkthrough"&&<WalkthroughEmbed url={p.media.walkthrough}/>}
+          {activeTab==="3D Model"&&<ModelViewer3D url={p.media.model3d}/>}
+        </>
+      )}
+    </div>
+  );
+}
+
 // ===== PORTFOLIO =====
 function Portfolio() {
   const [filter, setFilter] = React.useState("All");
@@ -267,18 +375,15 @@ function Portfolio() {
       <PageHero tag="Portfolio" title="5 Years of Work Across SoCal" subtitle="Aerial photography, video, 360° tours, and DroneDeploy site documentation — from San Diego to Bakersfield, residential to commercial."/>
       <section style={{ padding:"0 24px 100px",maxWidth:1200,margin:"0 auto" }}>
         <div style={{ display:"flex",justifyContent:"center",gap:12,marginBottom:48,flexWrap:"wrap" }}>
-          {["All","Property Marketing","Construction"].map(f=>(<button key={f} className="filter-btn" onClick={()=>setFilter(f)} style={{ border:filter===f?"1px solid #0077FF":"1px solid rgba(255,255,255,0.1)",background:filter===f?"rgba(0,119,255,0.12)":"transparent",color:filter===f?"#0077FF":"#8888A0" }}>{f}</button>))}
+          {["All","Property Marketing","Construction"].map(f=>(
+            <button key={f} className="filter-btn" onClick={()=>setFilter(f)}
+              style={{ border:filter===f?"1px solid #0077FF":"1px solid rgba(255,255,255,0.1)",background:filter===f?"rgba(0,119,255,0.12)":"transparent",color:filter===f?"#0077FF":"#8888A0" }}>
+              {f}
+            </button>
+          ))}
         </div>
-        <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20 }}>
-          {filtered.map((p,i)=>(<div key={`${p.title}-${i}`} className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,padding:36 }}>
-            <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:16 }}><span style={{ width:8,height:8,borderRadius:"50%",background:p.color }}/><span style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:1.5,color:p.color }}>{p.tag}</span></div>
-            <h3 style={{ fontSize:20,fontWeight:700,color:"#fff",marginBottom:10 }}>{p.title}</h3>
-            <p style={{ fontSize:13,color:"#8888A0" }}>{p.deliverables}</p>
-          </div>))}
-        </div>
-        <div style={{ marginTop:56,textAlign:"center",padding:"32px 24px",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14 }}>
-          <p style={{ fontSize:13,color:"#6666A0",marginBottom:6 }}>Photo and video gallery in progress</p>
-          <p style={{ fontSize:13,color:"#8888A0" }}>Want to see samples from a specific project type or region? <Link to="/contact" style={{ color:"#0077FF",textDecoration:"none",fontWeight:600 }}>Request a sample →</Link></p>
+        <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:20 }}>
+          {filtered.map((p,i)=><PortfolioCard key={`${p.title}-${i}`} p={p}/>)}
         </div>
       </section>
     </div>
