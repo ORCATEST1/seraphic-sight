@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation } from "react-router-dom";
 import {
   NAV_LINKS, STATS, PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
-  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS,
+  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL,
 } from "./data/content";
 
 // ===== NAV =====
@@ -107,9 +107,20 @@ function Home() {
   return (
     <div>
       <section style={{ position:"relative",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden" }}>
-        {[...Array(5)].map((_,i)=><div key={i} className="grid-line" style={{ left:`${20+i*16}%`,top:0,bottom:0,width:1 }}/>)}
-        <div className="glow-orb" style={{ top:-100,right:-100,width:500,height:500,background:"#0077FF",opacity:0.1 }}/>
-        <div className="glow-orb" style={{ bottom:-50,left:-50,width:400,height:400,background:"#00BFA6",opacity:0.08 }}/>
+        {HERO_VIDEO_URL ? (
+          <>
+            <video autoPlay muted loop playsInline
+              style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0 }}
+              src={HERO_VIDEO_URL}/>
+            <div style={{ position:"absolute",inset:0,background:"rgba(10,10,18,0.6)",zIndex:1 }}/>
+          </>
+        ) : (
+          <>
+            {[...Array(5)].map((_,i)=><div key={i} className="grid-line" style={{ left:`${20+i*16}%`,top:0,bottom:0,width:1 }}/>)}
+            <div className="glow-orb" style={{ top:-100,right:-100,width:500,height:500,background:"#0077FF",opacity:0.1 }}/>
+            <div className="glow-orb" style={{ bottom:-50,left:-50,width:400,height:400,background:"#00BFA6",opacity:0.08 }}/>
+          </>
+        )}
         <div className="animate-fadeUp" style={{ position:"relative",zIndex:2,textAlign:"center",maxWidth:860,padding:"120px 24px 80px" }}>
           <div className="tag-pill" style={{ background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",color:"#0077FF",marginBottom:32,display:"inline-flex" }}>
             <span style={{ width:6,height:6,borderRadius:"50%",background:"#0077FF",animation:"pulse 2s infinite" }}/>
