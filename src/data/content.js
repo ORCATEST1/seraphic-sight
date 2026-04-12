@@ -183,6 +183,10 @@ export const CON_CLIENTS = [
 ];
 
 // ===== PORTFOLIO =====
+// cloudinaryFolder: exact folder name in your Cloudinary Media Library.
+//   Images/videos inside that folder auto-load in the card.
+// tour360:  Momento360 embed URL — from your tour page → Share → Embed, copy the src URL
+// model3d:  Cloudinary raw-file URL for a .glb — upload via Cloudinary Media Library (any file type supported)
 export const PORTFOLIO_ITEMS = [
   {
     title: "Luxury Estate – Temecula Wine Country",
