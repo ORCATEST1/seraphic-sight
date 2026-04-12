@@ -183,211 +183,69 @@ export const CON_CLIENTS = [
 ];
 
 // ===== PORTFOLIO =====
-// cloudinaryFolder: exact folder name in your Cloudinary Media Library.
-//   Images/videos inside that folder auto-load in the card.
-// tour360:  Momento360 embed URL — from your tour page → Share → Embed, copy the src URL
-// model3d:  Cloudinary raw-file URL for a .glb — upload via Cloudinary Media Library (any file type supported)
+// cloudinaryFolder: exact folder name in your Cloudinary Media Library —
+//   images/videos inside auto-load when a tab is clicked.
+// tour360: Momento360 share URL
 export const PORTFOLIO_ITEMS = [
   {
-    title: "Luxury Estate – Temecula Wine Country",
+    title: "Featured Aerials – SoCal Portfolio",
     tag: "Property Marketing",
-    deliverables: "Aerial Photo · Cinematic Video · 360° Tour",
+    deliverables: "Signature Aerial Photography · Hero Shots · MLS-Ready",
     color: "#0077FF",
+    cloudinaryFolder: "Hero-shots",
+    media: { tour360: null, walkthrough: null, model3d: null },
+  },
+  {
+    title: "Lots & Land – Kern, Riverside & San Bernardino",
+    tag: "Property Marketing",
+    deliverables: "Aerial Photo · Land Documentation · Site Overview",
+    color: "#0077FF",
+    cloudinaryFolder: "Lots",
+    media: { tour360: null, walkthrough: null, model3d: null },
+  },
+  {
+    title: "Property Interiors – Southern California",
+    tag: "Property Marketing",
+    deliverables: "Interior Photography · Ground-Level Stills · MLS-Ready",
+    color: "#0077FF",
+    cloudinaryFolder: "Interiors",
+    media: { tour360: null, walkthrough: null, model3d: null },
+  },
+  {
+    title: "Commercial Properties – Los Angeles",
+    tag: "Property Marketing",
+    deliverables: "Aerial Photo · Cinematic Video · Commercial Coverage",
+    color: "#0077FF",
+    cloudinaryFolder: "la-commercial",
+    media: { tour360: null, walkthrough: null, model3d: null },
+  },
+  {
+    title: "Mobile Home Communities – Southern California",
+    tag: "Property Marketing",
+    deliverables: "Aerial Photo · Community Overview · 360° Panoramic",
+    color: "#0077FF",
+    cloudinaryFolder: "mobile-homes",
     media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Mobile_Homes/DJI_0322.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Mobile_Homes/DJI_0454.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Mobile_Homes/DJI_0780.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Mobile_Homes/DJI_0888.jpg",
-      ],
-      video: "https://res.cloudinary.com/dpc1noikx/video/upload/joe_4.mp4",
-      tour360: null,
+      tour360: "https://momento360.com/e/u/4c8c12a479114e87ab32b9ac829473e0?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=large&display-plan=true",
       walkthrough: null,
       model3d: null,
     },
   },
   {
-    title: "Multifamily Development – South Los Angeles",
+    title: "Multifamily Portfolio – San Diego County",
+    tag: "Property Marketing",
+    deliverables: "Aerial Photo · Cinematic Video · Complex Overview",
+    color: "#0077FF",
+    cloudinaryFolder: "san-diego-multifamily",
+    media: { tour360: null, walkthrough: null, model3d: null },
+  },
+  {
+    title: "Progress Monitoring – Active Build Sites",
     tag: "Construction",
-    deliverables: "DroneDeploy Progress Monitoring · Orthomosaic",
+    deliverables: "Timestamped Progress Docs · Aerial Photo · Site Documentation",
     color: "#00BFA6",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/sola-3501-crenshaw-construction-aerial-01.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/sola-3501-crenshaw-construction-aerial-02.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/sola-3501-crenshaw-construction-aerial-03.jpg",
-      ],
-      video: null,
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Desert Modern Estate – Palm Springs",
-    tag: "Property Marketing",
-    deliverables: "Aerial Photo · Drone Video · Twilight Shoot",
-    color: "#0077FF",
-    media: {
-      images: [],
-      video: "https://res.cloudinary.com/dpc1noikx/video/upload/clip1.mp4",
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Multifamily Construction – Los Angeles",
-    tag: "Construction",
-    deliverables: "GeoTIFF Mapping · As-Built Documentation",
-    color: "#00BFA6",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/sola-4101-somerset-construction-panorama.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/sola-4008-mlk-construction-aerial.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/sola-4252-whittier-construction-aerial.jpg",
-      ],
-      video: null,
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Coastal Listing – San Diego",
-    tag: "Property Marketing",
-    deliverables: "Aerial Photo · Cinematic Video · 360° Tour",
-    color: "#0077FF",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/San_Diego_Multifamily/aerial-residential-real-estate-san-diego-01.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/San_Diego_Multifamily/aerial-residential-real-estate-san-diego-02.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/San_Diego_Multifamily/aerial-residential-real-estate-san-diego-03.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/San_Diego_Multifamily/aerial-hdr-residential-coastal-oceanside-california-01.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/San_Diego_Multifamily/aerial-hdr-residential-coastal-oceanside-california-02.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/San_Diego_Multifamily/DJI_0036-HDR.jpeg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/San_Diego_Multifamily/94-DJI_0259.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/San_Diego_Multifamily/112-DJI_0287.jpg",
-      ],
-      video: "https://res.cloudinary.com/dpc1noikx/video/upload/Showcase_3.mp4",
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Construction Mapping – South Los Angeles",
-    tag: "Construction",
-    deliverables: "Orthomosaic · Progress Docs · DroneDeploy",
-    color: "#00BFA6",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/sola-florance-construction-aerial.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/sola-oblique-mapping-pass-construction-01.jpg",
-      ],
-      video: null,
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Large Lot Land – Porterville",
-    tag: "Property Marketing",
-    deliverables: "Aerial Photo · Orthomosaic Site Map",
-    color: "#0077FF",
-    media: {
-      images: [],
-      video: "https://res.cloudinary.com/dpc1noikx/video/upload/Showcase.mp4",
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Site Documentation – Los Angeles",
-    tag: "Construction",
-    deliverables: "Progress Monitoring · Site Visualization",
-    color: "#00BFA6",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/AB3BA538-569E-4CFE-A6D7-D15694DCC3B3.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/3-DJI_0014.jpg",
-      ],
-      video: null,
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Mid-Century Estate – Palm Desert",
-    tag: "Property Marketing",
-    deliverables: "Aerial Photo · Drone Video · Social Cuts",
-    color: "#0077FF",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Hero_shots/DJI_0521-Pano.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Hero_shots/DJI_0841.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Hero_shots/DJI_0104.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Hero_shots/B8BF74C3-98E2-4C69-8958-D92124D1FE27.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Hero_shots/dji_fly_20230107_145206_631_1673132863018_photo.jpg",
-      ],
-      video: null,
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Aerial Progress – Los Angeles",
-    tag: "Construction",
-    deliverables: "DroneDeploy · Orthomosaic · Timestamped Docs",
-    color: "#00BFA6",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/4-DJI_0960.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/LA_Commercial/V5_%281%29.00_01_30_08.Still005.jpg",
-      ],
-      video: null,
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Hillside Residence – Corona",
-    tag: "Property Marketing",
-    deliverables: "Cinematic Video · 360° Tour · Twilight Shoot",
-    color: "#0077FF",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Interior/interior-real-estate-photography-san-diego-01.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Interior/interior-real-estate-photography-san-diego-02.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Interior/IMG_3012.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Interior/Staged_%283%29.png",
-      ],
-      video: "https://res.cloudinary.com/dpc1noikx/video/upload/Showcase_2.mp4",
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
-  },
-  {
-    title: "Agricultural Land – Bakersfield",
-    tag: "Property Marketing",
-    deliverables: "Aerial Photo · Orthomosaic Mapping",
-    color: "#0077FF",
-    media: {
-      images: [
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Bakersfield_Lots/DJI_0002.jpg",
-        "https://res.cloudinary.com/dpc1noikx/image/upload/Bakersfield_Lots/DJI_0521.jpg",
-      ],
-      video: "https://res.cloudinary.com/dpc1noikx/video/upload/part_1.mp4",
-      tour360: null,
-      walkthrough: null,
-      model3d: null,
-    },
+    cloudinaryFolder: "Progress monitoring",
+    media: { tour360: null, walkthrough: null, model3d: null },
   },
 ];
 
