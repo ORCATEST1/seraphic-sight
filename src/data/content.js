@@ -1,3 +1,9 @@
+// ===== HERO VIDEO =====
+// Paste a Cloudinary video URL here to enable the homepage background video.
+// Get it from Cloudinary → select a video → Copy URL → paste below.
+// Leave null to keep the default animated background.
+export const HERO_VIDEO_URL = null;
+
 // ===== NAVIGATION =====
 export const NAV_LINKS = [
   "Home",

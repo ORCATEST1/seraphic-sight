@@ -42,7 +42,9 @@ export default async function handler(req, res) {
     //   f_auto  → convert any format (DNG, TIFF, etc.) to browser-displayable JPEG/WebP
     //   q_auto  → auto quality/compression
     //   a_exif  → apply EXIF rotation so drone photos appear right-side-up
-    const xform = type === "image" ? "f_auto,q_auto,a_exif" : "vc_auto,q_auto";
+    // w_2000,c_limit caps width at 2000px — still sharp in lightbox but avoids
+    // serving raw 50–80 MB drone files. Videos get adaptive codec + quality.
+    const xform = type === "image" ? "f_auto,q_auto,a_exif,w_2000,c_limit" : "vc_auto,q_auto";
     const urls = (data.resources || []).map(r =>
       r.secure_url.replace("/upload/", `/upload/${xform}/`)
     );
