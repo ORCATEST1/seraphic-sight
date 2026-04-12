@@ -37,7 +37,14 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    const urls = (data.resources || []).map(r => r.secure_url);
+    // Insert transformations between /upload/ and the version/public_id:
+    //   f_auto  → convert any format (DNG, TIFF, etc.) to browser-displayable JPEG/WebP
+    //   q_auto  → auto quality/compression
+    //   a_exif  → apply EXIF rotation so drone photos appear right-side-up
+    const xform = type === "image" ? "f_auto,q_auto,a_exif" : "vc_auto,q_auto";
+    const urls = (data.resources || []).map(r =>
+      r.secure_url.replace("/upload/", `/upload/${xform}/`)
+    );
 
     res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
     return res.json({ urls });
