@@ -223,10 +223,14 @@ export const PORTFOLIO_ITEMS = [
   {
     title: "Mobile Home Communities – Southern California",
     tag: "Property Marketing",
-    deliverables: "Aerial Photo · Community Overview · Site Documentation",
+    deliverables: "Aerial Photo · Community Overview · 360° Panoramic",
     color: "#0077FF",
     cloudinaryFolder: "mobile-homes",
-    media: { tour360: null, walkthrough: null, model3d: null },
+    media: {
+      tour360: "https://momento360.com/e/u/4c8c12a479114e87ab32b9ac829473e0?utm_campaign=embed&utm_source=other&heading=0&pitch=0&field-of-view=75&size=large&display-plan=true",
+      walkthrough: null,
+      model3d: null,
+    },
   },
   {
     title: "Multifamily Portfolio – San Diego County",
@@ -244,16 +248,8 @@ export const PORTFOLIO_ITEMS = [
     cloudinaryFolder: "Progress monitoring",
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // 360° tours: get embed URL from Momento360 → Share → copy the iframe src value
-  // paste it into tour360 below (one entry per tour, or pick your best one)
-  {
-    title: "360° Virtual Tours – Residential Listings",
-    tag: "Property Marketing",
-    deliverables: "360° Tour · Ricoh Theta Z1 · Hosted on Momento360",
-    color: "#0077FF",
-    cloudinaryFolder: null,
-    media: { tour360: null, walkthrough: null, model3d: null },
-  },
+  // Add more Momento360 panoramic URLs here as you collect them
+  // Get URL from Momento360: open tour → share icon → copy the link shown
   // 3D models: upload .glb files to Cloudinary (Media Library → Upload → any file type)
   // paste the resulting secure_url into model3d below
   {
