@@ -21,9 +21,10 @@ export default async function handler(req, res) {
   }
 
   const auth = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString("base64");
-  // Use asset_folder for Cloudinary's dynamic folder model (folders stored as metadata, not in public_id).
-  // Falls back to prefix search for legacy accounts where the folder was part of the public_id.
-  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/${type}?type=upload&asset_folder=${encodeURIComponent(folder)}&max_results=50`;
+  // The regular /resources endpoint ignores asset_folder as a filter.
+  // The Search API is required to filter by asset_folder in Cloudinary's dynamic folder model.
+  const expression = `asset_folder="${folder}" AND resource_type:${type}`;
+  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/search?expression=${encodeURIComponent(expression)}&max_results=50`;
 
   try {
     const response = await fetch(url, {
