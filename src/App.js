@@ -398,132 +398,28 @@ function PortfolioCard({ p }) {
 }
 
 // ===== PORTFOLIO =====
-
-// ---- MediaGallery -----------------------------------------------------------
-function MediaGallery({ images }) {
-  const [lightboxSrc, setLightboxSrc] = React.useState(null);
-  if (!images || images.length === 0) return null;
-  return (
-    <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 6, marginTop: 12 }}>
-        {images.map((src, i) => (
-          <img key={i} src={src} alt="" onClick={() => setLightboxSrc(src)}
-            style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 6, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.08)' }} />
-        ))}
-      </div>
-      {lightboxSrc && (
-        <div onClick={() => setLightboxSrc(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <img src={lightboxSrc} alt="" style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 8 }} />
-        </div>
-      )}
-    </>
-  );
-}
-
-// ---- VideoPlayer ------------------------------------------------------------
-function VideoPlayer({ url }) {
-  if (!url) return null;
-  return <video controls src={url} style={{ width: '100%', borderRadius: 8, marginTop: 12, background: '#000', display: 'block' }} />;
-}
-
-// ---- Tour360 ----------------------------------------------------------------
-function Tour360({ url }) {
-  if (!url) return null;
-  return <iframe src={url} title="360 Tour" allow="xr-spatial-tracking" sandbox="allow-scripts allow-same-origin allow-popups allow-pointer-lock"
-    style={{ width: '100%', height: 260, borderRadius: 8, border: 'none', marginTop: 12, display: 'block' }} />;
-}
-
-// ---- WalkthroughEmbed -------------------------------------------------------
-function WalkthroughEmbed({ url }) {
-  if (!url) return null;
-  return <iframe src={url} title="Walkthrough" style={{ width: '100%', height: 260, borderRadius: 8, border: 'none', marginTop: 12, display: 'block' }} />;
-}
-
-// ---- ModelViewer -------------------------------------------------------------
-function ModelViewer({ url }) {
-  if (!url) return null;
-  return React.createElement('model-viewer', { src: url, 'camera-controls': true, 'auto-rotate': true, ar: true,
-    style: { width: '100%', height: 260, borderRadius: 8, marginTop: 12, display: 'block', background: 'rgba(0,0,0,0.3)' } });
-}
-
-// ---- MediaSection -----------------------------------------------------------
-function MediaSection({ media, accentColor }) {
-  const [activeTab, setActiveTab] = React.useState(null);
-  if (!media) return null;
-  const tabs = [];
-  if (media.images && media.images.length > 0) tabs.push({ key: 'images', label: 'Photos' });
-  if (media.video)       tabs.push({ key: 'video',       label: 'Video' });
-  if (media.tour360)     tabs.push({ key: 'tour360',     label: '360' });
-  if (media.walkthrough) tabs.push({ key: 'walkthrough', label: 'Walkthrough' });
-  if (media.model3d)     tabs.push({ key: 'model3d',     label: '3D Model' });
-  if (tabs.length === 0) return null;
-  const current = activeTab || tabs[0].key;
-  return (
-    <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 16 }}>
-      {tabs.length > 1 && (
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-          {tabs.map((tab) => (
-            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              style={{ padding: '3px 10px', fontSize: 11, fontWeight: 600, borderRadius: 20, cursor: 'pointer',
-                border: current === tab.key ? `1px solid ${accentColor}` : '1px solid rgba(255,255,255,0.12)',
-                background: current === tab.key ? `${accentColor}22` : 'transparent',
-                color: current === tab.key ? accentColor : '#6666A0', transition: 'all 0.15s' }}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      )}
-      {current === 'images'      && <MediaGallery     images={media.images} />}
-      {current === 'video'       && <VideoPlayer      url={media.video} />}
-      {current === 'tour360'     && <Tour360          url={media.tour360} />}
-      {current === 'walkthrough' && <WalkthroughEmbed url={media.walkthrough} />}
-      {current === 'model3d'     && <ModelViewer      url={media.model3d} />}
-    </div>
-  );
-}
-
 function Portfolio() {
-  const [filter, setFilter] = React.useState('All');
-  const filtered = filter === 'All' ? PORTFOLIO_ITEMS : PORTFOLIO_ITEMS.filter((item) => item.tag === filter);
+  const [filter, setFilter] = React.useState("All");
+  const filtered = filter==="All" ? PORTFOLIO_ITEMS : PORTFOLIO_ITEMS.filter(p=>p.tag===filter);
   return (
     <div>
-      <PageHero tag="Portfolio" title="5 Years of Work Across SoCal"
-        subtitle="Aerial photography, video, 360 tours, and DroneDeploy site documentation from San Diego to Bakersfield, residential to commercial." />
-      <section style={{ padding: '0 24px 100px', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 48, flexWrap: 'wrap' }}>
-          {['All', 'Property Marketing', 'Construction'].map((f) => (
-            <button key={f} className="filter-btn" onClick={() => setFilter(f)}
-              style={{ border: filter === f ? '1px solid #0077FF' : '1px solid rgba(255,255,255,0.1)',
-                background: filter === f ? 'rgba(0,119,255,0.12)' : 'transparent',
-                color: filter === f ? '#0077FF' : '#8888A0' }}>
+      <PageHero tag="Portfolio" title="5 Years of Work Across SoCal" subtitle="Aerial photography, video, 360° tours, and DroneDeploy site documentation — from San Diego to Bakersfield, residential to commercial."/>
+      <section style={{ padding:"0 24px 100px",maxWidth:1200,margin:"0 auto" }}>
+        <div style={{ display:"flex",justifyContent:"center",gap:12,marginBottom:48,flexWrap:"wrap" }}>
+          {["All","Property Marketing","Construction"].map(f=>(
+            <button key={f} className="filter-btn" onClick={()=>setFilter(f)}
+              style={{ border:filter===f?"1px solid #0077FF":"1px solid rgba(255,255,255,0.1)",background:filter===f?"rgba(0,119,255,0.12)":"transparent",color:filter===f?"#0077FF":"#8888A0" }}>
               {f}
             </button>
           ))}
         </div>
-        <div className="responsive-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
-          {filtered.map((item, i) => (
-            <div key={`${item.title}-${i}`} className="card-hover"
-              style={{ background: `linear-gradient(135deg, ${item.color}08, ${item.color}03)`,
-                border: `1px solid ${item.color}18`, borderRadius: 14, padding: 36 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: item.color }} />
-                <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1.5, color: item.color }}>
-                  {item.tag}
-                </span>
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 10 }}>{item.title}</h3>
-              <p style={{ fontSize: 13, color: '#8888A0' }}>{item.deliverables}</p>
-              <MediaSection media={item.media} accentColor={item.color} />
-            </div>
-          ))}
+        <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:20 }}>
+          {filtered.map((p,i)=><PortfolioCard key={`${p.title}-${i}`} p={p}/>)}
         </div>
       </section>
     </div>
   );
 }
-
-
 
 function ServiceArea() {
   return (
