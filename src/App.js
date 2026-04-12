@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation } from "react-router-dom";
 import {
   NAV_LINKS, STATS, PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
-  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL,
+  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL, TRAVEL_FEE,
 } from "./data/content";
 
 // ===== NAV =====
@@ -99,6 +99,22 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+function TravelFeeNote({ accent = "#0077FF" }) {
+  return (
+    <div style={{ marginTop:32,padding:"18px 24px",background:`${accent}08`,border:`1px solid ${accent}18`,borderRadius:12,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12 }}>
+      <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+        <span style={{ fontSize:14 }}>🚗</span>
+        <span style={{ fontSize:13,fontWeight:700,color:"#fff" }}>Travel Fee</span>
+        <span style={{ fontSize:13,fontWeight:700,color:accent }}>{TRAVEL_FEE.rate}</span>
+      </div>
+      <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>|</div>
+      <span style={{ fontSize:13,color:"#8888A0" }}>{TRAVEL_FEE.nearRule}</span>
+      <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>·</div>
+      <span style={{ fontSize:13,color:"#8888A0" }}>{TRAVEL_FEE.farRule}</span>
+    </div>
   );
 }
 
@@ -213,6 +229,7 @@ function PropertyMarketing() {
             <div style={{ maxWidth:600,margin:"0 auto",display:"grid",gap:12 }}>
               {PROP_ADDONS.map((a,i)=>(<div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10 }}><span style={{ fontSize:14,color:"#C0C0D0" }}>{a.name}</span><span style={{ fontSize:14,fontWeight:700,color:"#fff",flexShrink:0,marginLeft:16 }}>{a.price}</span></div>))}
             </div>
+            <div style={{ maxWidth:600,margin:"0 auto" }}><TravelFeeNote accent="#0077FF"/></div>
           </div>
         </div>
       </section>
@@ -255,6 +272,7 @@ function Construction() {
         <div style={{ marginTop:32,padding:24,background:"rgba(0,191,166,0.05)",border:"1px solid rgba(0,191,166,0.12)",borderRadius:12 }}>
           <p style={{ fontSize:13,color:"#8888A0",lineHeight:1.8 }}><strong style={{ color:"#fff" }}>Every engagement includes:</strong> DroneDeploy automated flight plans · GeoTIFF + LAS/LAZ deliverables · Procore / BIM 360 compatible outputs · Organized, timestamped progress imagery · Site superintendent coordination · COI provided upon request</p>
         </div>
+        <TravelFeeNote accent="#00BFA6"/>
       </section>
       <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
         <div style={{ maxWidth:900,margin:"0 auto" }}>
