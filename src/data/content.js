@@ -2,7 +2,17 @@
 // Paste a Cloudinary video URL here to enable the homepage background video.
 // Get it from Cloudinary → select a video → Copy URL → paste below.
 // Leave null to keep the default animated background.
-export const HERO_VIDEO_URL = null;
+export const HERO_VIDEO_URL = "https://res.cloudinary.com/dpc1noikx/video/upload/vc_auto,q_auto/v1775876439/Showcase_3_n4gxow.mp4";
+
+// ===== TRAVEL FEE =====
+// Threshold: jobs under this many miles are billed round-trip (short hops).
+// Jobs at or beyond this distance are billed one-way (long hauls).
+export const TRAVEL_FEE = {
+  rate: "$0.70/mile",
+  threshold: 50,
+  nearRule: "Under 50 miles: billed round-trip",
+  farRule:  "50+ miles: billed one-way",
+};
 
 // ===== NAVIGATION =====
 export const NAV_LINKS = [
