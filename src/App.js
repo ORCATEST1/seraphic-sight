@@ -331,7 +331,7 @@ function PortfolioCard({ p }) {
   const [fetched, setFetched] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
-  const hasCld = !!p.cloudinaryTag;
+  const hasCld = !!p.cloudinaryFolder;
   const tabs = [
     (hasCld || images.length) && "Photos",
     (hasCld || videoUrl) && "Video",
@@ -347,8 +347,8 @@ function PortfolioCard({ p }) {
     setLoading(true);
     try {
       const [imgRes, vidRes] = await Promise.all([
-        fetch(`/api/cloudinary-images?tag=${p.cloudinaryTag}&type=image`).then(r=>r.json()),
-        fetch(`/api/cloudinary-images?tag=${p.cloudinaryTag}&type=video`).then(r=>r.json()),
+        fetch(`/api/cloudinary-images?folder=${p.cloudinaryFolder}&type=image`).then(r=>r.json()),
+        fetch(`/api/cloudinary-images?folder=${p.cloudinaryFolder}&type=video`).then(r=>r.json()),
       ]);
       setImages(imgRes.urls||[]);
       setVideoUrl(vidRes.urls?.[0]||null);
