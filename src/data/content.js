@@ -183,40 +183,35 @@ export const CON_CLIENTS = [
 ];
 
 // ===== PORTFOLIO =====
-// cloudinaryFolder: images/videos inside this Cloudinary folder auto-load in this card.
-//   In Cloudinary Media Library: create a folder with this exact name, move files into it.
-// tour360:     Momento360 embed URL  (e.g. "https://momento360.com/e/u/...")
-// walkthrough: DroneDeploy or SphereXG embed URL
-// model3d:     Cloudinary GLB file secure_url
+// cloudinaryFolder: exact folder name in your Cloudinary Media Library.
+//   Images/videos inside that folder auto-load in the card.
+// tour360:  Momento360 embed URL — from your tour page → Share → Embed, copy the src URL
+// model3d:  Cloudinary raw-file URL for a .glb — upload via Cloudinary Media Library (any file type supported)
 export const PORTFOLIO_ITEMS = [
-  // Drive folder: "Hero shots" → Cloudinary folder name: hero-shots
   {
     title: "Featured Aerials – SoCal Portfolio",
     tag: "Property Marketing",
     deliverables: "Signature Aerial Photography · Hero Shots · MLS-Ready",
     color: "#0077FF",
-    cloudinaryFolder: "hero-shots",
+    cloudinaryFolder: "Hero-shots",
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "Bakersfield Lots" → Cloudinary folder name: bakersfield-lots
   {
-    title: "Residential & Agricultural Lots – Bakersfield",
+    title: "Lots & Land – Kern, Riverside & San Bernardino",
     tag: "Property Marketing",
-    deliverables: "Aerial Photo · Orthomosaic Mapping · Land Documentation",
+    deliverables: "Aerial Photo · Land Documentation · Site Overview",
     color: "#0077FF",
-    cloudinaryFolder: "bakersfield-lots",
+    cloudinaryFolder: "Lots",
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "Interior" → Cloudinary folder name: interior
   {
     title: "Property Interiors – Southern California",
     tag: "Property Marketing",
     deliverables: "Interior Photography · Ground-Level Stills · MLS-Ready",
     color: "#0077FF",
-    cloudinaryFolder: "interior",
+    cloudinaryFolder: "Interiors",
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "LA Commercial" → Cloudinary folder name: la-commercial
   {
     title: "Commercial Properties – Los Angeles",
     tag: "Property Marketing",
@@ -225,7 +220,6 @@ export const PORTFOLIO_ITEMS = [
     cloudinaryFolder: "la-commercial",
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "Mobile Homes" → Cloudinary folder name: mobile-homes
   {
     title: "Mobile Home Communities – Southern California",
     tag: "Property Marketing",
@@ -234,7 +228,6 @@ export const PORTFOLIO_ITEMS = [
     cloudinaryFolder: "mobile-homes",
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Drive folder: "San Diego Multifamily" → Cloudinary folder name: san-diego-multifamily
   {
     title: "Multifamily Portfolio – San Diego County",
     tag: "Property Marketing",
@@ -243,25 +236,16 @@ export const PORTFOLIO_ITEMS = [
     cloudinaryFolder: "san-diego-multifamily",
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Construction – DroneDeploy progress monitoring → Cloudinary folder name: progress-monitoring
   {
     title: "Progress Monitoring – Active Build Sites",
     tag: "Construction",
-    deliverables: "DroneDeploy Flights · Timestamped Progress Docs · Orthomosaic",
+    deliverables: "Timestamped Progress Docs · Aerial Photo · Site Documentation",
     color: "#00BFA6",
-    cloudinaryFolder: "progress-monitoring",
+    cloudinaryFolder: "Progress monitoring",
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Construction – orthomosaic mapping → Cloudinary folder name: orthomosaic
-  {
-    title: "Orthomosaic Mapping – Inland Empire",
-    tag: "Construction",
-    deliverables: "GeoTIFF · Aerial Survey · ArcGIS & AutoCAD Compatible",
-    color: "#00BFA6",
-    cloudinaryFolder: "orthomosaic",
-    media: { tour360: null, walkthrough: null, model3d: null },
-  },
-  // 360° tours – paste Momento360 embed URL into tour360 when ready
+  // 360° tours: get embed URL from Momento360 → Share → copy the iframe src value
+  // paste it into tour360 below (one entry per tour, or pick your best one)
   {
     title: "360° Virtual Tours – Residential Listings",
     tag: "Property Marketing",
@@ -270,11 +254,12 @@ export const PORTFOLIO_ITEMS = [
     cloudinaryFolder: null,
     media: { tour360: null, walkthrough: null, model3d: null },
   },
-  // Construction walkthroughs – paste DroneDeploy or SphereXG embed URL into walkthrough when ready
+  // 3D models: upload .glb files to Cloudinary (Media Library → Upload → any file type)
+  // paste the resulting secure_url into model3d below
   {
-    title: "Site Walkthroughs – Commercial Construction",
+    title: "3D Site Models – Drone Capture",
     tag: "Construction",
-    deliverables: "SphereXG Walkthrough · DroneDeploy · As-Built Documentation",
+    deliverables: "3D GLB Model · DroneDeploy Export · Interactive Viewer",
     color: "#00BFA6",
     cloudinaryFolder: null,
     media: { tour360: null, walkthrough: null, model3d: null },
