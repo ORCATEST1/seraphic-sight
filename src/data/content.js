@@ -250,16 +250,6 @@ export const PORTFOLIO_ITEMS = [
   },
   // Add more Momento360 panoramic URLs here as you collect them
   // Get URL from Momento360: open tour → share icon → copy the link shown
-  // 3D models: upload .glb files to Cloudinary (Media Library → Upload → any file type)
-  // paste the resulting secure_url into model3d below
-  {
-    title: "3D Site Models – Drone Capture",
-    tag: "Construction",
-    deliverables: "3D GLB Model · DroneDeploy Export · Interactive Viewer",
-    color: "#00BFA6",
-    cloudinaryFolder: null,
-    media: { tour360: null, walkthrough: null, model3d: null },
-  },
 ];
 
 // ===== SERVICE AREA =====
