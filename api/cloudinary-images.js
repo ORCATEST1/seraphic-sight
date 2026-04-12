@@ -21,9 +21,9 @@ export default async function handler(req, res) {
   }
 
   const auth = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString("base64");
-  // Trailing slash ensures we match files inside the folder, not files whose name starts with the folder name
-  const prefix = folder.endsWith("/") ? folder : `${folder}/`;
-  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/${type}/upload?prefix=${encodeURIComponent(prefix)}&type=upload&max_results=50`;
+  // Use asset_folder for Cloudinary's dynamic folder model (folders stored as metadata, not in public_id).
+  // Falls back to prefix search for legacy accounts where the folder was part of the public_id.
+  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/${type}?type=upload&asset_folder=${encodeURIComponent(folder)}&max_results=50`;
 
   try {
     const response = await fetch(url, {
