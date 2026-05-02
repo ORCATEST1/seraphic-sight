@@ -35,27 +35,22 @@ export const STATS = [
 // ===== PROPERTY MARKETING =====
 export const PROP_SERVICES = [
   {
-    icon: "📸",
     title: "Drone Photography",
     desc: "High-resolution aerial images that showcase property scale, lot lines, surroundings, and neighborhood context. Delivered edited and MLS-ready.",
   },
   {
-    icon: "🎬",
     title: "Drone Video",
     desc: "Cinematic aerial video with smooth flight paths, professional editing, and licensed music. Delivered in 16:9 for MLS and YouTube, plus vertical 9:16 cuts for Instagram Reels and TikTok.",
   },
   {
-    icon: "🏠",
     title: "360° Virtual Tours",
     desc: "Immersive virtual walkthroughs shot with the Ricoh Theta Z1 and Insta360 X. Buyers explore every room remotely — hosted, shareable, and embeddable on any listing platform.",
   },
   {
-    icon: "🗺️",
     title: "Aerial Mapping",
     desc: "Orthomosaic site maps for large lots, land parcels, and development sites. Accurate, geo-referenced, and presentation-ready.",
   },
   {
-    icon: "📦",
     title: "Full Marketing Packages",
     desc: "Send us the APN and your deliverable list — we handle scheduling, capture, editing, and delivery. One point of contact, one invoice.",
   },
@@ -131,32 +126,26 @@ export const PROP_PROCESS = [
 // ===== CONSTRUCTION =====
 export const CON_CAPABILITIES = [
   {
-    icon: "🛰️",
     title: "DroneDeploy Automated Flights",
     desc: "Pre-programmed flight paths ensure identical coverage every visit. Outputs delivered in GeoTIFF, LAS/LAZ, and DXF — compatible with Procore, Autodesk BIM 360, ArcGIS, and AutoCAD Civil3D.",
   },
   {
-    icon: "🗺️",
     title: "Orthomosaic Mapping",
     desc: "High-resolution, geo-referenced composite maps stitched from hundreds of overlapping images. Delivered as GeoTIFF for direct import into ArcGIS, QGIS, or AutoCAD Civil3D. Measure distances, calculate areas, and track site changes over time.",
   },
   {
-    icon: "📊",
     title: "Progress Monitoring",
     desc: "Scheduled site captures — weekly, biweekly, or monthly — that document every phase from groundbreak to closeout. Timestamped and organized for stakeholder reporting.",
   },
   {
-    icon: "👁️",
     title: "Site Visualization",
     desc: "Aerial perspectives that give owners, architects, and project managers a clear view of site conditions, staging areas, access roads, and overall project context.",
   },
   {
-    icon: "📁",
     title: "As-Built Documentation",
     desc: "Final-condition captures that serve as permanent visual records. Useful for warranty documentation, dispute resolution, and facility management handoffs.",
   },
   {
-    icon: "🔒",
     title: "Insurance & Compliance",
     desc: "Every flight is FAA Part 107 compliant. Full liability insurance with COI provided upon request. We coordinate access and safety with your site superintendent.",
   },

@@ -106,7 +106,7 @@ function TravelFeeNote({ accent = "#0077FF" }) {
   return (
     <div style={{ marginTop:32,padding:"18px 24px",background:`${accent}08`,border:`1px solid ${accent}18`,borderRadius:12,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12 }}>
       <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-        <span style={{ fontSize:14 }}>🚗</span>
+        
         <span style={{ fontSize:13,fontWeight:700,color:"#fff" }}>Travel Fee</span>
         <span style={{ fontSize:13,fontWeight:700,color:accent }}>{TRAVEL_FEE.rate}</span>
       </div>
@@ -165,13 +165,13 @@ function Home() {
         <SectionTitle title="Two Verticals. One Provider." sub="Whether you're selling properties or building them, we deliver."/>
         <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:24 }}>
           <div className="card-hover" style={{ background:"linear-gradient(180deg,rgba(0,119,255,0.06),rgba(0,119,255,0.02))",border:"1px solid rgba(0,119,255,0.12)",borderRadius:16,padding:44 }}>
-            <div style={{ fontSize:28,marginBottom:20 }}>📸</div>
+            
             <h3 style={{ fontSize:22,fontWeight:700,color:"#fff",marginBottom:10 }}>Property Marketing</h3>
             <p style={{ color:"#8888A0",lineHeight:1.7,fontSize:14,marginBottom:24 }}>Aerial photography, drone video, 360° virtual tours, and complete marketing packages. Send us the APN — we handle the rest.</p>
             <Link to="/property-marketing"><button className="btn-primary" style={{ width:"100%" }}>View Services →</button></Link>
           </div>
           <div className="card-hover" style={{ background:"linear-gradient(180deg,rgba(0,191,166,0.06),rgba(0,191,166,0.02))",border:"1px solid rgba(0,191,166,0.12)",borderRadius:16,padding:44 }}>
-            <div style={{ fontSize:28,marginBottom:20 }}>🏗️</div>
+            
             <h3 style={{ fontSize:22,fontWeight:700,color:"#fff",marginBottom:10 }}>Construction & Development</h3>
             <p style={{ color:"#8888A0",lineHeight:1.7,fontSize:14,marginBottom:24 }}>DroneDeploy automated workflows, orthomosaic mapping, and progress documentation for multi-million dollar projects.</p>
             <Link to="/construction"><button className="btn-outline" style={{ width:"100%",borderColor:"rgba(0,191,166,0.3)",color:"#00BFA6" }}>View Services →</button></Link>
@@ -207,7 +207,7 @@ function PropertyMarketing() {
       <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="What We Deliver" sub="Every service designed to move listings faster."/>
         <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
-          {PROP_SERVICES.map((s,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><div style={{ fontSize:28,marginBottom:14 }}>{s.icon}</div><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{s.title}</h3><p style={{ fontSize:13,color:"#8888A0",lineHeight:1.7 }}>{s.desc}</p></div>))}
+          {PROP_SERVICES.map((s,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{s.title}</h3><p style={{ fontSize:13,color:"#8888A0",lineHeight:1.7 }}>{s.desc}</p></div>))}
         </div>
       </section>
       <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
@@ -253,7 +253,7 @@ function Construction() {
       <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="Capabilities" sub="Enterprise-grade aerial documentation for every project phase."/>
         <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
-          {CON_CAPABILITIES.map((c,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><div style={{ fontSize:28,marginBottom:14 }}>{c.icon}</div><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{c.title}</h3><p style={{ fontSize:13,color:"#8888A0",lineHeight:1.7 }}>{c.desc}</p></div>))}
+          {CON_CAPABILITIES.map((c,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{c.title}</h3><p style={{ fontSize:13,color:"#8888A0",lineHeight:1.7 }}>{c.desc}</p></div>))}
         </div>
       </section>
       <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
@@ -456,7 +456,7 @@ function ServiceArea() {
       <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast — if your project is in our range, we'll be on site."/>
       <section style={{ padding:"0 24px 60px",maxWidth:1200,margin:"0 auto" }}>
         <div style={{ maxWidth:900,margin:"0 auto 60px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",padding:48 }}>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:32,textAlign:"center" }}>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:32,textAlign:"center" }}>
             {[{n:"7",l:"Coverage Regions"},{n:"200+",l:"Cities & Communities"},{n:"400mi",l:"Coverage Radius"},{n:"Same Week",l:"Typical Availability"}].map((s,i)=>(
               <div key={i}>
                 <div style={{ fontSize:32,fontWeight:800,color:"#fff",letterSpacing:"-1px" }}>{s.n}</div>
