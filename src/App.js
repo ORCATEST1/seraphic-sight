@@ -297,7 +297,7 @@ function Construction() {
         <div style={{ borderRadius:16,overflow:"hidden",border:"1px solid rgba(0,191,166,0.15)" }}>
           <img src="https://res.cloudinary.com/dpc1noikx/image/upload/v1778210648/map-snapshot_q3dk25.png" alt="DroneDeploy orthomosaic map - active construction site" style={{ width:"100%",display:"block" }}/>
           <div style={{ padding:"16px 24px",background:"rgba(0,191,166,0.04)",borderTop:"1px solid rgba(0,191,166,0.1)" }}>
-            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map generated from a live DroneDeploy flight � construction progress monitoring, Southern California.</p>
+            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map � live DroneDeploy flight, construction progress monitoring, Southern California.</p>
           </div>
         </div>
       </section>
@@ -331,93 +331,106 @@ function Construction() {
   );
 }
 
-// ===== MEDIA COMPONENTS =====
-function MediaGallery({ images }) {
-  const [lightbox, setLightbox] = React.useState(null);
-  if (!images || !images.length) return null;
+// ===== PORTFOLIO LIGHTBOX =====
+function PortfolioLightbox({ p, images, videoUrl, initialTab, onClose }) {
+  const [tab, setTab] = React.useState(initialTab);
+  const [idx, setIdx] = React.useState(0);
+
+  React.useEffect(() => {
+    const h = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", h); document.body.style.overflow = ""; };
+  }, [onClose]);
+
+  const tabs = [
+    images.length && "Photos",
+    videoUrl && "Video",
+    p.media?.tour360 && "360° Tour",
+    p.media?.walkthrough && "Walkthrough",
+  ].filter(Boolean);
+
   return (
-    <>
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:8,marginTop:16 }}>
-        {images.map((src,i)=>(
-          <div key={i} onClick={()=>setLightbox(src)}
-            style={{ aspectRatio:"16/9",borderRadius:8,overflow:"hidden",cursor:"pointer",background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)" }}>
-            <img src={src} alt={`Photo ${i+1}`} style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
-          </div>
-        ))}
-      </div>
-      {lightbox&&(
-        <div onClick={()=>setLightbox(null)}
-          style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:24,cursor:"pointer" }}>
-          <img src={lightbox} alt="Full view" style={{ maxWidth:"90vw",maxHeight:"90vh",borderRadius:12,objectFit:"contain" }}/>
-          <div style={{ position:"absolute",top:24,right:32,color:"#fff",fontSize:28,lineHeight:1 }}>✕</div>
+    <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.97)",zIndex:1000,display:"flex",flexDirection:"column" }}>
+      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 28px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0 }}>
+        <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+          <span style={{ width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0 }}/>
+          <span style={{ color:"#fff",fontWeight:700,fontSize:17 }}>{p.title}</span>
         </div>
-      )}
-    </>
-  );
-}
-
-function VideoPlayer({ url }) {
-  if (!url) return null;
-  return (
-    <div style={{ marginTop:16,borderRadius:12,overflow:"hidden",background:"#000" }}>
-      <video controls style={{ width:"100%",maxHeight:360,display:"block" }} src={url}/>
+        <div style={{ display:"flex",alignItems:"center",gap:8,flexWrap:"wrap" }}>
+          {tabs.map(t=>(
+            <button key={t} onClick={()=>{setTab(t);setIdx(0);}}
+              style={{ padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:600,cursor:"pointer",
+                border:tab===t?`1px solid ${p.color}`:"1px solid rgba(255,255,255,0.12)",
+                background:tab===t?`${p.color}20`:"transparent",
+                color:tab===t?p.color:"#8888A0" }}>
+              {t}
+            </button>
+          ))}
+          <button onClick={onClose} style={{ color:"#8888A0",fontSize:22,background:"none",border:"none",cursor:"pointer",padding:"0 4px",lineHeight:1,marginLeft:8 }}>✕</button>
+        </div>
+      </div>
+      <div style={{ flex:1,overflow:"hidden",display:"flex",flexDirection:"column",padding:"28px 40px",minHeight:0 }}>
+        {tab==="Photos"&&images.length>0&&(
+          <>
+            <div style={{ flex:1,position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:0 }}>
+              <img src={images[idx]} alt={`Photo ${idx+1}`} style={{ maxWidth:"100%",maxHeight:"100%",borderRadius:10,objectFit:"contain" }}/>
+              {images.length>1&&<>
+                <button onClick={()=>setIdx(i=>(i-1+images.length)%images.length)}
+                  style={{ position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:22,width:42,height:42,borderRadius:"50%",cursor:"pointer" }}>&#8249;</button>
+                <button onClick={()=>setIdx(i=>(i+1)%images.length)}
+                  style={{ position:"absolute",right:0,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:22,width:42,height:42,borderRadius:"50%",cursor:"pointer" }}>&#8250;</button>
+              </>}
+            </div>
+            {images.length>1&&(
+              <div style={{ display:"flex",gap:6,marginTop:14,overflowX:"auto",padding:"4px 0",flexShrink:0,justifyContent:"center" }}>
+                {images.map((src,i)=>(
+                  <div key={i} onClick={()=>setIdx(i)}
+                    style={{ width:60,height:40,borderRadius:5,overflow:"hidden",cursor:"pointer",flexShrink:0,
+                      border:i===idx?`2px solid ${p.color}`:"2px solid transparent",
+                      opacity:i===idx?1:0.4,transition:"opacity 0.15s" }}>
+                    <img src={src} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p style={{ textAlign:"center",marginTop:10,fontSize:12,color:"#555570",flexShrink:0 }}>{idx+1} / {images.length}</p>
+          </>
+        )}
+        {tab==="Video"&&videoUrl&&(
+          <div style={{ display:"flex",alignItems:"center",justifyContent:"center",height:"100%" }}>
+            <video controls autoPlay style={{ maxWidth:"100%",maxHeight:"100%",borderRadius:10 }} src={videoUrl}/>
+          </div>
+        )}
+        {tab==="360° Tour"&&p.media?.tour360&&(
+          <div style={{ height:"100%",borderRadius:10,overflow:"hidden" }}>
+            <iframe src={p.media.tour360} title="360 Tour" style={{ width:"100%",height:"100%",border:"none" }}
+              allow="xr-spatial-tracking; gyroscope; accelerometer" allowFullScreen/>
+          </div>
+        )}
+        {tab==="Walkthrough"&&p.media?.walkthrough&&(
+          <div style={{ height:"100%",borderRadius:10,overflow:"hidden" }}>
+            <iframe src={p.media.walkthrough} title="Walkthrough" style={{ width:"100%",height:"100%",border:"none" }} allowFullScreen/>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-function Tour360({ url }) {
-  if (!url) return null;
-  return (
-    <div style={{ marginTop:16,borderRadius:12,overflow:"hidden",aspectRatio:"16/9" }}>
-      <iframe src={url} title="360° Tour" style={{ width:"100%",height:"100%",border:"none" }}
-        allow="xr-spatial-tracking; gyroscope; accelerometer" allowFullScreen/>
-    </div>
-  );
-}
 
-function WalkthroughEmbed({ url }) {
-  if (!url) return null;
-  return (
-    <div style={{ marginTop:16,borderRadius:12,overflow:"hidden",aspectRatio:"16/9" }}>
-      <iframe src={url} title="Site Walkthrough" style={{ width:"100%",height:"100%",border:"none" }} allowFullScreen/>
-    </div>
-  );
-}
-
-function ModelViewer3D({ url }) {
-  if (!url) return null;
-  return (
-    <div style={{ marginTop:16,borderRadius:12,overflow:"hidden",height:300 }}>
-      {React.createElement("model-viewer", {
-        src: url,
-        "camera-controls": "",
-        "auto-rotate": "",
-        style: { width:"100%",height:"100%",background:"rgba(0,0,0,0.3)" },
-      })}
-    </div>
-  );
-}
 
 function PortfolioCard({ p }) {
   const [images, setImages] = React.useState([]);
   const [videoUrl, setVideoUrl] = React.useState(null);
   const [fetched, setFetched] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
+  const [lightboxTab, setLightboxTab] = React.useState(null);
 
   const hasCld = !!p.cloudinaryFolder;
-  const tabs = [
-    (hasCld || images.length) && "Photos",
-    (hasCld || videoUrl) && "Video",
-    p.media?.tour360 && "360° Tour",
-    p.media?.walkthrough && "Walkthrough",
-    p.media?.model3d && "3D Model",
-  ].filter(Boolean);
-  const [activeTab, setActiveTab] = React.useState(tabs[0]||null);
 
   const fetchCloudinary = React.useCallback(async () => {
     if (!hasCld || fetched) return;
     setFetched(true);
-    setLoading(true);
     try {
       const [imgRes, vidRes] = await Promise.all([
         fetch(`/api/cloudinary-images?folder=${p.cloudinaryFolder}&type=image`).then(r=>r.json()),
@@ -425,59 +438,53 @@ function PortfolioCard({ p }) {
       ]);
       setImages(imgRes.urls||[]);
       setVideoUrl(vidRes.urls?.[0]||null);
-    } catch { /* show nothing on error */ } finally {
-      setLoading(false);
-    }
+    } catch { /* silent */ }
   }, [hasCld, fetched, p.cloudinaryFolder]);
 
-  // Eagerly load images on mount so thumbnails appear without clicking
   React.useEffect(() => { if (hasCld) fetchCloudinary(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleTab = (tab) => {
-    setActiveTab(tab);
-    fetchCloudinary();
-  };
+  const tabs = [
+    (hasCld || images.length) && "Photos",
+    (hasCld || videoUrl) && "Video",
+    p.media?.tour360 && "360° Tour",
+    p.media?.walkthrough && "Walkthrough",
+  ].filter(Boolean);
+
+  const openLightbox = (tab) => { fetchCloudinary(); setLightboxTab(tab); };
 
   return (
-    <div className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,overflow:"hidden" }}>
-      {images.length>0&&(
-        <div style={{ position:"relative",width:"100%",height:200,overflow:"hidden",background:"#0a0a12" }}>
-          <img src={images[0]} alt={p.title} style={{ width:"100%",height:"100%",objectFit:"cover",opacity:0.9 }}/>
-          {images.length>1&&<div style={{ position:"absolute",bottom:10,right:10,background:"rgba(0,0,0,0.6)",color:"#fff",fontSize:11,padding:"3px 10px",borderRadius:20,backdropFilter:"blur(4px)" }}>+{images.length-1} photos</div>}
+    <>
+      <div className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,overflow:"hidden",display:"flex",flexDirection:"column" }}>
+        <div style={{ position:"relative",width:"100%",height:200,overflow:"hidden",background:"#0a0a12",flexShrink:0,cursor:images.length>0?"pointer":"default" }}
+          onClick={()=>images.length>0&&openLightbox("Photos")}>
+          {images.length>0
+            ? <img src={images[0]} alt={p.title} style={{ width:"100%",height:"100%",objectFit:"cover",opacity:0.9 }}/>
+            : <div style={{ width:"100%",height:"100%",background:`linear-gradient(135deg,${p.color}12,${p.color}04)` }}/>
+          }
+          {images.length>1&&<div style={{ position:"absolute",bottom:10,right:10,background:"rgba(0,0,0,0.6)",color:"#fff",fontSize:11,padding:"3px 10px",borderRadius:20,backdropFilter:"blur(4px)" }}>{images.length} photos</div>}
         </div>
-      )}
-      <div style={{ padding:28 }}>
-      <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:16 }}>
-        <span style={{ width:8,height:8,borderRadius:"50%",background:p.color }}/>
-        <span style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:1.5,color:p.color }}>{p.tag}</span>
-      </div>
-      <h3 style={{ fontSize:20,fontWeight:700,color:"#fff",marginBottom:10 }}>{p.title}</h3>
-      <p style={{ fontSize:13,color:"#8888A0" }}>{p.deliverables}</p>
-      {tabs.length>0&&(
-        <>
-          <div style={{ display:"flex",gap:8,marginTop:20,flexWrap:"wrap" }}>
-            {tabs.map(tab=>(
-              <button key={tab} onClick={()=>handleTab(tab)}
-                style={{ padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:500,cursor:"pointer",
-                  border:activeTab===tab?`1px solid ${p.color}`:"1px solid rgba(255,255,255,0.1)",
-                  background:activeTab===tab?`${p.color}20`:"transparent",
-                  color:activeTab===tab?p.color:"#8888A0" }}>
-                {tab}
-              </button>
-            ))}
+        <div style={{ padding:28,flex:1,display:"flex",flexDirection:"column" }}>
+          <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:14 }}>
+            <span style={{ width:8,height:8,borderRadius:"50%",background:p.color }}/>
+            <span style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:1.5,color:p.color }}>{p.tag}</span>
           </div>
-          {loading&&(activeTab==="Photos"||activeTab==="Video")&&(
-            <p style={{ marginTop:16,fontSize:13,color:"#6666A0" }}>Loading...</p>
+          <h3 style={{ fontSize:20,fontWeight:700,color:"#fff",marginBottom:8 }}>{p.title}</h3>
+          <p style={{ fontSize:13,color:"#8888A0",flex:1,lineHeight:1.6 }}>{p.deliverables}</p>
+          {tabs.length>0&&(
+            <div style={{ display:"flex",gap:8,marginTop:20,flexWrap:"wrap" }}>
+              {tabs.map(tab=>(
+                <button key={tab} onClick={()=>openLightbox(tab)}
+                  style={{ padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:500,cursor:"pointer",
+                    border:`1px solid ${p.color}50`,background:`${p.color}10`,color:p.color }}>
+                  {tab} &#8599;
+                </button>
+              ))}
+            </div>
           )}
-          {!loading&&activeTab==="Photos"&&<MediaGallery images={images}/>}
-          {!loading&&activeTab==="Video"&&<VideoPlayer url={videoUrl}/>}
-          {activeTab==="360° Tour"&&<Tour360 url={p.media?.tour360}/>}
-          {activeTab==="Walkthrough"&&<WalkthroughEmbed url={p.media?.walkthrough}/>}
-          {activeTab==="3D Model"&&<ModelViewer3D url={p.media?.model3d}/>}
-        </>
-      )}
+        </div>
       </div>
-    </div>
+      {lightboxTab&&<PortfolioLightbox p={p} images={images} videoUrl={videoUrl} initialTab={lightboxTab} onClose={()=>setLightboxTab(null)}/>}
+    </>
   );
 }
 
