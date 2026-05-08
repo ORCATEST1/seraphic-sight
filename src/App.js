@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation } from "react-router-dom";
 import {
   NAV_LINKS, STATS, PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
-  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL, TRAVEL_FEE,
+  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL, TRAVEL_FEE, CLIENTS,
 } from "./data/content";
 
 // ===== NAV =====
@@ -203,6 +203,32 @@ function Home() {
         </div>
       </section>
 
+      <section style={{ padding:"80px 24px",background:"rgba(0,0,0,0.2)" }}>
+        <div style={{ maxWidth:1200,margin:"0 auto" }}>
+          <SectionTitle title="What Clients Say" sub="26 reviews · 5.0 stars on Droners.io"/>
+          <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20 }}>
+            {[
+              { quote:"Seraphic Sight LLC did an awesome job on my plot of land. Very professional, on time, high-quality pics and videos, and great editing.", name:"Joyita R.", context:"Land Survey" },
+              { quote:"Pilot was very professional and quick to get out to the site to meet our deadline. Provided multiple drafts and the video had great graphics, variety of angles, and was a desirable product.", name:"Lucia L.", context:"Video Production" },
+              { quote:"I really needed a good outline of this large vacant desert property and he nailed it. The shot was great and the outline was super easy to see and visualize!", name:"Courtney B.", context:"Vacant Land Mapping" },
+              { quote:"Joseph dealt very well with a lot of sensitive requests on behalf of our Customers, and got us some really interesting footage. We'll keep him on file for any other jobs in the area.", name:"Spencer H.", context:"Zeitview" },
+              { quote:"Excellent drone pilot. Very experienced with complex jobs and delivers results. Will work with him again in any future project.", name:"W.V.", context:"Construction" },
+              { quote:"Fantastic photos and videos that captured the property, quick turnaround, and openness to make any necessary edits. Highly recommend.", name:"Dustin W.", context:"Property Marketing" },
+            ].map((t,i)=>(
+              <div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:32,display:"flex",flexDirection:"column",gap:20 }}>
+                <div style={{ fontSize:18,color:"#FFD700",letterSpacing:2 }}>★★★★★</div>
+                <p style={{ fontSize:14,color:"#C0C0D0",lineHeight:1.75,fontStyle:"italic",flex:1 }}>"{t.quote}"</p>
+                <div>
+                  <div style={{ fontSize:13,fontWeight:700,color:"#fff" }}>{t.name}</div>
+                  <div style={{ fontSize:11,color:"#6066A0",marginTop:3 }}>{t.context}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p style={{ textAlign:"center",marginTop:40,fontSize:12,color:"#555570" }}>All reviews from <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer" style={{ color:"#6066A0" }}>Droners.io</a></p>
+        </div>
+      </section>
+
       <CTABanner title="Ready to Scope Your Next Project?" sub="Tell us what you need — APN, address, deliverables. We'll send you a quote within 24 hours." btn="Get a Quote →"/>
     </div>
   );
@@ -271,7 +297,7 @@ function Construction() {
         <div style={{ borderRadius:16,overflow:"hidden",border:"1px solid rgba(0,191,166,0.15)" }}>
           <img src="https://res.cloudinary.com/dpc1noikx/image/upload/v1778210648/map-snapshot_q3dk25.png" alt="DroneDeploy orthomosaic map - active construction site" style={{ width:"100%",display:"block" }}/>
           <div style={{ padding:"16px 24px",background:"rgba(0,191,166,0.04)",borderTop:"1px solid rgba(0,191,166,0.1)" }}>
-            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map generated from a live DroneDeploy flight � construction progress monitoring, Southern California.</p>
+            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map generated from a live DroneDeploy flight � construction progress monitoring, Southern California.</p>
           </div>
         </div>
       </section>
@@ -388,7 +414,7 @@ function PortfolioCard({ p }) {
   ].filter(Boolean);
   const [activeTab, setActiveTab] = React.useState(tabs[0]||null);
 
-  const fetchCloudinary = async () => {
+  const fetchCloudinary = React.useCallback(async () => {
     if (!hasCld || fetched) return;
     setFetched(true);
     setLoading(true);
@@ -402,7 +428,10 @@ function PortfolioCard({ p }) {
     } catch { /* show nothing on error */ } finally {
       setLoading(false);
     }
-  };
+  }, [hasCld, fetched, p.cloudinaryFolder]);
+
+  // Eagerly load images on mount so thumbnails appear without clicking
+  React.useEffect(() => { if (hasCld) fetchCloudinary(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTab = (tab) => {
     setActiveTab(tab);
@@ -410,7 +439,14 @@ function PortfolioCard({ p }) {
   };
 
   return (
-    <div className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,padding:36 }}>
+    <div className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,overflow:"hidden" }}>
+      {images.length>0&&(
+        <div style={{ position:"relative",width:"100%",height:200,overflow:"hidden",background:"#0a0a12" }}>
+          <img src={images[0]} alt={p.title} style={{ width:"100%",height:"100%",objectFit:"cover",opacity:0.9 }}/>
+          {images.length>1&&<div style={{ position:"absolute",bottom:10,right:10,background:"rgba(0,0,0,0.6)",color:"#fff",fontSize:11,padding:"3px 10px",borderRadius:20,backdropFilter:"blur(4px)" }}>+{images.length-1} photos</div>}
+        </div>
+      )}
+      <div style={{ padding:28 }}>
       <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:16 }}>
         <span style={{ width:8,height:8,borderRadius:"50%",background:p.color }}/>
         <span style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:1.5,color:p.color }}>{p.tag}</span>
@@ -440,6 +476,7 @@ function PortfolioCard({ p }) {
           {activeTab==="3D Model"&&<ModelViewer3D url={p.media?.model3d}/>}
         </>
       )}
+      </div>
     </div>
   );
 }
@@ -562,7 +599,7 @@ function Contact() {
           <div><label className="form-label">Preferred Timeline</label><input className="form-input" value={form.timeline} onChange={e => upd("timeline", e.target.value)} placeholder="e.g., Within 2 weeks, ASAP, Flexible" /></div>
           {status === "error" && (
             <p style={{ color: "#FF4D4D", fontSize: 13, textAlign: "center" }}>
-              Something went wrong. Email us directly at JP@SeraphicSight.com
+              Something went wrong. Email us directly at joseph@seraphicsight.com
             </p>
           )}
           <button
@@ -575,7 +612,7 @@ function Contact() {
           </button>
         </div>
         <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
-          {[{ label: "Email", value: "JP@SeraphicSight.com", href: "mailto:JP@SeraphicSight.com" }, { label: "Phone", value: "909.315.9891", href: "tel:9093159891" }, { label: "Response Time", value: "Within 24 hours", href: null }].map((c, i) => (
+          {[{ label: "Email", value: "joseph@seraphicsight.com", href: "mailto:joseph@seraphicsight.com" }, { label: "Phone", value: "909.315.9891", href: "tel:9093159891" }, { label: "Response Time", value: "Within 24 hours", href: null }].map((c, i) => (
             <div key={i}>
               <div style={{ fontSize: 11, fontWeight: 600, color: "#8888A0", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
               {c.href ? <a href={c.href} style={{ fontSize: 14, fontWeight: 600, color: "#fff", textDecoration: "none" }}>{c.value}</a> : <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{c.value}</div>}
