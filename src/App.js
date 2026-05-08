@@ -161,6 +161,15 @@ function Home() {
         </div>
       </section>
 
+      <section style={{ padding:"48px 24px",background:"rgba(255,255,255,0.01)",borderBottom:"1px solid rgba(255,255,255,0.04)" }}>
+        <div style={{ maxWidth:960,margin:"0 auto",textAlign:"center" }}>
+          <p style={{ fontSize:11,fontWeight:600,color:"#555570",textTransform:"uppercase",letterSpacing:2,marginBottom:28 }}>Trusted by teams at</p>
+          <div style={{ display:"flex",flexWrap:"wrap",justifyContent:"center",gap:40,alignItems:"center" }}>
+            {CLIENTS.map((cl,i)=>(<span key={i} style={{ fontSize:14,fontWeight:600,color:"#6066A0",letterSpacing:0.3 }}>{cl}</span>))}
+          </div>
+        </div>
+      </section>
+
       <section style={{ padding:"100px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="Two Verticals. One Provider." sub="Whether you're selling properties or building them, we deliver."/>
         <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:24 }}>
@@ -258,7 +267,16 @@ function Construction() {
       </section>
       <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
         <div style={{ maxWidth:1200,margin:"0 auto" }}>
-          <SectionTitle title="Our Workflow" sub="Repeatable, automated, audit-ready."/>
+          <section style={{ padding:"0 24px 60px",maxWidth:960,margin:"0 auto" }}>
+        <div style={{ borderRadius:16,overflow:"hidden",border:"1px solid rgba(0,191,166,0.15)" }}>
+          <img src="https://res.cloudinary.com/dpc1noikx/image/upload/v1778210648/map-snapshot_q3dk25.png" alt="DroneDeploy orthomosaic map - active construction site" style={{ width:"100%",display:"block" }}/>
+          <div style={{ padding:"16px 24px",background:"rgba(0,191,166,0.04)",borderTop:"1px solid rgba(0,191,166,0.1)" }}>
+            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map generated from a live DroneDeploy flight — construction progress monitoring, Southern California.</p>
+          </div>
+        </div>
+      </section>
+
+      <SectionTitle title="Our Workflow" sub="Repeatable, automated, audit-ready."/>
           <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:28 }}>
             {CON_STEPS.map((s,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(0,191,166,0.03)",border:"1px solid rgba(0,191,166,0.1)",borderRadius:16,padding:40,textAlign:"center" }}><div className="gradient-text" style={{ fontSize:44,fontWeight:900,marginBottom:18 }}>{s.num}</div><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{s.title}</h3><p style={{ fontSize:13,color:"#8888A0",lineHeight:1.7 }}>{s.desc}</p></div>))}
           </div>
@@ -544,7 +562,7 @@ function Contact() {
           <div><label className="form-label">Preferred Timeline</label><input className="form-input" value={form.timeline} onChange={e => upd("timeline", e.target.value)} placeholder="e.g., Within 2 weeks, ASAP, Flexible" /></div>
           {status === "error" && (
             <p style={{ color: "#FF4D4D", fontSize: 13, textAlign: "center" }}>
-              Something went wrong. Email us directly at Joseph@SeraphicSight.com
+              Something went wrong. Email us directly at JP@SeraphicSight.com
             </p>
           )}
           <button
@@ -557,10 +575,10 @@ function Contact() {
           </button>
         </div>
         <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
-          {[{ label: "Email", value: "Joseph@SeraphicSight.com" }, { label: "Phone", value: "909.315.9891" }, { label: "Response Time", value: "Within 24 hours" }].map((c, i) => (
+          {[{ label: "Email", value: "JP@SeraphicSight.com", href: "mailto:JP@SeraphicSight.com" }, { label: "Phone", value: "909.315.9891", href: "tel:9093159891" }, { label: "Response Time", value: "Within 24 hours", href: null }].map((c, i) => (
             <div key={i}>
               <div style={{ fontSize: 11, fontWeight: 600, color: "#8888A0", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{c.value}</div>
+              {c.href ? <a href={c.href} style={{ fontSize: 14, fontWeight: 600, color: "#fff", textDecoration: "none" }}>{c.value}</a> : <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{c.value}</div>}
             </div>
           ))}
         </div>

@@ -299,3 +299,14 @@ export const REGIONS = [
     desc: "Select coverage across LA County. Contact us to confirm availability for your specific project location.",
   },
 ];
+
+
+// ===== CLIENTS =====
+export const CLIENTS = [
+  "Sola Impact",
+  "Marcus & Millichap",
+  "C.W. Driver",
+  "Palmex Capital",
+  "Zeitview",
+  "Vidtech",
+];
