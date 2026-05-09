@@ -11,7 +11,7 @@ function Nav() {
   const [scrolled, setScrolled] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const location = useLocation();
-  const R = { Home:"/","Property Marketing":"/property-marketing",Construction:"/construction",Portfolio:"/portfolio","Service Area":"/service-area",Contact:"/contact" };
+  const R = { Home:"/","Property Marketing":"/property-marketing",Construction:"/construction",Portfolio:"/portfolio","Service Area":"/service-area",FAQ:"/faq",Contact:"/contact" };
 
   React.useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
@@ -26,11 +26,13 @@ function Nav() {
       <nav style={{ position:"fixed",top:0,left:0,right:0,zIndex:100,background:scrolled?"rgba(10,10,18,0.95)":"rgba(10,10,18,0.8)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"0 40px",transition:"all 0.4s" }}>
         <div style={{ maxWidth:1200,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:68 }}>
           <Link to="/" style={{ display:"flex",alignItems:"center",gap:10,textDecoration:"none" }}>
-            <div style={{ width:30,height:30,borderRadius:8,background:"linear-gradient(135deg,#0077FF,#00BFA6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:800,color:"#fff" }}>S</div>
+            <div style={{ width:30,height:30,borderRadius:8,background:"linear-gradient(135deg,#0077FF,#00BFA6)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+              <svg width="18" height="18" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="3" fill="white"/><circle cx="11" cy="11" r="1.2" fill="#0077FF"/><line x1="5" y1="5" x2="8.5" y2="8.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="17" y1="5" x2="13.5" y2="8.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="5" y1="17" x2="8.5" y2="13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="17" y1="17" x2="13.5" y2="13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><circle cx="4" cy="4" r="2" fill="rgba(0,191,166,0.3)" stroke="#00BFA6" strokeWidth="1"/><circle cx="18" cy="4" r="2" fill="rgba(0,191,166,0.3)" stroke="#00BFA6" strokeWidth="1"/><circle cx="4" cy="18" r="2" fill="rgba(0,191,166,0.3)" stroke="#00BFA6" strokeWidth="1"/><circle cx="18" cy="18" r="2" fill="rgba(0,191,166,0.3)" stroke="#00BFA6" strokeWidth="1"/></svg>
+            </div>
             <span style={{ color:"#fff",fontWeight:700,fontSize:17,letterSpacing:"-0.3px" }}>Seraphic Sight</span>
           </Link>
           <div className="desktop-nav" style={{ display:"flex",alignItems:"center",gap:28 }}>
-            {NAV_LINKS.map(p=><Link key={p} to={R[p]} className={`nav-link ${location.pathname===R[p]?"active":""}`}>{p}</Link>)}
+            {NAV_LINKS.map(p=><Link key={p} to={R[p]} className={`nav-link ${location.pathname===R[p]?"active":""}`} style={{whiteSpace:"nowrap"}}>{p}</Link>)}
             <Link to="/contact"><button className="btn-primary" style={{ padding:"9px 22px",fontSize:12 }}>Get a Quote</button></Link>
           </div>
           <div className="mobile-toggle" style={{ display:"none",cursor:"pointer",flexDirection:"column",gap:5 }} onClick={()=>setMenuOpen(true)}>
@@ -83,19 +85,40 @@ function CTABanner({ title, sub, btn }) {
 }
 
 function Footer() {
-  const R = { Home:"/","Property Marketing":"/property-marketing",Construction:"/construction",Portfolio:"/portfolio","Service Area":"/service-area",Contact:"/contact" };
+  const R = { Home:"/","Property Marketing":"/property-marketing",Construction:"/construction",Portfolio:"/portfolio","Service Area":"/service-area",FAQ:"/faq",Contact:"/contact" };
   return (
-    <footer style={{ borderTop:"1px solid rgba(255,255,255,0.06)",padding:"44px 24px",background:"rgba(0,0,0,0.3)" }}>
-      <div style={{ maxWidth:1200,margin:"0 auto",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:24 }}>
-        <div>
-          <Link to="/" style={{ display:"flex",alignItems:"center",gap:10,marginBottom:8,textDecoration:"none" }}>
-            <div style={{ width:26,height:26,borderRadius:7,background:"linear-gradient(135deg,#0077FF,#00BFA6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:"#fff" }}>S</div>
-            <span style={{ color:"#fff",fontWeight:700,fontSize:15 }}>Seraphic Sight</span>
-          </Link>
-          <p style={{ fontSize:11,color:"#555570" }}>© 2026 Seraphic Sight. FAA Part 107 Certified. Fully Insured.</p>
+    <footer style={{ borderTop:"1px solid rgba(255,255,255,0.06)",padding:"56px 24px 36px",background:"rgba(0,0,0,0.3)" }}>
+      <div style={{ maxWidth:1200,margin:"0 auto" }}>
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:48,marginBottom:48 }}>
+          <div>
+            <Link to="/" style={{ display:"flex",alignItems:"center",gap:10,marginBottom:14,textDecoration:"none" }}>
+              <div style={{ width:26,height:26,borderRadius:7,background:"linear-gradient(135deg,#0077FF,#00BFA6)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                <svg width="16" height="16" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="3" fill="white"/><circle cx="11" cy="11" r="1.2" fill="#0077FF"/><line x1="5" y1="5" x2="8.5" y2="8.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="17" y1="5" x2="13.5" y2="8.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="5" y1="17" x2="8.5" y2="13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="17" y1="17" x2="13.5" y2="13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><circle cx="4" cy="4" r="2" fill="rgba(0,191,166,0.3)" stroke="#00BFA6" strokeWidth="1"/><circle cx="18" cy="4" r="2" fill="rgba(0,191,166,0.3)" stroke="#00BFA6" strokeWidth="1"/><circle cx="4" cy="18" r="2" fill="rgba(0,191,166,0.3)" stroke="#00BFA6" strokeWidth="1"/><circle cx="18" cy="18" r="2" fill="rgba(0,191,166,0.3)" stroke="#00BFA6" strokeWidth="1"/></svg>
+              </div>
+              <span style={{ color:"#fff",fontWeight:700,fontSize:15 }}>Seraphic Sight</span>
+            </Link>
+            <p style={{ fontSize:13,color:"#6066A0",lineHeight:1.7,marginBottom:18,maxWidth:260 }}>FAA Part 107 certified drone services for real estate and construction across Southern & Central California.</p>
+            <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+              <a href="tel:9093159891" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>📞 909.315.9891</a>
+              <a href="mailto:joseph@seraphicsight.com" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>✉️ joseph@seraphicsight.com</a>
+              <a href="https://www.google.com/maps/search/?api=1&query=Seraphic+Sight+LLC" target="_blank" rel="noopener noreferrer" style={{ fontSize:13,color:"#0077FF",textDecoration:"none" }}>⭐ Google Business Profile</a>
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:11,fontWeight:700,color:"#444460",textTransform:"uppercase",letterSpacing:1.5,marginBottom:16 }}>Services</p>
+            <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+              {["Property Marketing","Construction"].map(p=><Link key={p} to={R[p]} style={{ color:"#8888A0",textDecoration:"none",fontSize:13 }}>{p}</Link>)}
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:11,fontWeight:700,color:"#444460",textTransform:"uppercase",letterSpacing:1.5,marginBottom:16 }}>Company</p>
+            <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+              {["Portfolio","Service Area","FAQ","Contact"].map(p=><Link key={p} to={R[p]} style={{ color:"#8888A0",textDecoration:"none",fontSize:13 }}>{p}</Link>)}
+            </div>
+          </div>
         </div>
-        <div style={{ display:"flex",gap:24,flexWrap:"wrap" }}>
-          {NAV_LINKS.map(p=><Link key={p} to={R[p]} style={{ color:"#A0A0B0",textDecoration:"none",fontSize:12,fontWeight:500 }}>{p}</Link>)}
+        <div style={{ borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:24 }}>
+          <p style={{ fontSize:11,color:"#3A3A55" }}>© 2026 Seraphic Sight LLC · FAA Part 107 Certified · Fully Insured · Southern & Central California</p>
         </div>
       </div>
     </footer>
@@ -145,13 +168,19 @@ function Home() {
           <h1 className="hero-title" style={{ fontSize:54,fontWeight:800,lineHeight:1.08,letterSpacing:"-1.5px",color:"#fff",marginBottom:24 }}>
             Aerial Imaging &<br/><span className="gradient-text">Site Documentation</span><br/>for Southern California
           </h1>
+          <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:20 }}>
+            <span style={{ color:"#FFD700",fontSize:13,letterSpacing:1 }}>★★★★★</span>
+            <span style={{ fontSize:13,color:"#8888A0" }}>5.0 · 26 verified reviews on</span>
+            <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer" style={{ fontSize:13,color:"#6066A0",textDecoration:"none" }}>Droners.io</a>
+          </div>
           <p className="hero-subtitle" style={{ fontSize:18,lineHeight:1.7,color:"#8888A0",maxWidth:600,margin:"0 auto 40px" }}>
             FAA-certified drone services for property marketing, construction monitoring, and site visualization — from APN to final deliverables.
           </p>
           <div className="btn-row" style={{ display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap" }}>
-            <Link to="/property-marketing"><button className="btn-primary">Property Marketing</button></Link>
-            <Link to="/construction"><button className="btn-outline">Construction & Development</button></Link>
+            <Link to="/contact?type=property-marketing"><button className="btn-primary">Property Marketing</button></Link>
+            <Link to="/contact?type=construction"><button className="btn-outline">Construction & Development</button></Link>
           </div>
+          <p style={{ fontSize:12,color:"#444460",marginTop:14,textAlign:"center" }}>Packages from <strong style={{color:"#666680"}}>$249</strong> · Quote within 24 hrs · No obligation</p>
         </div>
       </section>
 
@@ -170,7 +199,7 @@ function Home() {
         </div>
       </section>
 
-      <section style={{ padding:"100px 24px",maxWidth:1200,margin:"0 auto" }}>
+      <section style={{ padding:"72px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="Two Verticals. One Provider." sub="Whether you're selling properties or building them, we deliver."/>
         <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:24 }}>
           <div className="card-hover" style={{ background:"linear-gradient(180deg,rgba(0,119,255,0.06),rgba(0,119,255,0.02))",border:"1px solid rgba(0,119,255,0.12)",borderRadius:16,padding:44 }}>
@@ -229,6 +258,37 @@ function Home() {
         </div>
       </section>
 
+      <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.012)" }}>
+        <div style={{ maxWidth:960,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:60,alignItems:"center" }}>
+          <div>
+            <div className="tag-pill" style={{ background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",color:"#0077FF",marginBottom:20,display:"inline-flex" }}>About</div>
+            <h2 style={{ fontSize:32,fontWeight:800,color:"#fff",letterSpacing:"-0.8px",marginBottom:6,lineHeight:1.15 }}>Joseph Perez</h2>
+            <p style={{ fontSize:13,color:"#555570",marginBottom:20,fontWeight:500 }}>FAA Part 107 Certified · Seraphic Sight LLC</p>
+            <p style={{ fontSize:15,color:"#8888A0",lineHeight:1.8,marginBottom:32 }}>FAA Part 107 certified drone pilot with over 5 years of experience serving Southern California's real estate and construction industries. Based in the Inland Empire — delivering MLS-ready aerial photography, cinematic marketing videos, 360° virtual tours, and DroneDeploy automated site documentation across 7 coverage regions, from San Diego to Bakersfield.</p>
+            <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
+              {[{v:"300+",l:"Projects Completed"},{v:"5.0 ★",l:"Droners.io Rating"},{v:"5 Yrs",l:"Industry Experience"},{v:"7",l:"Coverage Regions"}].map((s,i)=>(
+                <div key={i} style={{ padding:"16px 20px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12 }}>
+                  <div style={{ fontSize:22,fontWeight:800,color:"#fff",letterSpacing:"-0.5px" }}>{s.v}</div>
+                  <div style={{ fontSize:11,color:"#6066A0",fontWeight:500,textTransform:"uppercase",letterSpacing:1.2,marginTop:4 }}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display:"flex",alignItems:"center",justifyContent:"center" }}>
+            <div style={{ width:260,height:300,borderRadius:20,background:"linear-gradient(135deg,rgba(0,119,255,0.08),rgba(0,191,166,0.04))",border:"1px solid rgba(0,119,255,0.12)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16 }}>
+              <div style={{ width:76,height:76,borderRadius:"50%",background:"linear-gradient(135deg,#0077FF,#00BFA6)",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                <svg width="36" height="36" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="3" fill="white"/><circle cx="11" cy="11" r="1.2" fill="#0077FF"/><line x1="5" y1="5" x2="8.5" y2="8.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="17" y1="5" x2="13.5" y2="8.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="5" y1="17" x2="8.5" y2="13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><line x1="17" y1="17" x2="13.5" y2="13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/><circle cx="4" cy="4" r="2" fill="rgba(255,255,255,0.4)" stroke="white" strokeWidth="0.8"/><circle cx="18" cy="4" r="2" fill="rgba(255,255,255,0.4)" stroke="white" strokeWidth="0.8"/><circle cx="4" cy="18" r="2" fill="rgba(255,255,255,0.4)" stroke="white" strokeWidth="0.8"/><circle cx="18" cy="18" r="2" fill="rgba(255,255,255,0.4)" stroke="white" strokeWidth="0.8"/></svg>
+              </div>
+              <div style={{ textAlign:"center",padding:"0 20px" }}>
+                <p style={{ fontSize:14,fontWeight:700,color:"#fff",margin:0 }}>Joseph Perez</p>
+                <p style={{ fontSize:12,color:"#6066A0",margin:"4px 0 12px" }}>Seraphic Sight LLC</p>
+                <p style={{ fontSize:11,color:"#444460",lineHeight:1.6 }}>FAA Part 107 · LAANC Authorized<br/>Fully Insured · COI Available</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <CTABanner title="Ready to Scope Your Next Project?" sub="Tell us what you need — APN, address, deliverables. We'll send you a quote within 24 hours." btn="Get a Quote →"/>
     </div>
   );
@@ -256,7 +316,7 @@ function PropertyMarketing() {
               <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
                 {p.features.map((f,j)=>(<div key={j} style={{ display:"flex",alignItems:"flex-start",gap:10 }}><span style={{ color:"#0077FF",fontSize:14,marginTop:2,flexShrink:0 }}>✓</span><span style={{ fontSize:14,color:"#C0C0D0",lineHeight:1.5 }}>{f}</span></div>))}
               </div>
-              <Link to="/contact"><button className={p.popular?"btn-primary":"btn-outline"} style={{ width:"100%",marginTop:28 }}>Get Started</button></Link>
+              <Link to="/contact?type=property-marketing"><button className={p.popular?"btn-primary":"btn-outline"} style={{ width:"100%",marginTop:28 }}>Get Started</button></Link>
             </div>))}
           </div>
           <div style={{ marginTop:56 }}>
@@ -541,12 +601,19 @@ function ServiceArea() {
 }
 // ===== CONTACT =====
 function Contact() {
+  const location = useLocation();
   const [form, setForm] = React.useState({
     name: "", email: "", phone: "", type: "Property Marketing",
     address: "", desc: "", timeline: "", honeypot: "",
   });
   const [status, setStatus] = React.useState("idle");
   const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const t = params.get("type");
+    if (t === "property-marketing") setForm(p => ({ ...p, type: "Property Marketing" }));
+    else if (t === "construction") setForm(p => ({ ...p, type: "Construction" }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async () => {
     if (!form.name || !form.email) return;
@@ -631,6 +698,45 @@ function Contact() {
   );
 }
 
+// ===== FAQ =====
+function FAQ() {
+  const [open, setOpen] = React.useState(null);
+  const items = [
+    { q: "Are you FAA Part 107 certified?", a: "Yes. Joseph Perez holds an FAA Part 107 Remote Pilot Certificate, required for all commercial drone operations in the U.S. We are also fully insured and can provide a Certificate of Insurance (COI) upon request — standard for GCs, brokerages, and property management companies." },
+    { q: "What areas do you serve?", a: "Southern and Central California — from San Diego to Bakersfield, and the Inland Empire to the coast. Primary coverage includes Los Angeles, Orange County, Riverside County, San Bernardino County, the Coachella Valley, and surrounding areas. Travel fees apply beyond our primary service zone." },
+    { q: "How long does it take to receive my deliverables?", a: "Standard turnaround is 3–4 business days from the date of the flight. Rush delivery (1–2 business days) is available as an add-on. Large DroneDeploy mapping or construction projects may require additional processing time — we'll confirm timelines when scoping your project." },
+    { q: "What file formats do you deliver?", a: "Property marketing: edited JPEG/PNG photos (MLS-ready), MP4 video in 16:9 and 9:16 (Reels/TikTok cuts), and hosted 360° tour links. Construction/mapping: GeoTIFF orthomosaics, LAS/LAZ point clouds, and Procore / BIM 360-compatible outputs. All files delivered via a cloud download link." },
+    { q: "Do you handle airspace authorization?", a: "Yes — we manage all LAANC authorizations for controlled airspace through the FAA's automated system. For restricted or complex airspace, we obtain manual waivers as needed at no additional cost to you." },
+    { q: "What is your travel fee?", a: "We charge $0.70 per mile. Jobs under 50 miles are billed round-trip; jobs 50 miles or more are billed one-way. For most projects in the greater Los Angeles, Inland Empire, or San Diego areas, travel fees are minimal or zero." },
+    { q: "How do I book a shoot?", a: "Fill out our quote request form with your project address (or APN for land/construction sites), your deliverable list, and your timeline. We respond within 24 hours with pricing and availability. A 50% deposit is required to hold your shoot date." },
+    { q: "Do you work with real estate agents and brokerages?", a: "Absolutely — we work with individual agents, teams, and brokerages on a per-listing or retainer basis. If you have regular listing volume, ask about agent pricing. We're happy to build a workflow that fits your business and turnaround requirements." },
+    { q: "Can you accommodate urgent timelines?", a: "We do our best to accommodate tight deadlines. Same-week availability is typical. For same-day or next-day requests, reach out directly and we'll make every effort to be on site when you need us." },
+    { q: "What equipment do you use?", a: "We fly DJI drones (Mavic 3 Pro, Phantom 4 RTK) for photography, cinematic video, and precision mapping. 360° virtual tours are captured with the Ricoh Theta Z1 and Insta360 X series. Construction flight plans are powered by DroneDeploy's automated workflow platform." },
+  ];
+  return (
+    <div>
+      <PageHero tag="FAQ" title="Frequently Asked Questions" subtitle="Everything you need to know about booking, deliverables, and working with Seraphic Sight." accent="#0077FF"/>
+      <section style={{ padding:"0 24px 100px",maxWidth:780,margin:"0 auto" }}>
+        {items.map((item,i)=>(
+          <div key={i} style={{ borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+            <button onClick={()=>setOpen(open===i?null:i)}
+              style={{ width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"22px 0",background:"none",border:"none",cursor:"pointer",gap:16,textAlign:"left" }}>
+              <span style={{ fontSize:15,fontWeight:600,color:"#fff",lineHeight:1.4 }}>{item.q}</span>
+              <span style={{ color:"#0077FF",fontSize:22,flexShrink:0,transform:open===i?"rotate(45deg)":"none",transition:"transform 0.2s",display:"inline-block" }}>+</span>
+            </button>
+            {open===i&&(
+              <div style={{ paddingBottom:22 }}>
+                <p style={{ fontSize:14,color:"#8888A0",lineHeight:1.8,margin:0 }}>{item.a}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </section>
+      <CTABanner title="Still Have Questions?" sub="Reach out directly — we respond within 24 hours." btn="Contact Us →"/>
+    </div>
+  );
+}
+
 // ===== MAIN APP =====
 
 export default function App() {
@@ -644,6 +750,7 @@ export default function App() {
         <Route path="/portfolio" element={<Portfolio/>}/>
         <Route path="/service-area" element={<ServiceArea/>}/>
         <Route path="/contact" element={<Contact/>}/>
+        <Route path="/faq" element={<FAQ/>}/>
       </Routes>
       <Footer/>
     </div>

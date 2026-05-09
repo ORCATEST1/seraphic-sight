@@ -21,6 +21,7 @@ export const NAV_LINKS = [
   "Construction",
   "Portfolio",
   "Service Area",
+  "FAQ",
   "Contact",
 ];
 
