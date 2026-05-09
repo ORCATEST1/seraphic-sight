@@ -39,6 +39,32 @@ function useTextScramble(text, { duration = 900, delay = 0 } = {}) {
   return display;
 }
 
+// ===== MAGNETIC BUTTON =====
+function MagneticBtn({ children, style, className, onClick }) {
+  const btnRef = React.useRef(null);
+  const handleMouseMove = React.useCallback((e) => {
+    const el = btnRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) * 0.22;
+    const y = (e.clientY - rect.top - rect.height / 2) * 0.22;
+    gsap.to(el, { x, y, duration: 0.35, ease: "power2.out", overwrite: "auto" });
+  }, []);
+  const handleMouseLeave = React.useCallback(() => {
+    gsap.to(btnRef.current, { x: 0, y: 0, duration: 0.65, ease: "elastic.out(1,0.45)", overwrite: "auto" });
+  }, []);
+  return (
+    <button
+      ref={btnRef}
+      className={className}
+      style={{ ...style, willChange: "transform", display: "inline-block" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onClick={onClick}
+    >{children}</button>
+  );
+}
+
 // ===== NAV =====
 function Nav() {
   const [scrolled, setScrolled] = React.useState(false);
@@ -251,8 +277,8 @@ function Home() {
             FAA-certified drone services for property marketing, construction monitoring, and site visualization — from APN to final deliverables.
           </p>
           <div className="btn-row" style={{ display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap" }}>
-            <Link to="/contact?type=property-marketing"><button className="btn-primary">Property Marketing</button></Link>
-            <Link to="/contact?type=construction"><button className="btn-outline">Construction & Development</button></Link>
+            <Link to="/contact?type=property-marketing"><MagneticBtn className="btn-primary">Property Marketing</MagneticBtn></Link>
+            <Link to="/contact?type=construction"><MagneticBtn className="btn-outline">Construction & Development</MagneticBtn></Link>
           </div>
           <p style={{ fontSize:12,color:"#444460",marginTop:14,textAlign:"center" }}>Packages from <strong style={{color:"#666680"}}>$249</strong> · Quote within 24 hrs · No obligation</p>
         </div>
@@ -290,8 +316,8 @@ function Home() {
                 MLS-ready aerial photography, drone video, 360° virtual tours, and complete marketing packages. Send us the APN — we handle the rest.
               </p>
               <div style={{ display:"flex",gap:14,justifyContent:"center",flexWrap:"wrap",marginBottom:52 }}>
-                <Link to="/property-marketing"><button className="btn-primary">View Services →</button></Link>
-                <Link to="/contact?type=property-marketing"><button className="btn-outline" style={{borderColor:"rgba(0,119,255,0.3)",color:"#0077FF"}}>Get a Quote</button></Link>
+                <Link to="/property-marketing"><MagneticBtn className="btn-primary">View Services →</MagneticBtn></Link>
+                <Link to="/contact?type=property-marketing"><MagneticBtn className="btn-outline" style={{borderColor:"rgba(0,119,255,0.3)",color:"#0077FF"}}>Get a Quote</MagneticBtn></Link>
               </div>
               <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16 }}>
                 {[{v:"$249",l:"Starting from"},{v:"3–4 Day",l:"Turnaround"},{v:"26",l:"5-Star Reviews"}].map((s,i)=>(
@@ -317,8 +343,8 @@ function Home() {
                 DroneDeploy automated workflows, orthomosaic mapping, and audit-ready progress documentation for multi-million dollar projects.
               </p>
               <div style={{ display:"flex",gap:14,justifyContent:"center",flexWrap:"wrap",marginBottom:52 }}>
-                <Link to="/construction"><button className="btn-primary" style={{background:"linear-gradient(135deg,#00BFA6,#0077FF)"}}>View Services →</button></Link>
-                <Link to="/contact?type=construction"><button className="btn-outline" style={{borderColor:"rgba(0,191,166,0.3)",color:"#00BFA6"}}>Get a Quote</button></Link>
+                <Link to="/construction"><MagneticBtn className="btn-primary" style={{background:"linear-gradient(135deg,#00BFA6,#0077FF)"}}>View Services →</MagneticBtn></Link>
+                <Link to="/contact?type=construction"><MagneticBtn className="btn-outline" style={{borderColor:"rgba(0,191,166,0.3)",color:"#00BFA6"}}>Get a Quote</MagneticBtn></Link>
               </div>
               <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16 }}>
                 {[{v:"DroneDeploy",l:"Platform"},{v:"GeoTIFF",l:"Deliverables"},{v:"BIM 360",l:"Compatible"}].map((s,i)=>(
