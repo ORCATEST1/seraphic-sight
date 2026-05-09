@@ -5,6 +5,39 @@ import {
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
   CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL, TRAVEL_FEE, CLIENTS,
 } from "./data/content";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+import Lenis from "lenis";
+
+gsap.registerPlugin(ScrollTrigger, useGSAP);
+
+// ===== SCROLL SCRAMBLE HOOK =====
+function useTextScramble(text, { duration = 900, delay = 0 } = {}) {
+  const [display, setDisplay] = React.useState(text);
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&";
+  React.useEffect(() => {
+    let frame = 0;
+    const totalFrames = Math.floor(duration / 28);
+    let raf, delayTimer;
+    const tick = () => {
+      frame++;
+      const resolved = Math.floor((frame / totalFrames) * text.length);
+      setDisplay(
+        text.split("").map((ch, i) => {
+          if (ch === " " || ch === "\n") return ch;
+          if (i < resolved) return ch;
+          return chars[Math.floor(Math.random() * chars.length)];
+        }).join("")
+      );
+      if (frame < totalFrames) raf = requestAnimationFrame(tick);
+      else setDisplay(text);
+    };
+    delayTimer = setTimeout(() => { raf = requestAnimationFrame(tick); }, delay);
+    return () => { cancelAnimationFrame(raf); clearTimeout(delayTimer); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return display;
+}
 
 // ===== NAV =====
 function Nav() {
@@ -143,21 +176,62 @@ function TravelFeeNote({ accent = "#0077FF" }) {
 
 // ===== HOME =====
 function Home() {
+  const homeRef = React.useRef(null);
+  const verticalsRef = React.useRef(null);
+  const verticalsTrackRef = React.useRef(null);
+  const scrambledHero = useTextScramble("Aerial Imaging &", { duration: 950, delay: 350 });
+
+  useGSAP(() => {
+    // ── Reveal animations: section titles
+    gsap.utils.toArray(".section-title").forEach(el => {
+      gsap.from(el, { y: 32, opacity: 0, duration: 0.85, ease: "power3.out",
+        scrollTrigger: { trigger: el, start: "top 88%", once: true } });
+    });
+    // ── Reveal animations: cards (staggered by column)
+    gsap.utils.toArray(".card-hover").forEach((el, i) => {
+      gsap.from(el, { y: 44, opacity: 0, duration: 0.7, delay: (i % 3) * 0.08, ease: "power3.out",
+        scrollTrigger: { trigger: el, start: "top 90%", once: true } });
+    });
+    // ── Counter animations
+    gsap.utils.toArray(".count-up").forEach(el => {
+      const end = parseFloat(el.dataset.end);
+      const suffix = el.dataset.suffix || "";
+      const decimals = el.dataset.decimals ? parseInt(el.dataset.decimals) : 0;
+      const obj = { val: 0 };
+      gsap.to(obj, { val: end, duration: 1.8, ease: "power2.out",
+        scrollTrigger: { trigger: el, start: "top 85%", once: true },
+        onUpdate() { el.textContent = (decimals ? obj.val.toFixed(decimals) : Math.round(obj.val)) + suffix; }
+      });
+    });
+    // ── Horizontal scroll: Two Verticals (desktop only)
+    const mm = gsap.matchMedia();
+    mm.add("(min-width: 769px)", () => {
+      gsap.timeline({
+        scrollTrigger: {
+          trigger: verticalsRef.current, pin: true, scrub: 0.8, end: "+=100%",
+          snap: { snapTo: [0, 1], duration: { min: 0.2, max: 0.5 }, ease: "power2.inOut" }
+        }
+      }).to(verticalsTrackRef.current, { xPercent: -50, ease: "none" });
+    });
+  }, { scope: homeRef });
+
   return (
-    <div>
+    <div ref={homeRef}>
       <section style={{ position:"relative",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden" }}>
         {HERO_VIDEO_URL ? (
           <>
             <video autoPlay muted loop playsInline
               style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0 }}
               src={HERO_VIDEO_URL}/>
-            <div style={{ position:"absolute",inset:0,background:"rgba(10,10,18,0.6)",zIndex:1 }}/>
+            <div style={{ position:"absolute",inset:0,background:"rgba(10,10,18,0.58)",zIndex:1,
+              backgroundImage:"linear-gradient(rgba(0,119,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,0.035) 1px,transparent 1px)",
+              backgroundSize:"44px 44px" }}/>
           </>
         ) : (
           <>
-            {[...Array(5)].map((_,i)=><div key={i} className="grid-line" style={{ left:`${20+i*16}%`,top:0,bottom:0,width:1 }}/>)}
-            <div className="glow-orb" style={{ top:-100,right:-100,width:500,height:500,background:"#0077FF",opacity:0.1 }}/>
-            <div className="glow-orb" style={{ bottom:-50,left:-50,width:400,height:400,background:"#00BFA6",opacity:0.08 }}/>
+            <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,119,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,0.05) 1px,transparent 1px)",backgroundSize:"44px 44px" }}/>
+            <div className="glow-orb" style={{ top:"20%",right:"-5%",width:440,height:440,background:"#0077FF",opacity:0.07 }}/>
+            <div className="glow-orb" style={{ bottom:"10%",left:"-5%",width:360,height:360,background:"#00BFA6",opacity:0.06 }}/>
           </>
         )}
         <div className="animate-fadeUp" style={{ position:"relative",zIndex:2,textAlign:"center",maxWidth:860,padding:"120px 24px 80px" }}>
@@ -165,8 +239,8 @@ function Home() {
             <span style={{ width:6,height:6,borderRadius:"50%",background:"#0077FF",animation:"pulse 2s infinite" }}/>
             FAA Part 107 Certified · Fully Insured
           </div>
-          <h1 className="hero-title" style={{ fontSize:54,fontWeight:800,lineHeight:1.08,letterSpacing:"-1.5px",color:"#fff",marginBottom:24 }}>
-            Aerial Imaging &<br/><span className="gradient-text">Site Documentation</span><br/>for Southern California
+          <h1 className="hero-title" style={{ fontSize:54,fontWeight:800,lineHeight:1.08,letterSpacing:"-1.5px",color:"#fff",marginBottom:24,fontVariantNumeric:"tabular-nums" }}>
+            {scrambledHero}<br/><span className="gradient-text">Site Documentation</span><br/>for Southern California
           </h1>
           <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:20 }}>
             <span style={{ color:"#FFD700",fontSize:13,letterSpacing:1 }}>★★★★★</span>
@@ -199,21 +273,69 @@ function Home() {
         </div>
       </section>
 
-      <section style={{ padding:"72px 24px",maxWidth:1200,margin:"0 auto" }}>
-        <SectionTitle title="Two Verticals. One Provider." sub="Whether you're selling properties or building them, we deliver."/>
-        <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:24 }}>
-          <div className="card-hover" style={{ background:"linear-gradient(180deg,rgba(0,119,255,0.06),rgba(0,119,255,0.02))",border:"1px solid rgba(0,119,255,0.12)",borderRadius:16,padding:44 }}>
-            
-            <h3 style={{ fontSize:22,fontWeight:700,color:"#fff",marginBottom:10 }}>Property Marketing</h3>
-            <p style={{ color:"#8888A0",lineHeight:1.7,fontSize:14,marginBottom:24 }}>Aerial photography, drone video, 360° virtual tours, and complete marketing packages. Send us the APN — we handle the rest.</p>
-            <Link to="/property-marketing"><button className="btn-primary" style={{ width:"100%" }}>View Services →</button></Link>
+      {/* ===== TWO VERTICALS: Horizontal Pinned Scroll (desktop) / Stacked (mobile) ===== */}
+      <section ref={verticalsRef} style={{ overflow:"hidden",position:"relative" }}>
+        <div ref={verticalsTrackRef} style={{ display:"flex" }}>
+
+          {/* Panel 1 — Property Marketing */}
+          <div style={{ minWidth:"100vw",minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
+            <div style={{ position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(0,119,255,0.1) 0%,rgba(10,10,18,0.98) 60%)" }}/>
+            <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,119,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,0.05) 1px,transparent 1px)",backgroundSize:"48px 48px",opacity:0.6 }}/>
+            <div style={{ position:"relative",zIndex:2,maxWidth:680,padding:"100px 40px",textAlign:"center" }}>
+              <div className="tag-pill" style={{ background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.25)",color:"#0077FF",marginBottom:28,display:"inline-flex" }}>01 — Property Marketing</div>
+              <h2 style={{ fontSize:58,fontWeight:900,color:"#fff",letterSpacing:"-1.8px",lineHeight:1.02,marginBottom:22 }}>
+                Sell listings<br/><span className="gradient-text">faster.</span>
+              </h2>
+              <p style={{ fontSize:17,color:"#8888A0",lineHeight:1.75,maxWidth:480,margin:"0 auto 40px" }}>
+                MLS-ready aerial photography, drone video, 360° virtual tours, and complete marketing packages. Send us the APN — we handle the rest.
+              </p>
+              <div style={{ display:"flex",gap:14,justifyContent:"center",flexWrap:"wrap",marginBottom:52 }}>
+                <Link to="/property-marketing"><button className="btn-primary">View Services →</button></Link>
+                <Link to="/contact?type=property-marketing"><button className="btn-outline" style={{borderColor:"rgba(0,119,255,0.3)",color:"#0077FF"}}>Get a Quote</button></Link>
+              </div>
+              <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16 }}>
+                {[{v:"$249",l:"Starting from"},{v:"3–4 Day",l:"Turnaround"},{v:"26",l:"5-Star Reviews"}].map((s,i)=>(
+                  <div key={i} style={{ padding:"18px 12px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(0,119,255,0.12)",borderRadius:10 }}>
+                    <div style={{ fontSize:22,fontWeight:800,color:"#fff",letterSpacing:"-0.5px" }}>{s.v}</div>
+                    <div style={{ fontSize:10,color:"#6066A0",fontWeight:600,textTransform:"uppercase",letterSpacing:1.3,marginTop:4 }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="card-hover" style={{ background:"linear-gradient(180deg,rgba(0,191,166,0.06),rgba(0,191,166,0.02))",border:"1px solid rgba(0,191,166,0.12)",borderRadius:16,padding:44 }}>
-            
-            <h3 style={{ fontSize:22,fontWeight:700,color:"#fff",marginBottom:10 }}>Construction & Development</h3>
-            <p style={{ color:"#8888A0",lineHeight:1.7,fontSize:14,marginBottom:24 }}>DroneDeploy automated workflows, orthomosaic mapping, and progress documentation for multi-million dollar projects.</p>
-            <Link to="/construction"><button className="btn-outline" style={{ width:"100%",borderColor:"rgba(0,191,166,0.3)",color:"#00BFA6" }}>View Services →</button></Link>
+
+          {/* Panel 2 — Construction */}
+          <div style={{ minWidth:"100vw",minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
+            <div style={{ position:"absolute",inset:0,background:"linear-gradient(225deg,rgba(0,191,166,0.1) 0%,rgba(10,10,18,0.98) 60%)" }}/>
+            <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,191,166,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,191,166,0.05) 1px,transparent 1px)",backgroundSize:"48px 48px",opacity:0.6 }}/>
+            <div style={{ position:"relative",zIndex:2,maxWidth:680,padding:"100px 40px",textAlign:"center" }}>
+              <div className="tag-pill" style={{ background:"rgba(0,191,166,0.08)",border:"1px solid rgba(0,191,166,0.25)",color:"#00BFA6",marginBottom:28,display:"inline-flex" }}>02 — Construction & Development</div>
+              <h2 style={{ fontSize:58,fontWeight:900,color:"#fff",letterSpacing:"-1.8px",lineHeight:1.02,marginBottom:22 }}>
+                Document every<br/><span style={{ background:"linear-gradient(90deg,#00BFA6,#0077FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>phase.</span>
+              </h2>
+              <p style={{ fontSize:17,color:"#8888A0",lineHeight:1.75,maxWidth:480,margin:"0 auto 40px" }}>
+                DroneDeploy automated workflows, orthomosaic mapping, and audit-ready progress documentation for multi-million dollar projects.
+              </p>
+              <div style={{ display:"flex",gap:14,justifyContent:"center",flexWrap:"wrap",marginBottom:52 }}>
+                <Link to="/construction"><button className="btn-primary" style={{background:"linear-gradient(135deg,#00BFA6,#0077FF)"}}>View Services →</button></Link>
+                <Link to="/contact?type=construction"><button className="btn-outline" style={{borderColor:"rgba(0,191,166,0.3)",color:"#00BFA6"}}>Get a Quote</button></Link>
+              </div>
+              <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16 }}>
+                {[{v:"DroneDeploy",l:"Platform"},{v:"GeoTIFF",l:"Deliverables"},{v:"BIM 360",l:"Compatible"}].map((s,i)=>(
+                  <div key={i} style={{ padding:"18px 12px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(0,191,166,0.12)",borderRadius:10 }}>
+                    <div style={{ fontSize:15,fontWeight:800,color:"#fff",letterSpacing:"-0.3px" }}>{s.v}</div>
+                    <div style={{ fontSize:10,color:"#6066A0",fontWeight:600,textTransform:"uppercase",letterSpacing:1.3,marginTop:4 }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+
+        </div>
+        {/* Panel indicator */}
+        <div style={{ position:"absolute",bottom:28,left:"50%",transform:"translateX(-50%)",display:"flex",gap:8,zIndex:10,pointerEvents:"none" }}>
+          <div style={{ width:24,height:3,borderRadius:2,background:"rgba(0,119,255,0.7)" }}/>
+          <div style={{ width:24,height:3,borderRadius:2,background:"rgba(255,255,255,0.15)" }}/>
         </div>
       </section>
 
@@ -232,10 +354,20 @@ function Home() {
         </div>
       </section>
 
-      <section style={{ padding:"80px 24px",background:"rgba(0,0,0,0.2)" }}>
+      <section style={{ padding:"100px 24px",background:"rgba(0,0,0,0.22)" }}>
         <div style={{ maxWidth:1200,margin:"0 auto" }}>
-          <SectionTitle title="What Clients Say" sub="26 reviews · 5.0 stars on Droners.io"/>
-          <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:20 }}>
+          <div style={{ display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:52,flexWrap:"wrap",gap:16 }}>
+            <div>
+              <p style={{ fontSize:11,fontWeight:700,color:"#444460",letterSpacing:2,textTransform:"uppercase",marginBottom:10 }}>Client Reviews</p>
+              <h2 className="section-title" style={{ fontSize:36,fontWeight:800,color:"#fff",letterSpacing:"-0.8px",margin:0 }}>What Clients Say</h2>
+            </div>
+            <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer"
+              style={{ display:"flex",alignItems:"center",gap:8,textDecoration:"none",padding:"10px 20px",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,background:"rgba(255,255,255,0.02)" }}>
+              <span style={{ color:"#FFD700",letterSpacing:2,fontSize:13 }}>★★★★★</span>
+              <span style={{ fontSize:13,color:"#8888A0" }}>5.0 · 26 reviews · Droners.io</span>
+            </a>
+          </div>
+          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:16 }}>
             {[
               { quote:"Seraphic Sight LLC did an awesome job on my plot of land. Very professional, on time, high-quality pics and videos, and great editing.", name:"Joyita R.", context:"Land Survey" },
               { quote:"Pilot was very professional and quick to get out to the site to meet our deadline. Provided multiple drafts and the video had great graphics, variety of angles, and was a desirable product.", name:"Lucia L.", context:"Video Production" },
@@ -244,17 +376,22 @@ function Home() {
               { quote:"Excellent drone pilot. Very experienced with complex jobs and delivers results. Will work with him again in any future project.", name:"W.V.", context:"Construction" },
               { quote:"Fantastic photos and videos that captured the property, quick turnaround, and openness to make any necessary edits. Highly recommend.", name:"Dustin W.", context:"Property Marketing" },
             ].map((t,i)=>(
-              <div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:32,display:"flex",flexDirection:"column",gap:20 }}>
-                <div style={{ fontSize:18,color:"#FFD700",letterSpacing:2 }}>★★★★★</div>
-                <p style={{ fontSize:14,color:"#C0C0D0",lineHeight:1.75,fontStyle:"italic",flex:1 }}>"{t.quote}"</p>
-                <div>
-                  <div style={{ fontSize:13,fontWeight:700,color:"#fff" }}>{t.name}</div>
-                  <div style={{ fontSize:11,color:"#6066A0",marginTop:3 }}>{t.context}</div>
+              <div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:"36px 32px",display:"flex",flexDirection:"column",gap:0 }}>
+                <div style={{ fontSize:56,lineHeight:0.75,color:"rgba(0,119,255,0.22)",fontFamily:"Georgia,serif",fontWeight:700,marginBottom:18 }}>"</div>
+                <p style={{ fontSize:15,color:"#C8C8D8",lineHeight:1.82,flex:1,marginBottom:24 }}>{t.quote}</p>
+                <div style={{ display:"flex",alignItems:"center",gap:12,paddingTop:20,borderTop:"1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ width:38,height:38,borderRadius:"50%",background:"linear-gradient(135deg,rgba(0,119,255,0.25),rgba(0,191,166,0.15))",border:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#fff",flexShrink:0 }}>
+                    {t.name.split(" ").map(n=>n[0]).join("")}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13,fontWeight:700,color:"#fff" }}>{t.name}</div>
+                    <div style={{ fontSize:11,color:"#555570",marginTop:2 }}>{t.context}</div>
+                  </div>
+                  <span style={{ color:"#FFD700",fontSize:11,letterSpacing:1.5 }}>★★★★★</span>
                 </div>
               </div>
             ))}
           </div>
-          <p style={{ textAlign:"center",marginTop:40,fontSize:12,color:"#555570" }}>All reviews from <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer" style={{ color:"#6066A0" }}>Droners.io</a></p>
         </div>
       </section>
 
@@ -266,9 +403,15 @@ function Home() {
             <p style={{ fontSize:13,color:"#555570",marginBottom:20,fontWeight:500 }}>FAA Part 107 Certified · Seraphic Sight LLC</p>
             <p style={{ fontSize:15,color:"#8888A0",lineHeight:1.8,marginBottom:32 }}>FAA Part 107 certified drone pilot with over 5 years of experience serving Southern California's real estate and construction industries. Based in the Inland Empire — delivering MLS-ready aerial photography, cinematic marketing videos, 360° virtual tours, and DroneDeploy automated site documentation across 7 coverage regions, from San Diego to Bakersfield.</p>
             <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
-              {[{v:"300+",l:"Projects Completed"},{v:"5.0 ★",l:"Droners.io Rating"},{v:"5 Yrs",l:"Industry Experience"},{v:"7",l:"Coverage Regions"}].map((s,i)=>(
+              {[
+                {v:"300+", l:"Projects Completed", end:300, suffix:"+", decimals:0},
+                {v:"5.0 ★", l:"Droners.io Rating", end:5.0, suffix:" ★", decimals:1},
+                {v:"5 Yrs", l:"Industry Experience", end:5, suffix:" Yrs", decimals:0},
+                {v:"7",    l:"Coverage Regions",    end:7,  suffix:"",    decimals:0},
+              ].map((s,i)=>(
                 <div key={i} style={{ padding:"16px 20px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:12 }}>
-                  <div style={{ fontSize:22,fontWeight:800,color:"#fff",letterSpacing:"-0.5px" }}>{s.v}</div>
+                  <div className="count-up" data-end={s.end} data-suffix={s.suffix} data-decimals={s.decimals}
+                    style={{ fontSize:22,fontWeight:800,color:"#fff",letterSpacing:"-0.5px" }}>{s.v}</div>
                   <div style={{ fontSize:11,color:"#6066A0",fontWeight:500,textTransform:"uppercase",letterSpacing:1.2,marginTop:4 }}>{s.l}</div>
                 </div>
               ))}
@@ -740,8 +883,21 @@ function FAQ() {
 // ===== MAIN APP =====
 
 export default function App() {
+  React.useEffect(() => {
+    const lenis = new Lenis({ duration: 1.2, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    lenis.on("scroll", ScrollTrigger.update);
+    gsap.ticker.add(time => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+    return () => { lenis.destroy(); };
+  }, []);
+
   return (
     <div>
+      {/* Noise grain overlay */}
+      <div style={{ position:"fixed",inset:0,pointerEvents:"none",zIndex:9999,opacity:0.032,
+        backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        backgroundRepeat:"repeat",backgroundSize:"128px 128px"
+      }}/>
       <Nav/>
       <Routes>
         <Route path="/" element={<Home/>}/>
