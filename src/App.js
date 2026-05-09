@@ -234,8 +234,12 @@ function Home() {
     mm.add("(min-width: 769px)", () => {
       gsap.timeline({
         scrollTrigger: {
-          trigger: verticalsRef.current, pin: true, scrub: 0.8, end: "+=100%",
-          snap: { snapTo: [0, 1], duration: { min: 0.2, max: 0.5 }, ease: "power2.inOut" }
+          trigger: verticalsRef.current,
+          pin: true,
+          anticipatePin: 1,
+          scrub: 1.2,
+          end: "+=200%",
+          snap: { snapTo: [0, 1], duration: { min: 0.4, max: 0.8 }, delay: 0.2, ease: "power2.inOut" }
         }
       }).to(verticalsTrackRef.current, { xPercent: -50, ease: "none" });
     });
@@ -301,10 +305,10 @@ function Home() {
 
       {/* ===== TWO VERTICALS: Horizontal Pinned Scroll (desktop) / Stacked (mobile) ===== */}
       <section ref={verticalsRef} style={{ overflow:"hidden",position:"relative" }}>
-        <div ref={verticalsTrackRef} style={{ display:"flex" }}>
+        <div ref={verticalsTrackRef} style={{ display:"flex",width:"200vw",flexWrap:"nowrap" }}>
 
           {/* Panel 1 — Property Marketing */}
-          <div style={{ minWidth:"100vw",minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
+          <div style={{ width:"100vw",minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
             <div style={{ position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(0,119,255,0.1) 0%,rgba(10,10,18,0.98) 60%)" }}/>
             <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,119,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,0.05) 1px,transparent 1px)",backgroundSize:"48px 48px",opacity:0.6 }}/>
             <div style={{ position:"relative",zIndex:2,maxWidth:680,padding:"100px 40px",textAlign:"center" }}>
@@ -331,7 +335,7 @@ function Home() {
           </div>
 
           {/* Panel 2 — Construction */}
-          <div style={{ minWidth:"100vw",minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
+          <div style={{ width:"100vw",minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
             <div style={{ position:"absolute",inset:0,background:"linear-gradient(225deg,rgba(0,191,166,0.1) 0%,rgba(10,10,18,0.98) 60%)" }}/>
             <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,191,166,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,191,166,0.05) 1px,transparent 1px)",backgroundSize:"48px 48px",opacity:0.6 }}/>
             <div style={{ position:"relative",zIndex:2,maxWidth:680,padding:"100px 40px",textAlign:"center" }}>
