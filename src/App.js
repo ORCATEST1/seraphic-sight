@@ -3,7 +3,8 @@ import { Routes, Route, Link, useLocation } from "react-router-dom";
 import {
   NAV_LINKS, STATS, PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
-  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL, TRAVEL_FEE, CLIENTS,
+  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL,
+  PROP_HERO_VIDEO_URL, CON_HERO_VIDEO_URL, TRAVEL_FEE, CLIENTS,
 } from "./data/content";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -108,11 +109,22 @@ function Nav() {
 }
 
 // ===== SHARED COMPONENTS =====
-function PageHero({ tag, title, subtitle, accent="#0077FF" }) {
+function PageHero({ tag, title, subtitle, accent="#0077FF", videoUrl=null }) {
   return (
-    <section style={{ position:"relative",paddingTop:140,paddingBottom:80,textAlign:"center",overflow:"hidden" }}>
-      <div className="glow-orb" style={{ top:-60,right:-60,width:400,height:400,background:accent,opacity:0.07 }}/>
-      <div style={{ position:"relative",zIndex:2,maxWidth:750,margin:"0 auto",padding:"0 24px" }}>
+    <section style={{ position:"relative",paddingTop:videoUrl?0:140,paddingBottom:videoUrl?0:80,textAlign:"center",overflow:"hidden",minHeight:videoUrl?"60vh":undefined,display:videoUrl?"flex":undefined,alignItems:videoUrl?"center":undefined,justifyContent:videoUrl?"center":undefined }}>
+      {videoUrl ? (
+        <>
+          <video autoPlay muted loop playsInline
+            style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0 }}
+            src={videoUrl}/>
+          <div style={{ position:"absolute",inset:0,background:"rgba(10,10,18,0.62)",zIndex:1,
+            backgroundImage:`linear-gradient(${accent}08 1px,transparent 1px),linear-gradient(90deg,${accent}08 1px,transparent 1px)`,
+            backgroundSize:"44px 44px" }}/>
+        </>
+      ) : (
+        <div className="glow-orb" style={{ top:-60,right:-60,width:400,height:400,background:accent,opacity:0.07 }}/>
+      )}
+      <div style={{ position:"relative",zIndex:2,maxWidth:750,margin:"0 auto",padding:videoUrl?"140px 24px 80px":"0 24px" }}>
         {tag&&<div className="tag-pill" style={{ background:`${accent}15`,border:`1px solid ${accent}30`,color:accent,marginBottom:24,display:"inline-flex" }}>{tag}</div>}
         <h1 style={{ fontSize:44,fontWeight:800,color:"#fff",letterSpacing:"-1.2px",lineHeight:1.1,marginBottom:18 }}>{title}</h1>
         {subtitle&&<p style={{ fontSize:17,color:"#8888A0",lineHeight:1.7,maxWidth:580,margin:"0 auto" }}>{subtitle}</p>}
@@ -471,7 +483,7 @@ function Home() {
 function PropertyMarketing() {
   return (
     <div>
-      <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="MLS-ready aerial content delivered in 3–4 business days. LAANC-authorized for controlled airspace. Send us the APN and your deliverable list — we handle the rest." accent="#0077FF"/>
+      <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="MLS-ready aerial content delivered in 3–4 business days. LAANC-authorized for controlled airspace. Send us the APN and your deliverable list — we handle the rest." accent="#0077FF" videoUrl={PROP_HERO_VIDEO_URL}/>
       <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="What We Deliver" sub="Every service designed to move listings faster."/>
         <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
@@ -517,7 +529,7 @@ function PropertyMarketing() {
 function Construction() {
   return (
     <div>
-      <PageHero tag="Construction & Development" title={<>Progress Monitoring,<br/>Mapping & Visualization</>} subtitle="Automated DroneDeploy workflows, orthomosaic mapping, and audit-ready documentation for multi-million dollar projects." accent="#00BFA6"/>
+      <PageHero tag="Construction & Development" title={<>Progress Monitoring,<br/>Mapping & Visualization</>} subtitle="Automated DroneDeploy workflows, orthomosaic mapping, and audit-ready documentation for multi-million dollar projects." accent="#00BFA6" videoUrl={CON_HERO_VIDEO_URL}/>
       <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="Capabilities" sub="Enterprise-grade aerial documentation for every project phase."/>
         <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>

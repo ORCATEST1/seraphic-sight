@@ -4,6 +4,15 @@
 // Leave null to keep the default animated background.
 export const HERO_VIDEO_URL = "https://res.cloudinary.com/dpc1noikx/video/upload/vc_auto,q_auto/v1775972864/clip_joey_updated_bbfclp.mp4";
 
+// ===== INNER PAGE HERO VIDEOS =====
+// MY PICK → Property Marketing: Alex 04.11.26 — V1 (Drive: Videos folder → "Copy of V1.mp4", 637MB)
+//   Steps: Cloudinary → Upload → folder "hero-videos" → get URL → paste below (remove placeholder)
+export const PROP_HERO_VIDEO_URL = "https://res.cloudinary.com/dpc1noikx/video/upload/vc_auto,q_auto/v1775972864/clip_joey_updated_bbfclp.mp4";
+
+// MY PICK → Construction: Dustin 01.04.26 — V2 (Drive: Videos folder → "Copy of V2.mp4", 1.5GB)
+//   Steps: same as above → paste URL below
+export const CON_HERO_VIDEO_URL = "https://res.cloudinary.com/dpc1noikx/video/upload/vc_auto,q_auto/v1775972864/clip_joey_updated_bbfclp.mp4";
+
 // ===== TRAVEL FEE =====
 // Threshold: jobs under this many miles are billed round-trip (short hops).
 // Jobs at or beyond this distance are billed one-way (long hauls).
