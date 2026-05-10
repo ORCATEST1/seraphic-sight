@@ -232,4 +232,14 @@ body {
     flex-wrap: wrap !important;
     gap: 16px !important;
   }
+  /* Testimonials: revert to vertical stack on mobile */
+  .testimonials-track {
+    flex-direction: column !important;
+    width: 100% !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+  .testimonial-card {
+    width: 100% !important;
+  }
 }

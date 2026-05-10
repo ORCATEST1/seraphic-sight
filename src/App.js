@@ -250,6 +250,8 @@ function Home() {
   const homeRef = React.useRef(null);
   const verticalsRef = React.useRef(null);
   const verticalsTrackRef = React.useRef(null);
+  const testimonialsRef = React.useRef(null);
+  const testimonialsTrackRef = React.useRef(null);
   const scrambledHero = useTextScramble("Aerial Imaging &", { duration: 950, delay: 350 });
 
   useGSAP(() => {
@@ -274,9 +276,10 @@ function Home() {
         onUpdate() { el.textContent = (decimals ? obj.val.toFixed(decimals) : Math.round(obj.val)) + suffix; }
       });
     });
-    // ── Horizontal scroll: Two Verticals (desktop only)
+    // ── Horizontal scroll: Two Verticals + Testimonials (desktop only)
     const mm = gsap.matchMedia();
     mm.add("(min-width: 769px)", () => {
+      // Two Verticals
       gsap.timeline({
         scrollTrigger: {
           trigger: verticalsRef.current,
@@ -287,6 +290,21 @@ function Home() {
           snap: { snapTo: [0, 1], duration: { min: 0.4, max: 0.8 }, delay: 0.2, ease: "power2.inOut" }
         }
       }).to(verticalsTrackRef.current, { xPercent: -50, ease: "none" });
+
+      // Testimonials horizontal marquee
+      const tTrack = testimonialsTrackRef.current;
+      gsap.to(tTrack, {
+        x: () => -(tTrack.scrollWidth - document.documentElement.clientWidth + 96),
+        ease: "none",
+        scrollTrigger: {
+          trigger: testimonialsRef.current,
+          pin: true,
+          anticipatePin: 1,
+          scrub: 1,
+          end: () => "+=" + (tTrack.scrollWidth - document.documentElement.clientWidth + 96),
+          invalidateOnRefresh: true,
+        },
+      });
     });
   }, { scope: homeRef });
 
@@ -429,44 +447,45 @@ function Home() {
         </div>
       </section>
 
-      <section style={{ padding:"100px 24px",background:"rgba(0,0,0,0.22)" }}>
-        <div style={{ maxWidth:1200,margin:"0 auto" }}>
-          <div style={{ display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:52,flexWrap:"wrap",gap:16 }}>
-            <div>
-              <p style={{ fontSize:11,fontWeight:700,color:"#444460",letterSpacing:2,textTransform:"uppercase",marginBottom:10 }}>Client Reviews</p>
-              <h2 className="section-title" style={{ fontSize:36,fontWeight:800,color:"#fff",letterSpacing:"-0.8px",margin:0 }}>What Clients Say</h2>
-            </div>
-            <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer"
-              style={{ display:"flex",alignItems:"center",gap:8,textDecoration:"none",padding:"10px 20px",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,background:"rgba(255,255,255,0.02)" }}>
-              <span style={{ color:"#FFD700",letterSpacing:2,fontSize:13 }}>★★★★★</span>
-              <span style={{ fontSize:13,color:"#8888A0" }}>5.0 · 26 reviews · Droners.io</span>
-            </a>
+      {/* ===== TESTIMONIALS: Pinned horizontal strip (desktop) / stack (mobile) ===== */}
+      <section ref={testimonialsRef} style={{ background:"rgba(0,0,0,0.22)",overflow:"hidden" }}>
+        {/* Header — stays pinned above the scrolling track */}
+        <div style={{ maxWidth:1200,margin:"0 auto",padding:"80px 24px 40px",display:"flex",alignItems:"flex-end",justifyContent:"space-between",flexWrap:"wrap",gap:16 }}>
+          <div>
+            <p style={{ fontSize:11,fontWeight:700,color:"#444460",letterSpacing:2,textTransform:"uppercase",marginBottom:10 }}>Client Reviews</p>
+            <h2 className="section-title" style={{ fontSize:36,fontWeight:800,color:"#fff",letterSpacing:"-0.8px",margin:0 }}>What Clients Say</h2>
           </div>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:16 }}>
-            {[
-              { quote:"Seraphic Sight LLC did an awesome job on my plot of land. Very professional, on time, high-quality pics and videos, and great editing.", name:"Joyita R.", context:"Land Survey" },
-              { quote:"Pilot was very professional and quick to get out to the site to meet our deadline. Provided multiple drafts and the video had great graphics, variety of angles, and was a desirable product.", name:"Lucia L.", context:"Video Production" },
-              { quote:"I really needed a good outline of this large vacant desert property and he nailed it. The shot was great and the outline was super easy to see and visualize!", name:"Courtney B.", context:"Vacant Land Mapping" },
-              { quote:"Joseph dealt very well with a lot of sensitive requests on behalf of our Customers, and got us some really interesting footage. We'll keep him on file for any other jobs in the area.", name:"Spencer H.", context:"Zeitview" },
-              { quote:"Excellent drone pilot. Very experienced with complex jobs and delivers results. Will work with him again in any future project.", name:"W.V.", context:"Construction" },
-              { quote:"Fantastic photos and videos that captured the property, quick turnaround, and openness to make any necessary edits. Highly recommend.", name:"Dustin W.", context:"Property Marketing" },
-            ].map((t,i)=>(
-              <div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:"36px 32px",display:"flex",flexDirection:"column",gap:0 }}>
-                <div style={{ fontSize:56,lineHeight:0.75,color:"rgba(0,119,255,0.22)",fontFamily:"Georgia,serif",fontWeight:700,marginBottom:18 }}>"</div>
-                <p style={{ fontSize:15,color:"#C8C8D8",lineHeight:1.82,flex:1,marginBottom:24 }}>{t.quote}</p>
-                <div style={{ display:"flex",alignItems:"center",gap:12,paddingTop:20,borderTop:"1px solid rgba(255,255,255,0.05)" }}>
-                  <div style={{ width:38,height:38,borderRadius:"50%",background:"linear-gradient(135deg,rgba(0,119,255,0.25),rgba(0,191,166,0.15))",border:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#fff",flexShrink:0 }}>
-                    {t.name.split(" ").map(n=>n[0]).join("")}
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13,fontWeight:700,color:"#fff" }}>{t.name}</div>
-                    <div style={{ fontSize:11,color:"#555570",marginTop:2 }}>{t.context}</div>
-                  </div>
-                  <span style={{ color:"#FFD700",fontSize:11,letterSpacing:1.5 }}>★★★★★</span>
+          <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer"
+            style={{ display:"flex",alignItems:"center",gap:8,textDecoration:"none",padding:"10px 20px",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,background:"rgba(255,255,255,0.02)" }}>
+            <span style={{ color:"#FFD700",letterSpacing:2,fontSize:13 }}>★★★★★</span>
+            <span style={{ fontSize:13,color:"#8888A0" }}>5.0 · 26 reviews · Droners.io</span>
+          </a>
+        </div>
+        {/* Horizontal card track */}
+        <div ref={testimonialsTrackRef} className="testimonials-track" style={{ display:"flex",gap:20,paddingLeft:48,paddingRight:96,paddingBottom:80,width:"max-content" }}>
+          {[
+            { quote:"Seraphic Sight LLC did an awesome job on my plot of land. Very professional, on time, high-quality pics and videos, and great editing.", name:"Joyita R.", context:"Land Survey" },
+            { quote:"Pilot was very professional and quick to get out to the site to meet our deadline. Provided multiple drafts and the video had great graphics, variety of angles, and was a desirable product.", name:"Lucia L.", context:"Video Production" },
+            { quote:"I really needed a good outline of this large vacant desert property and he nailed it. The shot was great and the outline was super easy to see and visualize!", name:"Courtney B.", context:"Vacant Land Mapping" },
+            { quote:"Joseph dealt very well with a lot of sensitive requests on behalf of our Customers, and got us some really interesting footage. We'll keep him on file for any other jobs in the area.", name:"Spencer H.", context:"Zeitview" },
+            { quote:"Excellent drone pilot. Very experienced with complex jobs and delivers results. Will work with him again in any future project.", name:"W.V.", context:"Construction" },
+            { quote:"Fantastic photos and videos that captured the property, quick turnaround, and openness to make any necessary edits. Highly recommend.", name:"Dustin W.", context:"Property Marketing" },
+          ].map((t,i)=>(
+            <div key={i} className="card-hover testimonial-card" style={{ width:360,flexShrink:0,background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:"36px 32px",display:"flex",flexDirection:"column" }}>
+              <div style={{ fontSize:56,lineHeight:0.75,color:"rgba(0,119,255,0.22)",fontFamily:"Georgia,serif",fontWeight:700,marginBottom:18 }}>"</div>
+              <p style={{ fontSize:15,color:"#C8C8D8",lineHeight:1.82,flex:1,marginBottom:24 }}>{t.quote}</p>
+              <div style={{ display:"flex",alignItems:"center",gap:12,paddingTop:20,borderTop:"1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{ width:38,height:38,borderRadius:"50%",background:"linear-gradient(135deg,rgba(0,119,255,0.25),rgba(0,191,166,0.15))",border:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#fff",flexShrink:0 }}>
+                  {t.name.split(" ").map(n=>n[0]).join("")}
                 </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13,fontWeight:700,color:"#fff" }}>{t.name}</div>
+                  <div style={{ fontSize:11,color:"#555570",marginTop:2 }}>{t.context}</div>
+                </div>
+                <span style={{ color:"#FFD700",fontSize:11,letterSpacing:1.5 }}>★★★★★</span>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </section>
 
