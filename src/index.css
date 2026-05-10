@@ -189,6 +189,11 @@ body {
   50% { transform: translateY(-10px); }
 }
 
+@keyframes heroBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.5; }
+  50% { transform: translateX(-50%) translateY(7px); opacity: 0.9; }
+}
+
 .animate-fadeUp {
   animation: fadeUp 1s ease-out;
 }

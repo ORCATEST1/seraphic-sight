@@ -66,6 +66,33 @@ function MagneticBtn({ children, style, className, onClick }) {
   );
 }
 
+// ===== PAGE REVEAL HOOK =====
+function usePageReveal(ref) {
+  useGSAP(() => {
+    // Section titles slide up
+    gsap.utils.toArray(".section-title").forEach(el => {
+      gsap.from(el, {
+        y: 28, opacity: 0, duration: 0.8, ease: "power3.out",
+        scrollTrigger: { trigger: el, start: "top 88%", once: true },
+      });
+    });
+    // Cards stagger in by column position
+    gsap.utils.toArray(".card-hover").forEach((el, i) => {
+      gsap.from(el, {
+        y: 40, opacity: 0, duration: 0.65, delay: (i % 3) * 0.07, ease: "power3.out",
+        scrollTrigger: { trigger: el, start: "top 90%", once: true },
+      });
+    });
+    // Generic staggered reveal items (process steps, pricing rows, etc.)
+    gsap.utils.toArray(".reveal-item").forEach((el, i) => {
+      gsap.from(el, {
+        y: 24, opacity: 0, duration: 0.55, delay: (i % 5) * 0.09, ease: "power3.out",
+        scrollTrigger: { trigger: el, start: "top 92%", once: true },
+      });
+    });
+  }, { scope: ref });
+}
+
 // ===== NAV =====
 function Nav() {
   const [scrolled, setScrolled] = React.useState(false);
@@ -129,6 +156,12 @@ function PageHero({ tag, title, subtitle, accent="#0077FF", videoUrl=null }) {
         <h1 style={{ fontSize:44,fontWeight:800,color:"#fff",letterSpacing:"-1.2px",lineHeight:1.1,marginBottom:18 }}>{title}</h1>
         {subtitle&&<p style={{ fontSize:17,color:"#8888A0",lineHeight:1.7,maxWidth:580,margin:"0 auto" }}>{subtitle}</p>}
       </div>
+      {videoUrl&&(
+        <div style={{ position:"absolute",bottom:28,left:"50%",transform:"translateX(-50%)",zIndex:3,display:"flex",flexDirection:"column",alignItems:"center",gap:6,animation:"heroBounce 2.2s ease-in-out infinite" }}>
+          <span style={{ fontSize:11,fontWeight:600,color:"rgba(255,255,255,0.35)",letterSpacing:2,textTransform:"uppercase" }}>Scroll</span>
+          <svg width="20" height="12" viewBox="0 0 20 12" fill="none"><path d="M1 1L10 10L19 1" stroke="rgba(255,255,255,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </div>
+      )}
     </section>
   );
 }
@@ -481,8 +514,10 @@ function Home() {
 
 // ===== PROPERTY MARKETING =====
 function PropertyMarketing() {
+  const pageRef = React.useRef(null);
+  usePageReveal(pageRef);
   return (
-    <div>
+    <div ref={pageRef}>
       <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="MLS-ready aerial content delivered in 3–4 business days. LAANC-authorized for controlled airspace. Send us the APN and your deliverable list — we handle the rest." accent="#0077FF" videoUrl={PROP_HERO_VIDEO_URL}/>
       <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="What We Deliver" sub="Every service designed to move listings faster."/>
@@ -507,7 +542,7 @@ function PropertyMarketing() {
           <div style={{ marginTop:56 }}>
             <h3 style={{ fontSize:22,fontWeight:700,color:"#fff",marginBottom:24,textAlign:"center" }}>Add-Ons</h3>
             <div style={{ maxWidth:600,margin:"0 auto",display:"grid",gap:12 }}>
-              {PROP_ADDONS.map((a,i)=>(<div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10 }}><span style={{ fontSize:14,color:"#C0C0D0" }}>{a.name}</span><span style={{ fontSize:14,fontWeight:700,color:"#fff",flexShrink:0,marginLeft:16 }}>{a.price}</span></div>))}
+              {PROP_ADDONS.map((a,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10 }}><span style={{ fontSize:14,color:"#C0C0D0" }}>{a.name}</span><span style={{ fontSize:14,fontWeight:700,color:"#fff",flexShrink:0,marginLeft:16 }}>{a.price}</span></div>))}
             </div>
             <div style={{ maxWidth:600,margin:"0 auto" }}><TravelFeeNote accent="#0077FF"/></div>
           </div>
@@ -517,7 +552,7 @@ function PropertyMarketing() {
         <SectionTitle title="How It Works"/>
         <div style={{ display:"flex",flexDirection:"column",position:"relative" }}>
           <div style={{ position:"absolute",left:24,top:36,bottom:36,width:2,background:"linear-gradient(180deg,#0077FF,#00BFA6)",opacity:0.2 }}/>
-          {PROP_PROCESS.map((s,i)=>(<div key={i} style={{ display:"flex",gap:28,padding:"28px 0",alignItems:"flex-start" }}><div style={{ width:50,height:50,borderRadius:"50%",background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800,color:"#0077FF",flexShrink:0,position:"relative",zIndex:2 }}>{s.num}</div><div><h4 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{s.title}</h4><p style={{ fontSize:14,color:"#8888A0",lineHeight:1.7 }}>{s.desc}</p></div></div>))}
+          {PROP_PROCESS.map((s,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",gap:28,padding:"28px 0",alignItems:"flex-start" }}><div style={{ width:50,height:50,borderRadius:"50%",background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800,color:"#0077FF",flexShrink:0,position:"relative",zIndex:2 }}>{s.num}</div><div><h4 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{s.title}</h4><p style={{ fontSize:14,color:"#8888A0",lineHeight:1.7 }}>{s.desc}</p></div></div>))}
         </div>
       </section>
       <CTABanner title="Ready to Market Your Listing?" sub="Send us the APN and deliverables — we'll get you a quote within 24 hours." btn="Get a Quote →"/>
@@ -527,8 +562,10 @@ function PropertyMarketing() {
 
 // ===== CONSTRUCTION =====
 function Construction() {
+  const pageRef = React.useRef(null);
+  usePageReveal(pageRef);
   return (
-    <div>
+    <div ref={pageRef}>
       <PageHero tag="Construction & Development" title={<>Progress Monitoring,<br/>Mapping & Visualization</>} subtitle="Automated DroneDeploy workflows, orthomosaic mapping, and audit-ready documentation for multi-million dollar projects." accent="#00BFA6" videoUrl={CON_HERO_VIDEO_URL}/>
       <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="Capabilities" sub="Enterprise-grade aerial documentation for every project phase."/>
@@ -556,7 +593,7 @@ function Construction() {
       <section style={{ padding:"80px 24px",maxWidth:800,margin:"0 auto" }}>
         <SectionTitle title="Pricing Framework" sub="Construction documentation is scoped per project. Here are our starting benchmarks."/>
         <div style={{ display:"grid",gap:12 }}>
-          {CON_PRICING.map((p,i)=>(<div key={i} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,flexWrap:"wrap",gap:12 }}><span style={{ fontSize:14,color:"#C0C0D0" }}>{p.service}</span><span style={{ fontSize:15,fontWeight:700,color:"#00BFA6",flexShrink:0 }}>{p.price}</span></div>))}
+          {CON_PRICING.map((p,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,flexWrap:"wrap",gap:12 }}><span style={{ fontSize:14,color:"#C0C0D0" }}>{p.service}</span><span style={{ fontSize:15,fontWeight:700,color:"#00BFA6",flexShrink:0 }}>{p.price}</span></div>))}
         </div>
         <div style={{ marginTop:32,padding:24,background:"rgba(0,191,166,0.05)",border:"1px solid rgba(0,191,166,0.12)",borderRadius:12 }}>
           <p style={{ fontSize:13,color:"#8888A0",lineHeight:1.8 }}><strong style={{ color:"#fff" }}>Every engagement includes:</strong> DroneDeploy automated flight plans · GeoTIFF + LAS/LAZ deliverables · Procore / BIM 360 compatible outputs · Organized, timestamped progress imagery · Site superintendent coordination · COI provided upon request</p>
@@ -567,7 +604,7 @@ function Construction() {
         <div style={{ maxWidth:900,margin:"0 auto" }}>
           <SectionTitle title="Who We Work With"/>
           <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16 }}>
-            {CON_CLIENTS.map((w,i)=>(<div key={i} style={{ padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,textAlign:"center",fontSize:14,fontWeight:500,color:"#C0C0D0" }}>{w}</div>))}
+            {CON_CLIENTS.map((w,i)=>(<div key={i} className="reveal-item" style={{ padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,textAlign:"center",fontSize:14,fontWeight:500,color:"#C0C0D0" }}>{w}</div>))}
           </div>
         </div>
       </section>
