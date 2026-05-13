@@ -10,6 +10,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Lenis from "lenis";
+import CinematicHero from "./components/CinematicHero";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -310,44 +311,46 @@ function Home() {
 
   return (
     <div ref={homeRef}>
-      <section style={{ position:"relative",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden" }}>
-        {HERO_VIDEO_URL ? (
-          <>
-            <video autoPlay muted loop playsInline
-              style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0 }}
-              src={HERO_VIDEO_URL}/>
-            <div style={{ position:"absolute",inset:0,background:"rgba(10,10,18,0.58)",zIndex:1,
-              backgroundImage:"linear-gradient(rgba(0,119,255,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,0.035) 1px,transparent 1px)",
-              backgroundSize:"44px 44px" }}/>
-          </>
-        ) : (
-          <>
-            <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,119,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,0.05) 1px,transparent 1px)",backgroundSize:"44px 44px" }}/>
-            <div className="glow-orb" style={{ top:"20%",right:"-5%",width:440,height:440,background:"#0077FF",opacity:0.07 }}/>
-            <div className="glow-orb" style={{ bottom:"10%",left:"-5%",width:360,height:360,background:"#00BFA6",opacity:0.06 }}/>
-          </>
-        )}
-        <div className="animate-fadeUp" style={{ position:"relative",zIndex:2,textAlign:"center",maxWidth:860,padding:"120px 24px 80px" }}>
-          <div className="tag-pill" style={{ background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",color:"#0077FF",marginBottom:32,display:"inline-flex" }}>
-            <span style={{ width:6,height:6,borderRadius:"50%",background:"#0077FF",animation:"pulse 2s infinite" }}/>
+      {/* ── Cinematic 3D scroll hero ── */}
+      <CinematicHero />
+
+      {/* ── Brand intro — hero content below the cinematic fold ── */}
+      <section style={{
+        position: "relative",
+        padding: "120px 24px 100px",
+        textAlign: "center",
+        overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "linear-gradient(rgba(0,119,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,0.05) 1px,transparent 1px)",
+          backgroundSize: "44px 44px",
+        }} />
+        <div className="glow-orb" style={{ top: "20%", right: "-5%", width: 440, height: 440, background: "#0077FF", opacity: 0.07 }} />
+        <div className="glow-orb" style={{ bottom: "10%", left: "-5%", width: 360, height: 360, background: "#00BFA6", opacity: 0.06 }} />
+        <div className="animate-fadeUp" style={{ position: "relative", zIndex: 2, maxWidth: 860, margin: "0 auto" }}>
+          <div className="tag-pill" style={{ background: "rgba(0,119,255,0.1)", border: "1px solid rgba(0,119,255,0.2)", color: "#0077FF", marginBottom: 32, display: "inline-flex" }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#0077FF", animation: "pulse 2s infinite" }} />
             FAA Part 107 Certified · Fully Insured
           </div>
-          <h1 className="hero-title" style={{ fontSize:54,fontWeight:800,lineHeight:1.08,letterSpacing:"-1.5px",color:"#fff",marginBottom:24,fontVariantNumeric:"tabular-nums" }}>
-            {scrambledHero}<br/><span className="gradient-text">Site Documentation</span><br/>for Southern California
+          <h1 className="hero-title" style={{ fontSize: 54, fontWeight: 800, lineHeight: 1.08, letterSpacing: "-1.5px", color: "#fff", marginBottom: 24, fontVariantNumeric: "tabular-nums" }}>
+            {scrambledHero}<br /><span className="gradient-text">Site Documentation</span><br />for Southern California
           </h1>
-          <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:20 }}>
-            <span style={{ color:"#FFD700",fontSize:13,letterSpacing:1 }}>★★★★★</span>
-            <span style={{ fontSize:13,color:"#8888A0" }}>5.0 · 26 verified reviews on</span>
-            <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer" style={{ fontSize:13,color:"#6066A0",textDecoration:"none" }}>Droners.io</a>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+            <span style={{ color: "#FFD700", fontSize: 13, letterSpacing: 1 }}>★★★★★</span>
+            <span style={{ fontSize: 13, color: "#8888A0" }}>5.0 · 26 verified reviews on</span>
+            <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#6066A0", textDecoration: "none" }}>Droners.io</a>
           </div>
-          <p className="hero-subtitle" style={{ fontSize:18,lineHeight:1.7,color:"#8888A0",maxWidth:600,margin:"0 auto 40px" }}>
+          <p className="hero-subtitle" style={{ fontSize: 18, lineHeight: 1.7, color: "#8888A0", maxWidth: 600, margin: "0 auto 40px" }}>
             FAA-certified drone services for property marketing, construction monitoring, and site visualization — from APN to final deliverables.
           </p>
-          <div className="btn-row" style={{ display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap" }}>
+          <div className="btn-row" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <Link to="/contact?type=property-marketing"><MagneticBtn className="btn-primary">Property Marketing</MagneticBtn></Link>
             <Link to="/contact?type=construction"><MagneticBtn className="btn-outline">Construction & Development</MagneticBtn></Link>
           </div>
-          <p style={{ fontSize:12,color:"#444460",marginTop:14,textAlign:"center" }}>Packages from <strong style={{color:"#666680"}}>$249</strong> · Quote within 24 hrs · No obligation</p>
+          <p style={{ fontSize: 12, color: "#444460", marginTop: 14 }}>
+            Packages from <strong style={{ color: "#666680" }}>$249</strong> · Quote within 24 hrs · No obligation
+          </p>
         </div>
       </section>
 
