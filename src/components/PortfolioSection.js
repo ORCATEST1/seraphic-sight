@@ -1,267 +1,1054 @@
-// PortfolioSection.js — Seraphic Sight
-// High-tech portfolio with Cloudinary-powered media grid, deliverable bubbles,
-// video autoplay on hover, and fullscreen lightbox.
+// PortfolioSection.js â Seraphic Sight v2
+// High-tech portfolio: large interactive deliverable bubbles, Cloudinary media,
+// video autoplay on hover, fullscreen lightbox, full mobile optimization.
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState, useRef, useEffect, useCallback, useMemo,
+} from "react";
 
-const CLD = "https://res.cloudinary.com/dpc1noikx";
-
-const imgUrl  = (id, w = 900, h = 600) =>
+/* âââ Cloudinary helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+const CLD    = "https://res.cloudinary.com/dpc1noikx";
+const img    = (id, w = 900, h = 600) =>
   `${CLD}/image/upload/w_${w},h_${h},c_fill,f_auto,q_auto/${id}`;
-const vidThumb = (id, w = 900, h = 540) =>
+const vThumb = (id, w = 900, h = 540) =>
   `${CLD}/video/upload/w_${w},h_${h},c_fill,f_jpg,so_2/${id}`;
-const vidUrl  = (id) =>
+const vSrc   = (id) =>
   `${CLD}/video/upload/f_mp4,q_auto:good,vc_h264/${id}`;
 
-const ASSETS = [
-  { id:"DJI_0915_w53hst",       type:"photo", tags:["Real Estate","Residential"] },
-  { id:"DJI_0891_tgrszt",       type:"photo", tags:["Real Estate","Residential"] },
-  { id:"DJI_0876_imzqgc",       type:"photo", tags:["Real Estate","Residential"] },
-  { id:"DJI_0802_cdwyvj",       type:"photo", tags:["Commercial","Residential"] },
-  { id:"DJI_0730_enavrk",       type:"photo", tags:["Real Estate","Commercial"] },
-  { id:"DJI_0872_vddljb",       type:"photo", tags:["Real Estate","Residential"] },
-  { id:"DJI_0812_cb8yrn",       type:"photo", tags:["Real Estate","Residential"] },
-  { id:"Aerial_27_qw5yqr",      type:"photo", tags:["Real Estate","Residential"] },
-  { id:"DJI_0327_it5brs",       type:"photo", tags:["Real Estate","Commercial"] },
-  { id:"Aerial_18_njtmry",      type:"photo", tags:["Real Estate","Residential"] },
-  { id:"Aerial_25_y6eahl",      type:"photo", tags:["Real Estate","Residential"] },
-  { id:"DJI_0780_tdioap",       type:"photo", tags:["Commercial","Industrial"] },
-  { id:"DJI_0454_bkvuwb",       type:"photo", tags:["Commercial","Industrial"] },
-  { id:"DJI_0888_go6uhb",       type:"photo", tags:["Commercial","Residential"] },
-  { id:"DJI_0322_khfwqi",       type:"photo", tags:["Residential","Real Estate"] },
-  { id:"Showcase_nmenkd",       type:"photo", tags:["Real Estate","Commercial"] },
-  { id:"Showcase_2_pkjbvm",     type:"photo", tags:["Real Estate","Commercial"] },
-  { id:"Showcase_3_n4gxow",     type:"photo", tags:["Real Estate","Commercial"] },
-  { id:"DJI_0011_zmbnvw",       type:"photo", tags:["Construction","Commercial"] },
-  { id:"sola-florance-construction-aerial_oapibr", type:"photo", tags:["Construction","Development"] },
-  { id:"AB3BA538-569E-4CFE-A6D7-D15694DCC3B3_g2mxh3", type:"photo", tags:["Construction","Development"] },
-  { id:"4-DJI_0960_etujxs",     type:"photo", tags:["Construction","Development"] },
-  { id:"3-DJI_0014_xn3a13",     type:"photo", tags:["Construction","Development"] },
-  { id:"DJI_0377_xl7frm",       type:"photo", tags:["Land","Development"] },
-  { id:"94-DJI_0259_e83rda",    type:"photo", tags:["Land","Development"] },
-  { id:"112-DJI_0287_vmrise",   type:"photo", tags:["Land","Development"] },
-  { id:"DJI_0944_hlpmgh",       type:"photo", tags:["Land","Commercial"] },
-  { id:"DJI_0715_gh4zrp",       type:"photo", tags:["Land","Residential"] },
-  { id:"DJI_0726_ffmdmr",       type:"photo", tags:["Land","Residential"] },
-  { id:"DJI_0036-HDR_bxyo9o",   type:"photo", tags:["Land","Development"] },
-  { id:"DJI_0768_nvafya",       type:"photo", tags:["Construction","Development"] },
-  { id:"DJI_0841_tmdv2e",       type:"photo", tags:["Construction","Development"] },
-  { id:"DJI_0104_uzqlyr",       type:"photo", tags:["Residential","Real Estate"] },
-  { id:"DJI_0002_xzpfp5",       type:"photo", tags:["Residential","Real Estate"] },
-  { id:"map-snapshot_q3dk25",   type:"photo", tags:["Land","Construction"] },
-  { id:"dji_fly_20230107_145206_631_1673132863018_photo_m5emzx", type:"photo", tags:["Construction","Land"] },
-  { id:"clip_joey_updated_bbfclp", type:"video", tags:["Real Estate","Cinematic"] },
-  { id:"joe_4_pjcua7",             type:"video", tags:["Real Estate","Cinematic"] },
-  { id:"clip1_nscwwy",             type:"video", tags:["Land","Cinematic"] },
-  { id:"part_1_rzf7yo",            type:"video", tags:["Land","Cinematic"] },
-  { id:"Copy_of_V1_2_eshjoq",      type:"video", tags:["Residential","Cinematic"] },
-  { id:"Copy_of_V3_1_pohbmu",      type:"video", tags:["Residential","Cinematic"] },
-  { id:"Copy_of_DJI_0719_rlyiv1",  type:"video", tags:["Land","Cinematic"] },
-  { id:"Copy_of_DJI_0896_wfhqwi",  type:"video", tags:["Construction","Walkthrough"] },
-  { id:"Copy_of_DJI_0939_pcc1dl",  type:"video", tags:["Construction","Walkthrough"] },
-  { id:"Copy_of_DJI_0839_reswlb",  type:"video", tags:["Commercial","Cinematic"] },
-  { id:"Copy_of_DJI_0787_jyxcdb",  type:"video", tags:["Commercial","Cinematic"] },
-  { id:"Copy_of_DJI_0325_kmx2a4",  type:"video", tags:["Residential","Cinematic"] },
-  { id:"Copy_of_Aerial_20_qa6xjx", type:"video", tags:["Real Estate","Cinematic"] },
-  { id:"V5_1_.00_01_30_08.Still005_nfgpnn", type:"video", tags:["Residential","Cinematic"] },
+/* âââ Assets ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+const PHOTOS = [
+  { id: "DJI_0915_w53hst",   tags: ["Real Estate"] },
+  { id: "DJI_0891_tgrszt",   tags: ["Real Estate"] },
+  { id: "DJI_0876_imzqgc",   tags: ["Real Estate"] },
+  { id: "DJI_0802_cdwyvj",   tags: ["Commercial"] },
+  { id: "DJI_0730_enavrk",   tags: ["Commercial"] },
+  { id: "DJI_0872_vddljb",   tags: ["Real Estate"] },
+  { id: "DJI_0812_cb8yrn",   tags: ["Real Estate"] },
+  { id: "Aerial_27_qw5yqr",  tags: ["Commercial"] },
+  { id: "DJI_0327_it5brs",   tags: ["Construction"] },
+  { id: "Aerial_18_njtmry",  tags: ["Commercial"] },
+  { id: "Aerial_25_y6eahl",  tags: ["Commercial"] },
+  { id: "DJI_0780_tdioap",   tags: ["Real Estate"] },
+  { id: "DJI_0454_bkvuwb",   tags: ["Land"] },
+  { id: "DJI_0888_go6uhb",   tags: ["Real Estate"] },
+  { id: "DJI_0322_khfwqi",   tags: ["Construction"] },
+  { id: "Showcase_nmenkd",   tags: ["Commercial"] },
+  { id: "Showcase_2_pkjbvm", tags: ["Commercial"] },
+  { id: "Showcase_3_n4gxow", tags: ["Commercial"] },
+  { id: "DJI_0011_zmbnvw",   tags: ["Commercial"] },
+  { id: "sola-florance-construction-aerial_oapibr", tags: ["Construction"] },
+  { id: "AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz", tags: ["Real Estate"] },
+  { id: "4-DJI_0960_etujxs", tags: ["Land"] },
+  { id: "3-DJI_0014_xn3a13", tags: ["Land"] },
+  { id: "DJI_0377_xl7frm",   tags: ["Commercial"] },
+  { id: "94-DJI_0259_e83rda",  tags: ["Construction"] },
+  { id: "112-DJI_0287_vmrise", tags: ["Construction"] },
+  { id: "DJI_0944_hlpmgh",   tags: ["Real Estate"] },
+  { id: "DJI_0715_gh4zrp",   tags: ["Real Estate"] },
+  { id: "DJI_0726_ffmdmr",   tags: ["Real Estate"] },
+  { id: "DJI_0036-HDR_bxyo9o", tags: ["Commercial"] },
+  { id: "DJI_0768_nvafya",   tags: ["Land"] },
+  { id: "DJI_0841_tmdv2e",   tags: ["Commercial"] },
+  { id: "DJI_0104_uzqlyr",   tags: ["Land"] },
+  { id: "DJI_0002_xzpfp5",   tags: ["Commercial"] },
+  { id: "map-snapshot_q3dk25", tags: ["Construction", "Land"] },
+  { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: ["Land"] },
+  // ââ 25 more coming â paste public IDs here once uploaded to Cloudinary ââ
+  // { id: "YOUR_ID_HERE", tags: ["Real Estate"] },
 ];
 
-const PHOTO_TAGS = ["All", "Real Estate", "Commercial", "Construction", "Land"];
-const VIDEO_TAGS = ["All", "Cinematic", "Walkthrough", "Real Estate", "Construction"];
+const VIDEOS = [
+  { id: "clip_joey_updated_bbfclp", tags: ["Cinematic", "Real Estate"] },
+  { id: "joe_4_pjcua7",            tags: ["Cinematic", "Real Estate"] },
+  { id: "clip1_nscwwy",            tags: ["Walkthrough"] },
+  { id: "part_1_rzf7yo",           tags: ["Cinematic"] },
+  { id: "Copy_of_V1_2_eshjoq",     tags: ["Cinematic", "Real Estate"] },
+  { id: "Copy_of_V3_1_pohbmu",     tags: ["Cinematic"] },
+  { id: "Copy_of_DJI_0719_rlyiv1", tags: ["Drone Clips"] },
+  { id: "Copy_of_DJI_0896_wfhqwi", tags: ["Drone Clips"] },
+  { id: "Copy_of_DJI_0939_pcc1dl", tags: ["Drone Clips"] },
+  { id: "Copy_of_DJI_0839_reswlb", tags: ["Drone Clips"] },
+  { id: "Copy_of_DJI_0787_jyxcdb", tags: ["Drone Clips", "Construction"] },
+  { id: "Copy_of_DJI_0325_kmx2a4", tags: ["Drone Clips", "Real Estate"] },
+  { id: "Copy_of_Aerial_20_qa6xjx", tags: ["Cinematic"] },
+  { id: "V5_1_.00_01_30_08.Still005_nfgpnn", tags: ["Cinematic", "Walkthrough"] },
+  // ââ 720p loop renders â add IDs here once rendered and uploaded ââ
+  // { id: "YOUR_LOOP_ID", tags: ["Cinematic"] },
+];
 
-const STYLES = `
-  .ps-card { position: relative; overflow: hidden; border-radius: 10px; cursor: pointer;
-    background: #0a0a14; transition: transform 0.28s cubic-bezier(.2,.8,.2,1), box-shadow 0.28s; }
-  .ps-card:hover { transform: scale(1.025); box-shadow: 0 12px 48px rgba(0,119,255,0.22); }
-  .ps-card img { width:100%; height:100%; object-fit:cover; display:block;
-    transition: opacity 0.35s; }
-  .ps-card video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-    opacity:0; transition: opacity 0.4s; pointer-events:none; }
-  .ps-card:hover video { opacity:1; }
-  .ps-card:hover img { opacity:0; }
-  .ps-card-overlay { position:absolute; inset:0; display:flex; flex-direction:column;
-    justify-content:flex-end; padding:16px;
-    background: linear-gradient(to top, rgba(5,8,16,0.88) 0%, transparent 60%);
-    opacity:0; transition: opacity 0.28s; pointer-events:none; }
-  .ps-card:hover .ps-card-overlay { opacity:1; }
-  .ps-bubble { border:none; cursor:pointer; border-radius:20px; font-size:0.72rem;
-    font-weight:600; letter-spacing:0.06em; padding:6px 16px;
-    transition: background 0.18s, color 0.18s, box-shadow 0.18s; }
-  .ps-bubble:hover { box-shadow: 0 0 12px rgba(0,191,166,0.3); }
-  .ps-tab { background:none; border:none; cursor:pointer; padding:10px 0;
-    font-size:1rem; font-weight:700; letter-spacing:-0.01em;
-    transition: color 0.18s; position:relative; }
-  @keyframes ps-fadein { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-  .ps-grid-item { animation: ps-fadein 0.38s both; }
-  .ps-play-icon { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:52px; height:52px; background:rgba(0,119,255,0.7); border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 0 22px rgba(0,119,255,0.45); transition: opacity 0.28s; }
-  .ps-card:hover .ps-play-icon { opacity:0; }
-  @media (max-width: 768px) { .ps-grid { grid-template-columns: 1fr !important; } }
-  @media (min-width: 769px) and (max-width: 1024px) { .ps-grid { grid-template-columns: repeat(2,1fr) !important; } }
+/* âââ Deliverable bubble config âââââââââââââââââââââââââââââââââââââââââââââ */
+const PHOTO_BUBBLES = [
+  { label: "All",          icon: "â¦",  color: "#00d4ff" },
+  { label: "Real Estate",  icon: "ð ", color: "#a78bfa" },
+  { label: "Commercial",   icon: "ð¢", color: "#34d399" },
+  { label: "Construction", icon: "ð", color: "#fb923c" },
+  { label: "Land",         icon: "ð¿", color: "#fbbf24" },
+];
+
+const VIDEO_BUBBLES = [
+  { label: "All",          icon: "â¦",  color: "#00d4ff" },
+  { label: "Cinematic",    icon: "ð¬", color: "#f472b6" },
+  { label: "Walkthrough",  icon: "ðª", color: "#a78bfa" },
+  { label: "Drone Clips",  icon: "ð", color: "#34d399" },
+];
+
+/* âââ CSS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+const PORTFOLIO_CSS = `
+  /* ââ Wrap ââ */
+  .ps-wrap {
+    position: relative;
+    background: #070b14;
+    min-height: 100vh;
+    overflow: hidden;
+    padding: 0 0 100px;
+  }
+
+  /* ââ Animated grid background ââ */
+  .ps-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ps-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 70%);
+  }
+
+  /* ââ Background video banner ââ */
+  .ps-hero-banner {
+    position: relative;
+    width: 100%;
+    height: 360px;
+    overflow: hidden;
+    z-index: 1;
+  }
+  @media (max-width: 768px) {
+    .ps-hero-banner { height: 240px; }
+  }
+  @media (max-width: 480px) {
+    .ps-hero-banner { height: 200px; }
+  }
+  .ps-hero-banner video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.5;
+    filter: saturate(1.3) brightness(0.75);
+  }
+  .ps-hero-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(7,11,20,0.4) 0%,
+      rgba(7,11,20,0.05) 40%,
+      rgba(7,11,20,0.92) 100%
+    );
+    z-index: 2;
+  }
+  .ps-hero-title-wrap {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 3;
+    width: 90%;
+  }
+  @media (max-width: 768px) {
+    .ps-hero-title-wrap { bottom: 22px; }
+  }
+  .ps-hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: #00d4ff;
+    margin-bottom: 10px;
+    font-family: 'Courier New', monospace;
+    opacity: 0.85;
+  }
+  .ps-hero-h1 {
+    font-size: clamp(26px, 5.5vw, 60px);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -1.5px;
+  }
+  .ps-hero-h1 span { color: #00d4ff; }
+
+  /* ââ Content area ââ */
+  .ps-content {
+    position: relative;
+    z-index: 2;
+    padding: 0 clamp(14px, 4vw, 64px);
+  }
+
+  /* ââ Category tabs ââ */
+  .ps-tabs {
+    display: flex;
+    gap: 0;
+    margin: 52px 0 0;
+    border-bottom: 1px solid rgba(0,212,255,0.12);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ps-tabs::-webkit-scrollbar { display: none; }
+  .ps-tab {
+    position: relative;
+    padding: 14px 28px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.25s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: inherit;
+  }
+  @media (max-width: 480px) {
+    .ps-tab { padding: 12px 18px; font-size: 11px; letter-spacing: 1.5px; }
+  }
+  .ps-tab:hover { color: rgba(255,255,255,0.65); }
+  .ps-tab[aria-selected="true"] { color: #00d4ff; }
+  .ps-tab[aria-selected="true"]::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 2px;
+    background: #00d4ff;
+    box-shadow: 0 0 14px rgba(0,212,255,0.7);
+  }
+  .ps-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px; height: 18px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: rgba(0,212,255,0.1);
+    font-size: 10px;
+    margin-left: 8px;
+    color: #00d4ff;
+    font-weight: 700;
+  }
+
+  /* ââ Deliverable bubbles ââ */
+  .ps-bubbles-wrap {
+    margin: 44px 0 0;
+  }
+  .ps-bubbles-label {
+    font-size: 9px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: rgba(0,212,255,0.35);
+    margin-bottom: 18px;
+    font-family: 'Courier New', monospace;
+  }
+  .ps-bubbles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  @media (max-width: 480px) {
+    .ps-bubbles { gap: 8px; }
+  }
+
+  .ps-bubble {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 22px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.025);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+  }
+  @media (max-width: 480px) {
+    .ps-bubble { padding: 10px 15px; gap: 7px; }
+  }
+  .ps-bubble:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+  }
+  .ps-bubble:active { transform: translateY(0) scale(0.97); }
+  .ps-bubble.active {
+    background: rgba(0,212,255,0.1);
+    border-color: rgba(0,212,255,0.45);
+    box-shadow: 0 0 22px rgba(0,212,255,0.12), inset 0 0 16px rgba(0,212,255,0.04);
+  }
+
+  .ps-bubble-icon {
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  @media (max-width: 480px) { .ps-bubble-icon { font-size: 14px; } }
+
+  .ps-bubble-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.6);
+    transition: color 0.2s;
+    white-space: nowrap;
+  }
+  @media (max-width: 480px) { .ps-bubble-label { font-size: 11px; } }
+  .ps-bubble.active .ps-bubble-label { color: #fff; }
+
+  .ps-bubble-count {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(0,212,255,0.12);
+    color: rgba(0,212,255,0.8);
+    font-family: 'Courier New', monospace;
+    flex-shrink: 0;
+    min-width: 20px;
+    text-align: center;
+  }
+  .ps-bubble.active .ps-bubble-count {
+    background: rgba(0,212,255,0.22);
+    color: #00d4ff;
+  }
+
+  /* ââ Divider ââ */
+  .ps-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 40px 0 28px;
+  }
+  .ps-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(0,212,255,0.25), transparent);
+  }
+  .ps-divider-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: #00d4ff;
+    box-shadow: 0 0 8px #00d4ff;
+    animation: ps-pulse 2.5s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes ps-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.65); }
+  }
+  .ps-divider-txt {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(0,212,255,0.45);
+    font-family: 'Courier New', monospace;
+    white-space: nowrap;
+  }
+
+  /* ââ Masonry grid ââ */
+  .ps-grid {
+    columns: 3;
+    column-gap: 12px;
+  }
+  @media (max-width: 1100px) { .ps-grid { columns: 2; } }
+  @media (max-width: 580px)  { .ps-grid { columns: 1; } }
+
+  /* ââ Card ââ */
+  .ps-card {
+    position: relative;
+    break-inside: avoid;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #111827;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition:
+      transform 0.28s cubic-bezier(0.4,0,0.2,1),
+      box-shadow 0.28s cubic-bezier(0.4,0,0.2,1),
+      border-color 0.28s;
+    animation: ps-fadein 0.45s ease both;
+    -webkit-tap-highlight-color: transparent;
+    display: block;
+  }
+  @media (hover: hover) {
+    .ps-card:hover {
+      transform: translateY(-5px) scale(1.012);
+      box-shadow:
+        0 24px 64px rgba(0,0,0,0.55),
+        0 0 0 1px rgba(0,212,255,0.12),
+        0 0 40px rgba(0,212,255,0.06);
+      border-color: rgba(0,212,255,0.3);
+      z-index: 5;
+    }
+  }
+  @keyframes ps-fadein {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .ps-card img,
+  .ps-card video {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  /* ââ Card overlay ââ */
+  .ps-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(0,0,0,0.9) 0%,
+      rgba(0,0,0,0.25) 45%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 0.25s;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 14px 16px;
+  }
+  .ps-card:hover .ps-card-overlay,
+  .ps-card:focus .ps-card-overlay { opacity: 1; }
+
+  /* Show overlay on touch devices always */
+  @media (hover: none) {
+    .ps-card-overlay {
+      opacity: 1;
+      background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.7) 0%,
+        transparent 50%
+      );
+    }
+  }
+
+  .ps-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 5px;
+  }
+  .ps-card-tag {
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(0,212,255,0.45);
+    color: #00d4ff;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(4px);
+  }
+  .ps-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  /* ââ Play badge ââ */
+  .ps-play-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    backdrop-filter: blur(6px);
+  }
+  .ps-card:hover .ps-play-badge {
+    background: rgba(0,212,255,0.22);
+    border-color: #00d4ff;
+    box-shadow: 0 0 14px rgba(0,212,255,0.5);
+  }
+  .ps-play-badge svg { margin-left: 2px; }
+
+  /* ââ Lightbox ââ */
+  .ps-lb-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4,6,12,0.97);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  .ps-lb-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+    font-family: inherit;
+  }
+  .ps-lb-close:hover { background: rgba(255,255,255,0.14); }
+  .ps-lb-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+    font-family: inherit;
+  }
+  .ps-lb-arrow:hover {
+    background: rgba(0,212,255,0.18);
+    border-color: rgba(0,212,255,0.5);
+  }
+  .ps-lb-arrow.prev { left: 16px; }
+  .ps-lb-arrow.next { right: 16px; }
+  @media (max-width: 640px) {
+    .ps-lb-arrow.prev { left: 8px; }
+    .ps-lb-arrow.next { right: 8px; }
+    .ps-lb-arrow { width: 36px; height: 36px; font-size: 18px; }
+  }
+
+  .ps-lb-media {
+    max-width: min(88vw, 1280px);
+    max-height: 75vh;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  @media (max-width: 640px) {
+    .ps-lb-media { max-width: 96vw; max-height: 65vh; border-radius: 6px; }
+  }
+  .ps-lb-media img,
+  .ps-lb-media video {
+    display: block;
+    max-width: 100%;
+    max-height: 75vh;
+    width: auto; height: auto;
+    object-fit: contain;
+  }
+  @media (max-width: 640px) {
+    .ps-lb-media img,
+    .ps-lb-media video { max-height: 65vh; }
+  }
+
+  .ps-lb-info {
+    position: absolute;
+    bottom: 88px;
+    left: 50%; transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 90vw;
+  }
+  @media (max-width: 640px) { .ps-lb-info { bottom: 76px; } }
+  .ps-lb-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(0,212,255,0.4);
+    color: #00d4ff;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+  }
+  .ps-lb-counter {
+    position: absolute;
+    bottom: 60px;
+    left: 50%; transform: translateX(-50%);
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: rgba(255,255,255,0.3);
+    font-family: 'Courier New', monospace;
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) { .ps-lb-counter { bottom: 50px; } }
+
+  /* Thumbnail strip */
+  .ps-lb-thumbs {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    gap: 4px;
+    padding: 10px 16px 12px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,212,255,0.3) transparent;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    justify-content: center;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ps-lb-thumb {
+    flex-shrink: 0;
+    width: 54px; height: 38px;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    opacity: 0.4;
+    border: 1px solid transparent;
+    transition: all 0.18s;
+  }
+  .ps-lb-thumb.active {
+    opacity: 1;
+    border-color: #00d4ff;
+    box-shadow: 0 0 10px rgba(0,212,255,0.5);
+  }
+  .ps-lb-thumb:hover { opacity: 0.7; }
+  .ps-lb-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ââ Empty state ââ */
+  .ps-empty {
+    text-align: center;
+    padding: 100px 20px;
+    color: rgba(255,255,255,0.2);
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ââ Scan line decoration ââ */
+  .ps-scanline {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(0,212,255,0.35), transparent);
+    animation: ps-scan 12s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+    top: 0;
+  }
+  @keyframes ps-scan {
+    from { top: 0; opacity: 0.8; }
+    85%  { opacity: 0.8; }
+    to   { top: 100%; opacity: 0; }
+  }
 `;
 
-function Lightbox({ assets, startIdx, onClose }) {
+/* âââ Lightbox ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+function Lightbox({ items, startIdx, onClose }) {
   const [idx, setIdx] = useState(startIdx);
-  const asset = assets[idx];
+  const videoRef      = useRef(null);
+  const thumbsRef     = useRef(null);
+  const item          = items[idx];
+  const isVideo       = item.type === "video";
+
+  const prev = useCallback(
+    () => setIdx(i => (i - 1 + items.length) % items.length),
+    [items.length],
+  );
+  const next = useCallback(
+    () => setIdx(i => (i + 1) % items.length),
+    [items.length],
+  );
+
+  /* keyboard nav */
   useEffect(() => {
     const h = (e) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight") setIdx(i => (i + 1) % assets.length);
-      if (e.key === "ArrowLeft")  setIdx(i => (i - 1 + assets.length) % assets.length);
+      if (e.key === "ArrowLeft")  prev();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "Escape")     onClose();
     };
     window.addEventListener("keydown", h);
-    document.body.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", h); document.body.style.overflow = ""; };
-  }, [assets.length, onClose]);
-  const isVideo = asset.type === "video";
-  return (
-    <div onClick={onClose} style={{ position:"fixed",inset:0,zIndex:2000,background:"rgba(3,5,14,0.97)",display:"flex",flexDirection:"column",backdropFilter:"blur(8px)" }}>
-      <div onClick={e=>e.stopPropagation()} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"16px 28px",borderBottom:"1px solid rgba(255,255,255,0.06)",flexShrink:0 }}>
-        <div style={{ display:"flex",gap:10,alignItems:"center" }}>
-          <span style={{ fontFamily:"monospace",fontSize:"0.7rem",color:"#00BFA6",letterSpacing:"0.25em",textTransform:"uppercase" }}>{isVideo?"Drone Video":"Aerial Photography"}</span>
-          <span style={{ color:"#333355",fontSize:"0.7rem" }}>·</span>
-          <span style={{ fontFamily:"monospace",fontSize:"0.68rem",color:"#555575" }}>{idx+1} / {assets.length}</span>
-        </div>
-        <div style={{ display:"flex",gap:8,alignItems:"center" }}>
-          <div style={{ display:"flex",gap:6 }}>
-            {asset.tags.map(t=>(
-              <span key={t} style={{ padding:"3px 10px",borderRadius:12,fontSize:"0.65rem",fontWeight:600,background:"rgba(0,119,255,0.12)",color:"#0077FF",border:"1px solid rgba(0,119,255,0.25)" }}>{t}</span>
-            ))}
-          </div>
-          <button onClick={onClose} style={{ background:"none",border:"none",cursor:"pointer",color:"#8888A0",fontSize:22,lineHeight:1,padding:"0 4px",marginLeft:8 }}>✕</button>
-        </div>
-      </div>
-      <div onClick={e=>e.stopPropagation()} style={{ flex:1,display:"flex",alignItems:"center",justifyContent:"center",padding:"24px 60px",minHeight:0,position:"relative" }}>
-        {assets.length>1&&<>
-          <button onClick={()=>setIdx(i=>(i-1+assets.length)%assets.length)} style={{ position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",width:44,height:44,borderRadius:"50%",cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10 }}>‹</button>
-          <button onClick={()=>setIdx(i=>(i+1)%assets.length)} style={{ position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",width:44,height:44,borderRadius:"50%",cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10 }}>›</button>
-        </>}
-        {isVideo
-          ? <video key={asset.id} controls autoPlay style={{ maxWidth:"100%",maxHeight:"100%",borderRadius:12,boxShadow:"0 0 80px rgba(0,119,255,0.15)" }} src={vidUrl(asset.id)}/>
-          : <img key={asset.id} alt="" style={{ maxWidth:"100%",maxHeight:"100%",borderRadius:12,objectFit:"contain",boxShadow:"0 0 80px rgba(0,119,255,0.15)" }} src={imgUrl(asset.id,1920,1080)}/>
-        }
-      </div>
-      <div onClick={e=>e.stopPropagation()} style={{ display:"flex",gap:8,padding:"12px 28px 20px",overflowX:"auto",borderTop:"1px solid rgba(255,255,255,0.06)",flexShrink:0,justifyContent:assets.length<8?"center":"flex-start" }}>
-        {assets.map((a,i)=>(
-          <div key={a.id} onClick={()=>setIdx(i)} style={{ width:72,height:46,borderRadius:6,overflow:"hidden",cursor:"pointer",flexShrink:0,transition:"opacity 0.15s,border-color 0.15s",border:i===idx?"2px solid #0077FF":"2px solid transparent",opacity:i===idx?1:0.42 }}>
-            <img alt="" src={a.type==="video"?vidThumb(a.id,144,92):imgUrl(a.id,144,92)} style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+    return () => window.removeEventListener("keydown", h);
+  }, [prev, next, onClose]);
 
-function VideoCard({ asset, onClick, style }) {
-  const vidRef = useRef(null);
-  const handleMouseEnter = () => { if (vidRef.current) vidRef.current.play().catch(()=>{}); };
-  const handleMouseLeave = () => { if (vidRef.current) { vidRef.current.pause(); vidRef.current.currentTime=0; } };
-  return (
-    <div className="ps-card ps-grid-item" style={style} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={onClick}>
-      <img alt="" src={vidThumb(asset.id)} loading="lazy" style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }}/>
-      <video ref={vidRef} muted loop playsInline preload="none" src={vidUrl(asset.id)}/>
-      <div className="ps-play-icon"><svg width="20" height="22" viewBox="0 0 20 22" fill="none"><path d="M2 2L18 11L2 20V2Z" fill="white"/></svg></div>
-      <div className="ps-card-overlay">
-        <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
-          {asset.tags.map(t=><span key={t} style={{ padding:"2px 8px",borderRadius:10,fontSize:"0.6rem",fontWeight:600,background:"rgba(0,119,255,0.3)",color:"#7bb8ff",border:"1px solid rgba(0,119,255,0.4)",backdropFilter:"blur(4px)" }}>{t}</span>)}
-        </div>
-        <div style={{ fontFamily:"monospace",fontSize:"0.62rem",color:"rgba(0,191,166,0.7)",marginTop:6,letterSpacing:"0.1em" }}>DRONE VIDEO · HD</div>
-      </div>
-    </div>
-  );
-}
-
-function PhotoCard({ asset, onClick, style }) {
-  return (
-    <div className="ps-card ps-grid-item" style={style} onClick={onClick}>
-      <img alt="" src={imgUrl(asset.id)} loading="lazy" style={{ width:"100%",height:"100%",objectFit:"cover",display:"block" }}/>
-      <div className="ps-card-overlay">
-        <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
-          {asset.tags.map(t=><span key={t} style={{ padding:"2px 8px",borderRadius:10,fontSize:"0.6rem",fontWeight:600,background:"rgba(0,119,255,0.3)",color:"#7bb8ff",border:"1px solid rgba(0,119,255,0.4)",backdropFilter:"blur(4px)" }}>{t}</span>)}
-        </div>
-        <div style={{ fontFamily:"monospace",fontSize:"0.62rem",color:"rgba(0,191,166,0.7)",marginTop:6,letterSpacing:"0.1em" }}>AERIAL · FAA 107</div>
-      </div>
-    </div>
-  );
-}
-
-export default function PortfolioSection() {
-  const [category, setCategory]   = useState("photo");
-  const [activeTag, setActiveTag] = useState("All");
-  const [lightbox, setLightbox]   = useState(null);
-  const styleInjected             = useRef(false);
-
+  /* auto-play video */
   useEffect(() => {
-    if (styleInjected.current) return;
-    styleInjected.current = true;
-    const el = document.createElement("style");
-    el.textContent = STYLES;
-    document.head.appendChild(el);
-    return () => { if (el.parentNode) el.parentNode.removeChild(el); };
+    if (videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  }, [idx]);
+
+  /* scroll active thumb into view */
+  useEffect(() => {
+    if (thumbsRef.current) {
+      const active = thumbsRef.current.querySelector(".ps-lb-thumb.active");
+      active?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [idx]);
+
+  /* lock body scroll */
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
   }, []);
 
-  useEffect(() => { setActiveTag("All"); }, [category]);
-
-  const tagList    = category === "photo" ? PHOTO_TAGS : VIDEO_TAGS;
-  const baseAssets = ASSETS.filter(a => a.type === category);
-  const filtered   = activeTag === "All" ? baseAssets : baseAssets.filter(a => a.tags.includes(activeTag));
-  const openLightbox = useCallback((assets, idx) => setLightbox({ assets, startIdx: idx }), []);
-  const heights = ["260px","300px","260px","280px","260px","300px","280px","260px","300px"];
-
   return (
-    <div style={{ background:"#050810",minHeight:"100vh",paddingBottom:80 }}>
-      <div style={{ textAlign:"center",padding:"72px 24px 0" }}>
-        <p style={{ fontFamily:"monospace",fontSize:"0.72rem",letterSpacing:"0.4em",textTransform:"uppercase",color:"#00BFA6",marginBottom:"1rem" }}>5 Years · SoCal</p>
-        <h1 style={{ fontSize:"clamp(2rem,5.5vw,3.8rem)",fontWeight:800,letterSpacing:"-0.035em",color:"#fff",lineHeight:1.1,marginBottom:"1.2rem" }}>Our Work</h1>
-        <p style={{ fontSize:"clamp(0.85rem,1.4vw,1rem)",color:"#8888A0",maxWidth:560,margin:"0 auto",lineHeight:1.7 }}>Aerial imagery and video across Southern California — residential, commercial, construction, and land.</p>
+    <div className="ps-lb-overlay" onClick={onClose}>
+      <button className="ps-lb-close" onClick={onClose} aria-label="Close">â</button>
+      <button
+        className="ps-lb-arrow prev"
+        onClick={e => { e.stopPropagation(); prev(); }}
+        aria-label="Previous"
+      >â¹</button>
+      <button
+        className="ps-lb-arrow next"
+        onClick={e => { e.stopPropagation(); next(); }}
+        aria-label="Next"
+      >âº</button>
+
+      <div className="ps-lb-media" onClick={e => e.stopPropagation()}>
+        {isVideo ? (
+          <video ref={videoRef} controls autoPlay playsInline>
+            <source src={vSrc(item.id)} type="video/mp4" />
+          </video>
+        ) : (
+          <img src={img(item.id, 1600, 1066)} alt="" loading="lazy" />
+        )}
       </div>
 
-      <div style={{ display:"flex",justifyContent:"center",gap:48,margin:"40px auto 0",padding:"0 24px",borderBottom:"1px solid rgba(255,255,255,0.06)",maxWidth:900 }}>
-        {[
-          { key:"photo", label:"Aerial Photography", count:ASSETS.filter(a=>a.type==="photo").length },
-          { key:"video", label:"Drone Video",        count:ASSETS.filter(a=>a.type==="video").length },
-        ].map(({ key, label, count }) => (
-          <button key={key} className="ps-tab" onClick={()=>setCategory(key)} style={{ color:category===key?"#fff":"#8888A0" }}>
-            {label}
-            <span style={{ marginLeft:8,fontSize:"0.7rem",fontWeight:600,color:category===key?"#0077FF":"#555575" }}>{count}</span>
-            {category===key&&<div style={{ position:"absolute",bottom:-1,left:0,right:0,height:2,background:"linear-gradient(90deg,#0077FF,#00BFA6)",borderRadius:2 }}/>}
-          </button>
+      <div className="ps-lb-info">
+        {item.tags.map(t => <span key={t} className="ps-lb-tag">{t}</span>)}
+      </div>
+
+      <div className="ps-lb-counter">
+        {String(idx + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
+      </div>
+
+      <div className="ps-lb-thumbs" ref={thumbsRef} onClick={e => e.stopPropagation()}>
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className={`ps-lb-thumb${i === idx ? " active" : ""}`}
+            onClick={() => setIdx(i)}
+          >
+            <img
+              src={it.type === "video" ? vThumb(it.id, 120, 80) : img(it.id, 120, 80)}
+              alt=""
+              loading="lazy"
+            />
+          </div>
         ))}
       </div>
+    </div>
+  );
+}
 
-      <div style={{ display:"flex",justifyContent:"center",gap:10,padding:"28px 24px 0",flexWrap:"wrap" }}>
-        {tagList.map(tag => {
-          const isActive = activeTag === tag;
-          const cnt = tag==="All" ? baseAssets.length : baseAssets.filter(a=>a.tags.includes(tag)).length;
-          return (
-            <button key={tag} className="ps-bubble" onClick={()=>setActiveTag(tag)} style={{ background:isActive?"rgba(0,119,255,0.15)":"rgba(255,255,255,0.04)",color:isActive?"#0077FF":"#8888A0",border:isActive?"1px solid rgba(0,119,255,0.4)":"1px solid rgba(255,255,255,0.08)" }}>
-              {tag}<span style={{ marginLeft:6,fontSize:"0.65rem",color:isActive?"rgba(0,119,255,0.7)":"#444460" }}>({cnt})</span>
-            </button>
-          );
-        })}
+/* âââ Video card ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+function VideoCard({ item, onClick }) {
+  const vidRef   = useRef(null);
+  const [hov, setHov] = useState(false);
+
+  const enter = () => {
+    setHov(true);
+    vidRef.current?.play().catch(() => {});
+  };
+  const leave = () => {
+    setHov(false);
+    if (vidRef.current) {
+      vidRef.current.pause();
+      vidRef.current.currentTime = 0;
+    }
+  };
+
+  return (
+    <div
+      className="ps-card"
+      onMouseEnter={enter}
+      onMouseLeave={leave}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => e.key === "Enter" && onClick()}
+    >
+      <img
+        src={vThumb(item.id)}
+        alt={item.tags.join(", ")}
+        loading="lazy"
+        style={{ display: hov ? "none" : "block" }}
+      />
+      <video
+        ref={vidRef}
+        muted
+        loop
+        playsInline
+        preload="none"
+        style={{ display: hov ? "block" : "none" }}
+        src={vSrc(item.id)}
+      />
+      <div className="ps-play-badge" aria-hidden="true">
+        <svg width="10" height="13" viewBox="0 0 10 13" fill="white">
+          <path d="M0 0.5L10 6.5L0 12.5V0.5Z" />
+        </svg>
       </div>
+      <div className="ps-card-overlay">
+        <div className="ps-card-tags">
+          {item.tags.map(t => <span key={t} className="ps-card-tag">{t}</span>)}
+        </div>
+        <p className="ps-card-title">Drone Video</p>
+      </div>
+    </div>
+  );
+}
 
-      <div style={{ display:"flex",alignItems:"center",gap:16,maxWidth:1280,margin:"28px auto 0",padding:"0 32px" }}>
-        <div style={{ height:1,flex:1,background:"rgba(255,255,255,0.05)" }}/>
-        <span style={{ fontFamily:"monospace",fontSize:"0.65rem",letterSpacing:"0.2em",color:"#444460",textTransform:"uppercase" }}>
-          {filtered.length} {category==="photo"?"Photos":"Videos"}{activeTag!=="All"?` · ${activeTag}`:""}
+/* âââ Photo card ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+function PhotoCard({ item, onClick }) {
+  return (
+    <div
+      className="ps-card"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => e.key === "Enter" && onClick()}
+    >
+      <img
+        src={img(item.id)}
+        alt={item.tags.join(", ")}
+        loading="lazy"
+      />
+      <div className="ps-card-overlay">
+        <div className="ps-card-tags">
+          {item.tags.map(t => <span key={t} className="ps-card-tag">{t}</span>)}
+        </div>
+        <p className="ps-card-title">Aerial Photography</p>
+      </div>
+    </div>
+  );
+}
+
+/* âââ Deliverable bubble ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+function Bubble({ config, count, active, onClick }) {
+  return (
+    <button
+      className={`ps-bubble${active ? " active" : ""}`}
+      onClick={onClick}
+      style={active ? {
+        borderColor: `${config.color}70`,
+        boxShadow: `0 0 28px ${config.color}18, inset 0 0 20px ${config.color}07`,
+      } : {}}
+      aria-pressed={active}
+    >
+      <span className="ps-bubble-icon" role="img" aria-hidden="true">
+        {config.icon}
+      </span>
+      <span className="ps-bubble-label">{config.label}</span>
+      {count != null && (
+        <span
+          className="ps-bubble-count"
+          style={active ? { background: `${config.color}30`, color: config.color } : {}}
+        >
+          {count}
         </span>
-        <div style={{ height:1,flex:1,background:"rgba(255,255,255,0.05)" }}/>
+      )}
+    </button>
+  );
+}
+
+/* âââ Main component ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+export default function PortfolioSection() {
+  const [cat,    setCat]    = useState("photo"); // "photo" | "video"
+  const [filter, setFilter] = useState("All");
+  const [lbState, setLbState] = useState(null); // { items, idx }
+  const bgVideoRef = useRef(null);
+
+  /* inject CSS once on mount */
+  useEffect(() => {
+    const id = "ps-v2-styles";
+    if (!document.getElementById(id)) {
+      const el = document.createElement("style");
+      el.id = id;
+      el.textContent = PORTFOLIO_CSS;
+      document.head.appendChild(el);
+    }
+    return () => document.getElementById("ps-v2-styles")?.remove();
+  }, []);
+
+  /* attempt bg video autoplay */
+  useEffect(() => {
+    bgVideoRef.current?.play().catch(() => {});
+  }, []);
+
+  /* current data */
+  const isPhoto  = cat === "photo";
+  const rawItems = useMemo(
+    () => (isPhoto ? PHOTOS : VIDEOS).map(x => ({ ...x, type: isPhoto ? "photo" : "video" })),
+    [isPhoto],
+  );
+  const bubbles  = isPhoto ? PHOTO_BUBBLES : VIDEO_BUBBLES;
+
+  /* per-tag counts */
+  const counts = useMemo(() => {
+    const m = { All: rawItems.length };
+    rawItems.forEach(it => it.tags.forEach(t => { m[t] = (m[t] || 0) + 1; }));
+    return m;
+  }, [rawItems]);
+
+  const filtered = useMemo(
+    () => filter === "All" ? rawItems : rawItems.filter(it => it.tags.includes(filter)),
+    [rawItems, filter],
+  );
+
+  /* switch category â reset filter */
+  const switchCat = (c) => { setCat(c); setFilter("All"); };
+
+  /* lightbox */
+  const openLb  = useCallback((items, idx) => setLbState({ items, idx }), []);
+  const closeLb = useCallback(() => setLbState(null), []);
+
+  const divLabel = `${filtered.length} ${isPhoto ? "photos" : "videos"} Â· ${filter}`;
+
+  return (
+    <div className="ps-wrap">
+      <div className="ps-bg" aria-hidden="true" />
+      <div className="ps-scanline" aria-hidden="true" />
+
+      {/* ââ Hero video banner ââ */}
+      <div className="ps-hero-banner">
+        {/*
+          Background loop â once your 720p renders are uploaded to Cloudinary,
+          swap "Copy_of_DJI_0939_pcc1dl" for your rendered video's public ID.
+        */}
+        <video
+          ref={bgVideoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        >
+          <source src={vSrc("Copy_of_DJI_0939_pcc1dl")} type="video/mp4" />
+        </video>
+        <div className="ps-hero-title-wrap">
+          <div className="ps-hero-eyebrow">Seraphic Sight Â· Portfolio</div>
+          <h1 className="ps-hero-h1">
+            Aerial <span>Precision</span>,<br />
+            Cinematic <span>Vision</span>
+          </h1>
+        </div>
       </div>
 
-      <div className="ps-grid" style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,maxWidth:1280,margin:"20px auto 0",padding:"0 32px" }}>
-        {filtered.map((asset,i) => {
-          const h = heights[i % heights.length];
-          const handleClick = () => openLightbox(filtered, i);
-          return asset.type==="video"
-            ? <VideoCard key={asset.id} asset={asset} onClick={handleClick} style={{ height:h }}/>
-            : <PhotoCard key={asset.id} asset={asset} onClick={handleClick} style={{ height:h }}/>;
-        })}
-      </div>
+      {/* ââ Main content ââ */}
+      <div className="ps-content">
 
-      {lightbox&&<Lightbox assets={lightbox.assets} startIdx={lightbox.startIdx} onClose={()=>setLightbox(null)}/>}
+        {/* Category tabs */}
+        <div className="ps-tabs" role="tablist" aria-label="Portfolio category">
+          {[
+            { id: "photo", label: "Aerial Photography", count: PHOTOS.length },
+            { id: "video", label: "Drone Video",        count: VIDEOS.length },
+          ].map(t => (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={cat === t.id}
+              className={`ps-tab${cat === t.id ? " active" : ""}`}
+              onClick={() => switchCat(t.id)}
+            >
+              {t.label}
+              <span className="ps-tab-count">{t.count}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Deliverable bubbles */}
+        <div className="ps-bubbles-wrap">
+          <div className="ps-bubbles-label">// filter by deliverable type</div>
+          <div className="ps-bubbles" role="group" aria-label="Filter by deliverable type">
+            {bubbles.map(b => (
+              <Bubble
+                key={b.label}
+                config={b}
+                count={counts[b.label] ?? 0}
+                active={filter === b.label}
+                onClick={() => setFilter(b.label)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="ps-divider" aria-hidden="true">
+          <div className="ps-divider-line" />
+          <div className="ps-divider-dot" />
+          <div className="ps-divider-txt">{divLabel}</div>
+          <div className="ps-divider-dot" />
+          <div className="ps-divider-line" />
+        </div>
+
+        {/* Grid */}
+        {filtered.length === 0 ? (
+          <div className="ps-empty">// No items match this filter yet.</div>
+        ) : (
+          <div className="ps-grid" key={`${cat}::${filter}`}>
+            {filtered.map((item, i) =>
+              item.type === "video" ? (
+                <VideoCard
+                  key={item.id}
+                  item={item}
+                  onClick={() => openLb(filtered, i)}
+                />
+              ) : (
+                <PhotoCard
+                  key={item.id}
+                  item={item}
+                  onClick={() => openLb(filtered, i)}
+                />
+              )
+            )}
+          </div>
+        )}
+
+      </div>{/* /ps-content */}
+
+      {/* Lightbox */}
+      {lbState && (
+        <Lightbox
+          items={lbState.items}
+          startIdx={lbState.idx}
+          onClose={closeLb}
+        />
+      )}
     </div>
   );
 }
