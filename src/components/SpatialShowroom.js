@@ -1,178 +1,108 @@
-// SpatialShowroom.js — Seraphic Sight Interactive 3D Showroom
-// A browser-based walkthrough exhibit. Three.js + pointer-lock navigation.
-// Rooms: Lobby → Property Marketing → Construction → Portfolio → Contact
+// SpatialShowroom.js v2 — Seraphic Sight 3D Gallery
+// High-tech dark showroom with real Cloudinary photo + video textures.
+// Architecture: central corridor, photo wing left, video wing right, contact end.
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
-// ─── ROOM LAYOUT ────────────────────────────────────────────────────────────
-// Each room is a box in world space. Corridors connect them.
-// Player walks along Z axis, rooms branch left/right.
-const ROOMS = [
-  {
-    id: "lobby",
-    label: "LOBBY",
-    floor: "1F",
-    pos: [0, 0, 0],
-    size: [20, 6, 24],
-    color: 0x050810,
-    accent: 0x0077FF,
-    panels: [
-      { type: "logo",  pos: [0, 3, -11.5], text: "SERAPHIC SIGHT",  sub: "FAA Part 107 · Southern California" },
-      { type: "stat",  pos: [-8, 2, 0],    label: "300+", sub: "Projects" },
-      { type: "stat",  pos: [-8, 2, 6],    label: "5.0★", sub: "Rating" },
-      { type: "stat",  pos: [-8, 2, -6],   label: "7",    sub: "Regions" },
-      { type: "nav",   pos: [0, 1.5, 10],  text: "→  ENTER",        room: "property" },
-    ],
-  },
-  {
-    id: "property",
-    label: "PROPERTY MARKETING",
-    floor: "1F",
-    pos: [0, 0, 30],
-    size: [22, 6, 26],
-    color: 0x04060F,
-    accent: 0x0077FF,
-    panels: [
-      { type: "title", pos: [0, 3.5, -12.5], text: "Property Marketing", sub: "MLS-ready aerials in 3–4 days" },
-      { type: "video", pos: [-10, 2.5, 0],    label: "Aerial Photography", videoId: "prop-aerial" },
-      { type: "video", pos: [10, 2.5, 0],     label: "Drone Video",         videoId: "prop-video" },
-      { type: "card",  pos: [0, 2, 8],        label: "From $249", sub: "MLS Package" },
-      { type: "nav",   pos: [-9, 1.5, 12],    text: "↑  CONSTRUCTION",     room: "construction" },
-      { type: "nav",   pos: [9, 1.5, 12],     text: "↑  PORTFOLIO",         room: "portfolio" },
-    ],
-  },
-  {
-    id: "construction",
-    label: "CONSTRUCTION & DEVELOPMENT",
-    floor: "1F",
-    pos: [-28, 0, 46],
-    size: [22, 6, 26],
-    color: 0x040A08,
-    accent: 0x00BFA6,
-    panels: [
-      { type: "title", pos: [0, 3.5, -12.5], text: "Construction Docs", sub: "DroneDeploy · GeoTIFF · BIM 360" },
-      { type: "video", pos: [-9, 2.5, 0],     label: "Progress Mapping",   videoId: "con-map" },
-      { type: "card",  pos: [8, 2.5, 0],      label: "DroneDeploy",        sub: "Automated Workflows" },
-      { type: "card",  pos: [8, 2.5, 6],      label: "Orthomosaic",        sub: "GeoTIFF Deliverables" },
-      { type: "nav",   pos: [0, 1.5, 12],     text: "→  CONTACT",          room: "contact" },
-    ],
-  },
-  {
-    id: "portfolio",
-    label: "PORTFOLIO",
-    floor: "B1F",
-    pos: [28, 0, 46],
-    size: [24, 6, 28],
-    color: 0x060508,
-    accent: 0x8833FF,
-    panels: [
-      { type: "title", pos: [0, 3.5, -13.5], text: "Portfolio",     sub: "Aerial · Video · Mapping" },
-      { type: "grid",  pos: [0, 2.5, 0],     label: "Recent Work" },
-      { type: "nav",   pos: [0, 1.5, 13],    text: "→  CONTACT",   room: "contact" },
-    ],
-  },
-  {
-    id: "contact",
-    label: "CONTACT",
-    floor: "1F",
-    pos: [0, 0, 72],
-    size: [18, 6, 20],
-    color: 0x050810,
-    accent: 0x0077FF,
-    panels: [
-      { type: "title",   pos: [0, 3.5, -9.5],  text: "Get a Quote",     sub: "APN · Address · Deliverables" },
-      { type: "contact", pos: [0, 2.5, 0] },
-    ],
-  },
+// ─── CLOUDINARY ───────────────────────────────────────────────────────────────
+const CLD = "https://res.cloudinary.com/dpc1noikx";
+const cImg = (id, w=1200, h=750) =>
+  `${CLD}/image/upload/w_${w},h_${h},c_fill,f_auto,q_auto:good/${id}`;
+const cVid = (id) =>
+  `${CLD}/video/upload/f_mp4,q_auto:good,vc_h264,w_960/${id}`;
+
+const PHOTOS = [
+  { id:"DJI_0915_w53hst",   label:"Aerial Overview",        tag:"Real Estate"  },
+  { id:"DJI_0891_tgrszt",   label:"Property Perspective",   tag:"Real Estate"  },
+  { id:"DJI_0876_imzqgc",   label:"Residential Aerial",     tag:"Real Estate"  },
+  { id:"DJI_0802_cdwyvj",   label:"Commercial Site",        tag:"Commercial"   },
+  { id:"DJI_0730_enavrk",   label:"Mixed-Use Development",  tag:"Commercial"   },
+  { id:"DJI_0327_it5brs",   label:"Construction Progress",  tag:"Construction" },
+  { id:"sola-florance-construction-aerial_oapibr", label:"Sola Florance", tag:"Construction" },
+  { id:"DJI_0322_khfwqi",   label:"Site Documentation",     tag:"Construction" },
+  { id:"Aerial_27_qw5yqr",  label:"Commercial Aerial",      tag:"Commercial"   },
+  { id:"DJI_0872_vddljb",   label:"Listing Photography",    tag:"Real Estate"  },
 ];
 
-// ─── PANEL GEOMETRY HELPERS ─────────────────────────────────────────────────
-function makeTextCanvas(line1, line2, w = 512, h = 256, accent = "#0077FF") {
+const VIDEOS = [
+  { id:"clip_joey_updated_bbfclp", label:"Cinematic Reel",       tag:"Cinematic"   },
+  { id:"joe_4_pjcua7",             label:"Property Showcase",    tag:"Real Estate" },
+  { id:"clip1_nscwwy",             label:"Interior Walkthrough", tag:"Walkthrough" },
+  { id:"part_1_rzf7yo",            label:"Aerial Cinematic",     tag:"Cinematic"   },
+  { id:"Copy_of_V1_2_eshjoq",      label:"Listing Video",        tag:"Real Estate" },
+  { id:"Copy_of_DJI_0719_rlyiv1",  label:"Drone Flight",         tag:"Drone"       },
+];
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function makeFloorTex() {
   const c = document.createElement("canvas");
-  c.width = w; c.height = h;
+  c.width = 512; c.height = 512;
   const ctx = c.getContext("2d");
-  ctx.fillStyle = "rgba(5,8,16,0.0)";
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = accent;
-  ctx.font = "bold 52px 'Arial', sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(line1, w / 2, h * 0.48);
-  if (line2) {
-    ctx.fillStyle = "rgba(180,180,200,0.75)";
-    ctx.font = "26px 'Arial', sans-serif";
-    ctx.fillText(line2, w / 2, h * 0.72);
+  ctx.fillStyle = "#060810";
+  ctx.fillRect(0,0,512,512);
+  // Grid lines
+  ctx.strokeStyle = "rgba(0,119,255,0.08)";
+  ctx.lineWidth = 1;
+  for (let i=0;i<=512;i+=32) {
+    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,512); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(512,i); ctx.stroke();
+  }
+  // Accent cross-hairs at grid intersections
+  ctx.strokeStyle = "rgba(0,191,166,0.12)";
+  ctx.lineWidth = 1;
+  for (let x=0;x<=512;x+=128) for (let y=0;y<=512;y+=128) {
+    ctx.beginPath(); ctx.moveTo(x-6,y); ctx.lineTo(x+6,y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x,y-6); ctx.lineTo(x,y+6); ctx.stroke();
   }
   return c;
 }
 
-// ─── MINIMAP ────────────────────────────────────────────────────────────────
-function Minimap({ playerPos, currentRoom }) {
-  const canvasRef = useRef(null);
-  useEffect(() => {
-    const c = canvasRef.current;
-    if (!c) return;
-    const ctx = c.getContext("2d");
-    const W = 160, H = 160;
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "rgba(5,8,16,0.85)";
-    ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = "rgba(0,119,255,0.3)";
-    ctx.strokeRect(0, 0, W, H);
+function makeLabelTex(title, sub, accent="#0077FF") {
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 128;
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0,0,512,128);
+  // Tag pill
+  ctx.fillStyle = accent + "22";
+  ctx.roundRect(0, 0, 512, 128, 8);
+  ctx.fill();
+  ctx.strokeStyle = accent + "55";
+  ctx.lineWidth = 1;
+  ctx.roundRect(0.5, 0.5, 511, 127, 8);
+  ctx.stroke();
+  ctx.fillStyle = accent;
+  ctx.font = "bold 38px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(title, 256, 58);
+  ctx.fillStyle = "rgba(180,180,200,0.65)";
+  ctx.font = "22px Arial";
+  ctx.fillText(sub, 256, 96);
+  return c;
+}
 
-    const scale = 1.4;
-    const cx = W / 2, cy = H / 2;
-    const ox = -playerPos[0] * scale + cx;
-    const oy = -playerPos[2] * scale + cy;
-
-    ROOMS.forEach(room => {
-      const rx = room.pos[0] * scale + ox - (room.size[0] / 2) * scale;
-      const ry = room.pos[2] * scale + oy - (room.size[2] / 2) * scale;
-      const rw = room.size[0] * scale, rh = room.size[2] * scale;
-      ctx.fillStyle = room.id === currentRoom
-        ? "rgba(0,119,255,0.25)"
-        : "rgba(255,255,255,0.04)";
-      ctx.fillRect(rx, ry, rw, rh);
-      ctx.strokeStyle = room.id === currentRoom
-        ? "rgba(0,119,255,0.8)"
-        : "rgba(255,255,255,0.12)";
-      ctx.strokeRect(rx, ry, rw, rh);
-      ctx.fillStyle = "rgba(120,130,180,0.7)";
-      ctx.font = "7px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(room.label.split(" ")[0], rx + rw / 2, ry + rh / 2 + 3);
-    });
-
-    // Player dot
-    ctx.beginPath();
-    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-    ctx.fillStyle = "#0077FF";
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(0,119,255,0.4)";
-    ctx.stroke();
-  }, [playerPos, currentRoom]);
-
-  return (
-    <canvas ref={canvasRef} width={160} height={160} style={{
-      position: "fixed", bottom: 24, left: 24, zIndex: 100,
-      borderRadius: 8, border: "1px solid rgba(0,119,255,0.25)",
-      boxShadow: "0 0 20px rgba(0,119,255,0.15)",
-    }} />
-  );
+function makeSectionTex(title, accent="#0077FF") {
+  const c = document.createElement("canvas");
+  c.width = 1024; c.height = 128;
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0,0,1024,128);
+  ctx.fillStyle = accent;
+  ctx.font = "bold 72px Arial";
+  ctx.textAlign = "left";
+  ctx.letterSpacing = "8px";
+  ctx.fillText(title.toUpperCase(), 24, 96);
+  return c;
 }
 
 // ─── ONBOARDING ──────────────────────────────────────────────────────────────
 function Onboarding({ onStart }) {
-  const [phase, setPhase] = useState("hello"); // hello → mode → loading → ready
-  const [mode, setMode] = useState(null);
+  const [phase, setPhase] = useState("hello");
   const [progress, setProgress] = useState(0);
-  const [fadeOut, setFadeOut] = useState(false);
+  const [fading, setFading] = useState(false);
 
   useEffect(() => {
     if (phase === "hello") {
-      const t = setTimeout(() => setPhase("mode"), 1800);
+      const t = setTimeout(() => setPhase("mode"), 2000);
       return () => clearTimeout(t);
     }
   }, [phase]);
@@ -181,583 +111,647 @@ function Onboarding({ onStart }) {
     if (phase === "loading") {
       let p = 0;
       const iv = setInterval(() => {
-        p += Math.random() * 6 + 2;
-        if (p >= 100) { p = 100; clearInterval(iv); setTimeout(() => setPhase("ready"), 400); }
+        p += Math.random() * 7 + 3;
+        if (p >= 100) { p = 100; clearInterval(iv); setTimeout(() => setPhase("ready"), 500); }
         setProgress(Math.min(100, p));
-      }, 60);
+      }, 50);
       return () => clearInterval(iv);
     }
   }, [phase]);
 
-  const handleStart = () => {
-    setFadeOut(true);
-    setTimeout(onStart, 700);
+  const enter = () => { setFading(true); setTimeout(onStart, 600); };
+
+  const wrap = {
+    position:"fixed", inset:0, zIndex:1000,
+    background:"radial-gradient(ellipse 100% 100% at 50% 0%, #08122A 0%, #020408 70%)",
+    display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+    fontFamily:"'Arial',sans-serif", transition:"opacity 0.6s",
+    opacity: fading ? 0 : 1, pointerEvents: fading ? "none" : "all",
   };
 
-  const base = {
-    position: "fixed", inset: 0, zIndex: 1000,
-    background: "radial-gradient(ellipse 80% 80% at 50% 50%, #08101E 0%, #020408 100%)",
-    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-    fontFamily: "'Arial', sans-serif",
-    transition: "opacity 0.7s",
-    opacity: fadeOut ? 0 : 1,
-    pointerEvents: fadeOut ? "none" : "all",
-  };
-
-  if (phase === "hello") return (
-    <div style={base}>
-      <div style={{ fontSize: "clamp(3rem,10vw,7rem)", fontWeight: 900, letterSpacing: "0.25em",
-        color: "#fff", textTransform: "uppercase",
-        animation: "ssHello 0.8s cubic-bezier(.2,.8,.3,1) both",
-      }}>
+  if (phase==="hello") return (
+    <div style={wrap}>
+      <style>{`@keyframes helloIn{from{opacity:0;transform:scale(.8) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}`}</style>
+      <div style={{ fontSize:"clamp(3rem,12vw,8rem)", fontWeight:900, letterSpacing:".3em",
+        color:"#fff", textTransform:"uppercase", animation:"helloIn .9s cubic-bezier(.2,.8,.3,1) both" }}>
         HELLO
       </div>
-      <style>{`@keyframes ssHello { from { opacity:0; transform:scale(0.85) } to { opacity:1; transform:scale(1) } }`}</style>
+      <div style={{ marginTop:16, fontSize:".7rem", letterSpacing:".4em", color:"rgba(0,191,166,.5)", textTransform:"uppercase" }}>
+        SERAPHIC SIGHT · SHOWROOM
+      </div>
     </div>
   );
 
-  if (phase === "mode") return (
-    <div style={base}>
-      <p style={{ color: "rgba(0,191,166,0.7)", fontSize: "0.7rem", letterSpacing: "0.35em",
-        textTransform: "uppercase", marginBottom: 32 }}>SELECT NAVIGATION MODE</p>
-      <div style={{ display: "flex", gap: 20 }}>
+  if (phase==="mode") return (
+    <div style={wrap}>
+      <p style={{ color:"rgba(0,191,166,.7)", fontSize:".65rem", letterSpacing:".4em",
+        textTransform:"uppercase", marginBottom:40 }}>SELECT NAVIGATION MODE</p>
+      <div style={{ display:"flex", gap:20 }}>
         {[
-          { id: "normal", label: "NORMAL", sub: "WASD + Mouse", desc: "Full keyboard control" },
-          { id: "easy",   label: "EASY",   sub: "Scroll + Click", desc: "Guided tour mode" },
+          { id:"normal", label:"NORMAL", sub:"WASD + Mouse Look", hint:"Click canvas to lock cursor" },
+          { id:"easy",   label:"EASY",   sub:"Click Panels",       hint:"Teleport between exhibits" },
         ].map(m => (
-          <button key={m.id} onClick={() => { setMode(m.id); setPhase("loading"); }}
-            style={{
-              background: mode === m.id ? "rgba(0,119,255,0.2)" : "rgba(255,255,255,0.03)",
-              border: `1px solid ${mode === m.id ? "rgba(0,119,255,0.6)" : "rgba(255,255,255,0.1)"}`,
-              borderRadius: 12, padding: "28px 40px", cursor: "pointer",
-              color: "#fff", textAlign: "center", transition: "all 0.2s",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,119,255,0.5)"; e.currentTarget.style.background = "rgba(0,119,255,0.1)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
-          >
-            <div style={{ fontSize: "1.4rem", fontWeight: 800, letterSpacing: "0.1em", marginBottom: 6 }}>{m.label}</div>
-            <div style={{ fontSize: "0.72rem", color: "#0077FF", letterSpacing: "0.15em", marginBottom: 8 }}>{m.sub}</div>
-            <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>{m.desc}</div>
+          <button key={m.id} onClick={() => setPhase("loading")}
+            style={{ background:"rgba(255,255,255,.03)", border:"1px solid rgba(0,119,255,.2)",
+              borderRadius:12, padding:"32px 44px", cursor:"pointer", color:"#fff",
+              textAlign:"center", transition:"all .2s", outline:"none" }}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,119,255,.1)"; e.currentTarget.style.borderColor="rgba(0,119,255,.5)";}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,.03)"; e.currentTarget.style.borderColor="rgba(0,119,255,.2)";}}>
+            <div style={{ fontSize:"1.5rem", fontWeight:900, letterSpacing:".08em", marginBottom:8 }}>{m.label}</div>
+            <div style={{ fontSize:".72rem", color:"#0077FF", letterSpacing:".12em", marginBottom:6 }}>{m.sub}</div>
+            <div style={{ fontSize:".6rem", color:"rgba(255,255,255,.35)" }}>{m.hint}</div>
           </button>
         ))}
       </div>
     </div>
   );
 
-  if (phase === "loading") return (
-    <div style={base}>
-      <p style={{ color: "rgba(0,191,166,0.7)", fontSize: "0.65rem", letterSpacing: "0.4em",
-        textTransform: "uppercase", marginBottom: 24 }}>INITIALIZING SHOWROOM</p>
-      <div style={{ width: 280, height: 2, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
-        <div style={{ width: `${progress}%`, height: "100%",
-          background: "linear-gradient(90deg, #0077FF, #00BFA6)",
-          boxShadow: "0 0 12px rgba(0,191,166,0.6)",
-          transition: "width 0.08s linear" }} />
+  if (phase==="loading") return (
+    <div style={wrap}>
+      <p style={{ color:"rgba(0,191,166,.6)", fontSize:".62rem", letterSpacing:".4em",
+        textTransform:"uppercase", marginBottom:28 }}>LOADING SHOWROOM</p>
+      <div style={{ width:300, height:2, background:"rgba(255,255,255,.07)", borderRadius:2 }}>
+        <div style={{ height:"100%", width:`${progress}%`,
+          background:"linear-gradient(90deg,#0077FF,#00BFA6)",
+          boxShadow:"0 0 14px rgba(0,191,166,.6)", transition:"width .06s linear",
+          borderRadius:2 }} />
       </div>
-      <p style={{ marginTop: 16, color: "rgba(255,255,255,0.25)", fontSize: "0.6rem",
-        fontFamily: "monospace", letterSpacing: "0.2em" }}>{Math.floor(progress)}%</p>
+      <p style={{ marginTop:14, color:"rgba(255,255,255,.2)", fontSize:".58rem",
+        fontFamily:"monospace", letterSpacing:".15em" }}>{Math.floor(progress).toString().padStart(3,"0")}%</p>
     </div>
   );
 
-  if (phase === "ready") return (
-    <div style={base}>
-      <p style={{ color: "rgba(0,191,166,0.7)", fontSize: "0.65rem", letterSpacing: "0.4em",
-        textTransform: "uppercase", marginBottom: 20 }}>SERAPHIC SIGHT · SHOWROOM</p>
-      <h1 style={{ fontSize: "clamp(1.8rem,5vw,3.5rem)", fontWeight: 900, color: "#fff",
-        letterSpacing: "-0.02em", marginBottom: 12 }}>Welcome.</h1>
-      <p style={{ color: "rgba(180,180,200,0.6)", fontSize: "0.85rem", marginBottom: 40,
-        textAlign: "center", maxWidth: 380, lineHeight: 1.7 }}>
-        Walk through our aerial imaging showroom. Explore services, watch demo footage, and find your zone.
+  return (
+    <div style={wrap}>
+      <p style={{ color:"rgba(0,191,166,.6)", fontSize:".62rem", letterSpacing:".4em",
+        textTransform:"uppercase", marginBottom:24 }}>READY</p>
+      <h1 style={{ fontSize:"clamp(2rem,5vw,4rem)", fontWeight:900, color:"#fff",
+        letterSpacing:"-.02em", marginBottom:16 }}>Welcome.</h1>
+      <p style={{ color:"rgba(180,180,200,.55)", fontSize:".85rem", marginBottom:36,
+        textAlign:"center", maxWidth:380, lineHeight:1.75 }}>
+        Walk through our aerial imaging gallery. Click exhibits to explore services and see our work.
       </p>
-      <div style={{ display: "flex", gap: 12, color: "rgba(255,255,255,0.3)", fontSize: "0.62rem",
-        letterSpacing: "0.2em", marginBottom: 40, textTransform: "uppercase" }}>
-        <span>WASD Move</span><span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
-        <span>Mouse Look</span><span style={{ color: "rgba(255,255,255,0.15)" }}>·</span>
-        <span>Click Hotspots</span>
+      <div style={{ display:"flex", gap:20, marginBottom:40, fontSize:".6rem",
+        color:"rgba(255,255,255,.25)", letterSpacing:".18em", textTransform:"uppercase" }}>
+        <span>WASD Move</span><span style={{color:"rgba(255,255,255,.1)"}}>·</span>
+        <span>Mouse Look</span><span style={{color:"rgba(255,255,255,.1)"}}>·</span>
+        <span>Click Panels</span>
       </div>
-      <button onClick={handleStart} style={{
-        background: "linear-gradient(135deg, #0077FF, #00BFA6)",
-        border: "none", borderRadius: 8, padding: "16px 48px",
-        color: "#fff", fontSize: "0.85rem", fontWeight: 700,
-        letterSpacing: "0.15em", textTransform: "uppercase", cursor: "pointer",
-        boxShadow: "0 0 30px rgba(0,119,255,0.4)",
+      <button onClick={enter} style={{
+        background:"linear-gradient(135deg,#0077FF,#00BFA6)",
+        border:"none", borderRadius:8, padding:"16px 56px", color:"#fff",
+        fontSize:".85rem", fontWeight:700, letterSpacing:".15em",
+        textTransform:"uppercase", cursor:"pointer",
+        boxShadow:"0 0 40px rgba(0,119,255,.35), 0 0 80px rgba(0,191,166,.15)",
       }}>ENTER SHOWROOM</button>
     </div>
   );
-
-  return null;
 }
 
-// ─── HUD OVERLAY ─────────────────────────────────────────────────────────────
-function HUD({ currentRoom, floorLabel, compass, helpVisible, setHelpVisible }) {
-  const room = ROOMS.find(r => r.id === currentRoom);
+// ─── MINIMAP ─────────────────────────────────────────────────────────────────
+function Minimap({ px, pz }) {
+  const ref = useRef(null);
+  const W=160, H=120;
+  useEffect(() => {
+    const c = ref.current; if (!c) return;
+    const ctx = c.getContext("2d");
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle="rgba(4,6,14,.9)";
+    ctx.fillRect(0,0,W,H);
+    // Corridor
+    const sc=1.2, ox=W/2-px*sc, oy=H/2-pz*sc;
+    const rooms=[
+      {x:-14,z:0,w:28,h:10,label:"ENTRY"},
+      {x:-14,z:10,w:4,h:60,label:"PHOTO"},
+      {x:10,z:10,w:4,h:60,label:"VIDEO"},
+      {x:-10,z:10,w:20,h:6,label:"CORR"},
+      {x:-10,z:70,w:20,h:14,label:"CONTACT"},
+    ];
+    rooms.forEach(r=>{
+      ctx.fillStyle="rgba(0,119,255,.06)";
+      ctx.fillRect(r.x*sc+ox, r.z*sc+oy, r.w*sc, r.h*sc);
+      ctx.strokeStyle="rgba(0,119,255,.25)";
+      ctx.lineWidth=1;
+      ctx.strokeRect(r.x*sc+ox, r.z*sc+oy, r.w*sc, r.h*sc);
+    });
+    // Player
+    const dx=W/2, dy=H/2;
+    ctx.beginPath(); ctx.arc(dx,dy,4,0,Math.PI*2);
+    ctx.fillStyle="#0077FF"; ctx.fill();
+    ctx.beginPath(); ctx.arc(dx,dy,8,0,Math.PI*2);
+    ctx.strokeStyle="rgba(0,119,255,.4)"; ctx.lineWidth=1; ctx.stroke();
+  },[px,pz]);
+  return (
+    <canvas ref={ref} width={W} height={H} style={{
+      position:"fixed", bottom:24, left:24, zIndex:100, borderRadius:6,
+      border:"1px solid rgba(0,119,255,.2)",
+      boxShadow:"0 0 20px rgba(0,119,255,.12)",
+    }}/>
+  );
+}
+
+// ─── HUD ─────────────────────────────────────────────────────────────────────
+function HUD({ zone, showHelp, setShowHelp }) {
   return (
     <>
-      {/* Floor label */}
-      <div style={{
-        position: "fixed", top: 24, right: 24, zIndex: 100,
-        fontFamily: "monospace", fontSize: "0.7rem", letterSpacing: "0.3em",
-        color: "rgba(0,191,166,0.6)", textAlign: "right", pointerEvents: "none",
-      }}>
-        <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#fff", letterSpacing: "0.1em" }}>{floorLabel}</div>
-        <div style={{ marginTop: 2 }}>{room?.label || ""}</div>
-      </div>
-
-      {/* Compass */}
-      <div style={{
-        position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-        zIndex: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-        pointerEvents: "none",
-      }}>
-        <div style={{ fontFamily: "monospace", fontSize: "0.55rem", letterSpacing: "0.25em",
-          color: "rgba(255,255,255,0.2)", textTransform: "uppercase" }}>
-          {Math.round(((compass % 360) + 360) % 360)}° &nbsp;
-          {compass < 45 || compass > 315 ? "N" : compass < 135 ? "E" : compass < 225 ? "S" : "W"}
-        </div>
-        <div style={{
-          width: 120, height: 2, background: "rgba(255,255,255,0.06)",
-          position: "relative", borderRadius: 2,
-        }}>
-          <div style={{
-            position: "absolute", left: "50%", top: -3,
-            width: 2, height: 8, background: "#0077FF",
-            transform: "translateX(-50%)", borderRadius: 1,
-          }} />
-        </div>
+      {/* Zone label */}
+      <div style={{ position:"fixed", top:24, right:24, zIndex:100,
+        fontFamily:"monospace", textAlign:"right", pointerEvents:"none" }}>
+        <div style={{ fontSize:"1.2rem", fontWeight:900, color:"#fff",
+          letterSpacing:".08em" }}>1F</div>
+        <div style={{ fontSize:".6rem", letterSpacing:".25em",
+          color:"rgba(0,191,166,.55)", marginTop:2, textTransform:"uppercase" }}>{zone}</div>
       </div>
 
       {/* Crosshair */}
-      <div style={{
-        position: "fixed", top: "50%", left: "50%",
-        transform: "translate(-50%, -50%)",
-        zIndex: 100, pointerEvents: "none",
-      }}>
-        <svg width="20" height="20" viewBox="0 0 20 20">
-          <line x1="10" y1="2" x2="10" y2="8" stroke="rgba(255,255,255,0.35)" strokeWidth="1"/>
-          <line x1="10" y1="12" x2="10" y2="18" stroke="rgba(255,255,255,0.35)" strokeWidth="1"/>
-          <line x1="2" y1="10" x2="8" y2="10" stroke="rgba(255,255,255,0.35)" strokeWidth="1"/>
-          <line x1="12" y1="10" x2="18" y2="10" stroke="rgba(255,255,255,0.35)" strokeWidth="1"/>
-          <circle cx="10" cy="10" r="1.5" fill="rgba(255,255,255,0.5)"/>
+      <div style={{ position:"fixed", top:"50%", left:"50%",
+        transform:"translate(-50%,-50%)", zIndex:100, pointerEvents:"none" }}>
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <line x1="12" y1="2" x2="12" y2="9"  stroke="rgba(255,255,255,.4)" strokeWidth="1.2"/>
+          <line x1="12" y1="15" x2="12" y2="22" stroke="rgba(255,255,255,.4)" strokeWidth="1.2"/>
+          <line x1="2"  y1="12" x2="9"  y2="12" stroke="rgba(255,255,255,.4)" strokeWidth="1.2"/>
+          <line x1="15" y1="12" x2="22" y2="12" stroke="rgba(255,255,255,.4)" strokeWidth="1.2"/>
+          <circle cx="12" cy="12" r="1.8" fill="rgba(255,255,255,.55)"/>
         </svg>
       </div>
 
-      {/* Right vertical menu */}
-      <div style={{
-        position: "fixed", right: 0, top: "50%", transform: "translateY(-50%)",
-        zIndex: 100, display: "flex", flexDirection: "column", gap: 0,
-      }}>
-        {[
-          { label: "SHARE", icon: "↗" },
-          { label: "SOUND", icon: "♪" },
-          { label: "INFO",  icon: "i", onClick: () => setHelpVisible(v => !v) },
-        ].map((item) => (
-          <button key={item.label}
-            onClick={item.onClick}
-            style={{
-              background: "rgba(200,0,0,0.75)", border: "none",
-              color: "#fff", writingMode: "vertical-rl",
-              padding: "14px 8px", fontSize: "0.55rem",
-              letterSpacing: "0.2em", textTransform: "uppercase",
-              cursor: "pointer", fontFamily: "monospace",
-              borderBottom: "1px solid rgba(255,255,255,0.1)",
-            }}>
-            {item.icon} {item.label}
+      {/* Right panel */}
+      <div style={{ position:"fixed", right:0, top:"50%", transform:"translateY(-50%)",
+        zIndex:100, display:"flex", flexDirection:"column" }}>
+        {[{l:"SHARE",i:"↗"},{l:"SOUND",i:"♪"},{l:"INFO",i:"i",cb:()=>setShowHelp(v=>!v)}].map(b=>(
+          <button key={b.l} onClick={b.cb}
+            style={{ background:"rgba(180,0,0,.8)", border:"none", borderBottom:"1px solid rgba(255,255,255,.1)",
+              color:"#fff", writingMode:"vertical-rl", padding:"14px 8px",
+              fontSize:".52rem", letterSpacing:".2em", textTransform:"uppercase",
+              cursor:"pointer", fontFamily:"monospace" }}>
+            {b.i} {b.l}
           </button>
         ))}
       </div>
 
-      {/* Info panel */}
-      {helpVisible && (
-        <div style={{
-          position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)",
-          zIndex: 200, background: "rgba(5,8,16,0.92)",
-          border: "1px solid rgba(0,119,255,0.2)", borderRadius: 12,
-          padding: "20px 32px", textAlign: "center",
-          color: "rgba(255,255,255,0.7)", fontSize: "0.75rem", lineHeight: 1.8,
-          backdropFilter: "blur(10px)",
-        }}>
-          <div style={{ fontWeight: 700, color: "#fff", marginBottom: 8 }}>HOW TO NAVIGATE</div>
-          WASD to move · Mouse to look · Click glowing panels · ESC to unlock cursor
+      {/* Help */}
+      {showHelp && (
+        <div style={{ position:"fixed", bottom:80, left:"50%", transform:"translateX(-50%)",
+          zIndex:200, background:"rgba(4,6,14,.95)", border:"1px solid rgba(0,119,255,.2)",
+          borderRadius:12, padding:"20px 32px", textAlign:"center",
+          color:"rgba(255,255,255,.65)", fontSize:".75rem", lineHeight:1.9,
+          backdropFilter:"blur(12px)", maxWidth:400 }}>
+          <div style={{ fontWeight:700, color:"#fff", marginBottom:8, letterSpacing:".1em" }}>NAVIGATION</div>
+          <strong>WASD</strong> or <strong>Arrow Keys</strong> to walk<br/>
+          <strong>Mouse</strong> to look around · <strong>Click canvas</strong> to lock cursor<br/>
+          <strong>Click glowing panels</strong> to view in full<br/>
+          <strong>ESC</strong> to release cursor
           <br/>
-          <button onClick={() => setHelpVisible(false)}
-            style={{ marginTop: 12, background: "none", border: "1px solid rgba(255,255,255,0.15)",
-              color: "rgba(255,255,255,0.5)", borderRadius: 6, padding: "4px 16px",
-              cursor: "pointer", fontSize: "0.65rem" }}>CLOSE</button>
+          <button onClick={()=>setShowHelp(false)} style={{
+            marginTop:14, background:"none", border:"1px solid rgba(255,255,255,.12)",
+            color:"rgba(255,255,255,.4)", borderRadius:6, padding:"5px 20px",
+            cursor:"pointer", fontSize:".62rem" }}>CLOSE</button>
         </div>
       )}
+
+      {/* Bottom hint */}
+      <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)",
+        zIndex:100, fontFamily:"monospace", fontSize:".52rem", letterSpacing:".25em",
+        color:"rgba(255,255,255,.18)", textTransform:"uppercase", pointerEvents:"none",
+        textAlign:"center" }}>
+        Click canvas · WASD to move · ESC to release
+      </div>
     </>
   );
 }
 
-// ─── MAIN SHOWROOM ────────────────────────────────────────────────────────────
+// ─── PANEL MODAL ─────────────────────────────────────────────────────────────
+function PanelModal({ item, onClose }) {
+  if (!item) return null;
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, zIndex:500,
+      background:"rgba(2,4,8,.92)", backdropFilter:"blur(16px)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"rgba(6,10,20,.98)", border:"1px solid rgba(0,119,255,.2)",
+        borderRadius:16, padding:32, maxWidth:"90vw", maxHeight:"90vh",
+        display:"flex", flexDirection:"column", gap:16,
+      }}>
+        {item.type==="photo" ? (
+          <img src={cImg(item.id,1400,900)} alt={item.label}
+            style={{ maxWidth:"80vw", maxHeight:"70vh", objectFit:"contain",
+              borderRadius:8, display:"block" }}/>
+        ) : (
+          <video src={cVid(item.id)} autoPlay loop muted playsInline controls
+            style={{ maxWidth:"80vw", maxHeight:"70vh", borderRadius:8, display:"block" }}/>
+        )}
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ color:"#fff", fontWeight:700, fontSize:"1rem" }}>{item.label}</div>
+            <div style={{ color:"rgba(0,191,166,.7)", fontSize:".7rem",
+              letterSpacing:".12em", marginTop:4 }}>{item.tag}</div>
+          </div>
+          <button onClick={onClose} style={{ background:"rgba(255,255,255,.05)",
+            border:"1px solid rgba(255,255,255,.1)", borderRadius:8, padding:"8px 24px",
+            color:"rgba(255,255,255,.6)", cursor:"pointer", fontSize:".75rem" }}>CLOSE</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 export default function SpatialShowroom() {
-  const mountRef    = useRef(null);
-  const [ready, setReady]       = useState(false);
+  const mountRef = useRef(null);
   const [started, setStarted]   = useState(false);
-  const [playerPos, setPlayerPos] = useState([0, 1.7, 0]);
-  const [currentRoom, setCurrentRoom] = useState("lobby");
-  const [floorLabel, setFloorLabel]   = useState("1F");
-  const [compass, setCompass]         = useState(0);
-  const [helpVisible, setHelpVisible] = useState(false);
+  const [pos, setPos]           = useState([0,0]);
+  const [zone, setZone]         = useState("ENTRY HALL");
+  const [showHelp, setShowHelp] = useState(false);
+  const [modal, setModal]       = useState(null);
 
   useEffect(() => {
     if (!started) return;
-    const container = mountRef.current;
-    if (!container) return;
+    const el = mountRef.current; if (!el) return;
 
-    // ── Renderer ─────────────────────────────────────────────────
+    // ── Renderer ──────────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.85;
-    container.appendChild(renderer.domElement);
+    renderer.toneMappingExposure = 0.9;
+    el.appendChild(renderer.domElement);
 
-    // ── Scene ─────────────────────────────────────────────────────
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x020408);
-    scene.fog = new THREE.FogExp2(0x020408, 0.028);
+    scene.fog = new THREE.Fog(0x020408, 18, 55);
 
-    // ── Camera (first-person) ─────────────────────────────────────
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 120);
-    camera.position.set(0, 1.7, 10);
+    const camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.1, 100);
+    camera.position.set(0, 1.7, -10);
+    camera.lookAt(0, 1.7, 0);
 
-    // ── Build rooms ───────────────────────────────────────────────
-    const panelMeshes = []; // for raycasting hotspots
+    // ── Materials ──────────────────────────────────────────────────
+    const floorTex = new THREE.CanvasTexture(makeFloorTex());
+    floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+    floorTex.repeat.set(8, 20);
 
-    ROOMS.forEach(room => {
-      const [rx, ry, rz] = room.pos;
-      const [rw, rh, rd] = room.size;
-      const accentHex = "#" + room.accent.toString(16).padStart(6, "0");
+    const floorMat = new THREE.MeshStandardMaterial({
+      map: floorTex, roughness: 0.08, metalness: 0.55, color: 0x0A0E1A,
+    });
+    const ceilMat = new THREE.MeshStandardMaterial({
+      color: 0x050810, roughness: 1, metalness: 0,
+    });
+    const wallMat = new THREE.MeshStandardMaterial({
+      color: 0x070B15, roughness: 0.85, metalness: 0.1,
+    });
+    const trimMat = new THREE.MeshBasicMaterial({ color: 0x0044AA });
+    const trimTealMat = new THREE.MeshBasicMaterial({ color: 0x004444 });
 
-      // Floor
-      const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(rw, rd),
-        new THREE.MeshStandardMaterial({
-          color: 0x080C14,
-          roughness: 0.9, metalness: 0.1,
-        })
-      );
-      floor.rotation.x = -Math.PI / 2;
-      floor.position.set(rx, ry, rz);
-      floor.receiveShadow = true;
-      scene.add(floor);
+    // ── Build geometry: corridor + wings ───────────────────────────
+    // Main corridor: -3 to +3 X, -12 to 80 Z
+    // Photo gallery left: -14 to -10 X, 0 to 72 Z
+    // Video gallery right: 10 to 14 X, 0 to 72 Z
 
-      // Grid lines on floor
-      const gridHelper = new THREE.GridHelper(Math.max(rw, rd), 10,
-        new THREE.Color(room.accent).multiplyScalar(0.12),
-        new THREE.Color(room.accent).multiplyScalar(0.06)
-      );
-      gridHelper.position.set(rx, ry + 0.01, rz);
-      scene.add(gridHelper);
+    function addBox(px,py,pz,w,h,d,mat,castShadow=false,receiveShadow=true) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
+      m.position.set(px,py,pz); m.castShadow=castShadow; m.receiveShadow=receiveShadow;
+      scene.add(m); return m;
+    }
+    function addPlane(px,py,pz,w,d,mat,rotY=0) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w,d), mat);
+      m.rotation.x=-Math.PI/2; m.rotation.z=rotY;
+      m.position.set(px,py,pz); m.receiveShadow=true;
+      scene.add(m); return m;
+    }
+    function addWall(px,py,pz,w,h,rotY,mat) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w,h), mat.clone());
+      m.position.set(px,py,pz); m.rotation.y=rotY; m.receiveShadow=true;
+      scene.add(m); return m;
+    }
+    function addTrim(px,py,pz,len,rotY=0,mat=trimMat) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(len,.04,.04), mat.clone());
+      m.position.set(px,py,pz); m.rotation.y=rotY; scene.add(m);
+    }
 
-      // Ceiling
-      const ceil = new THREE.Mesh(
-        new THREE.PlaneGeometry(rw, rd),
-        new THREE.MeshStandardMaterial({ color: 0x030508, roughness: 1 })
-      );
-      ceil.rotation.x = Math.PI / 2;
-      ceil.position.set(rx, ry + rh, rz);
-      scene.add(ceil);
+    // FLOOR (whole showroom)
+    addPlane(0,0,34, 30,92, floorMat);
+    // CEILING
+    addBox(0,5.5,34, 30,0.3,92, ceilMat);
 
-      // Walls (4 sides)
-      const wallMat = new THREE.MeshStandardMaterial({ color: 0x060A12, roughness: 0.95 });
-      [
-        { pos: [rx, ry + rh / 2, rz - rd / 2], rot: [0, 0, 0],          size: [rw, rh] }, // back
-        { pos: [rx, ry + rh / 2, rz + rd / 2], rot: [0, Math.PI, 0],    size: [rw, rh] }, // front
-        { pos: [rx - rw / 2, ry + rh / 2, rz], rot: [0, Math.PI / 2, 0], size: [rd, rh] }, // left
-        { pos: [rx + rw / 2, ry + rh / 2, rz], rot: [0, -Math.PI / 2, 0], size: [rd, rh] }, // right
-      ].forEach(w => {
-        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(...w.size), wallMat.clone());
-        mesh.position.set(...w.pos);
-        mesh.rotation.set(...w.rot);
-        mesh.receiveShadow = true;
-        scene.add(mesh);
-      });
+    // Entry arch + walls
+    addWall(-3,2.75,-12, 0.2,5.5, 0, wallMat.clone()).scale.set(1,1,1);
 
-      // Accent strip at base of back wall
-      const strip = new THREE.Mesh(
-        new THREE.PlaneGeometry(rw - 2, 0.06),
-        new THREE.MeshBasicMaterial({ color: room.accent })
-      );
-      strip.position.set(rx, ry + 0.03, rz - rd / 2 + 0.02);
-      strip.rotation.x = -Math.PI / 2;
-      scene.add(strip);
+    // CORRIDOR walls (left/right inner)
+    addWall(-3,2.75,34, 0.15,5.5, 0, wallMat).scale.x = 90; // left corridor wall (long box is better)
+    addBox(-3.08,2.75,33, 0.15,5.5,92, wallMat.clone());
+    addBox(3.08,2.75,33, 0.15,5.5,92, wallMat.clone());
 
-      // Room light
-      const pt = new THREE.PointLight(room.accent, 0.6, 22);
-      pt.position.set(rx, ry + rh - 0.5, rz);
-      scene.add(pt);
+    // Outer gallery walls
+    addBox(-14.08,2.75,36, 0.15,5.5,72, wallMat.clone()); // far left
+    addBox(14.08,2.75,36, 0.15,5.5,72, wallMat.clone());  // far right
 
-      const amb = new THREE.AmbientLight(0x101828, 0.8);
-      scene.add(amb);
+    // Gallery ceiling sections
+    addBox(-8.5,5.5,36, 11,0.3,72, ceilMat.clone());
+    addBox(8.5,5.5,36, 11,0.3,72, ceilMat.clone());
 
-      // ── Panels ────────────────────────────────────────────────
-      room.panels.forEach(panel => {
-        const [px, py, pz] = panel.pos;
-        const worldPos = new THREE.Vector3(rx + px, ry + py, rz + pz);
+    // Gallery floors
+    const gFloorMat = floorMat.clone();
+    addPlane(-8.5,0,36, 11,72, gFloorMat);
+    addPlane(8.5,0,36, 11,72, gFloorMat);
 
-        if (panel.type === "logo") {
-          const cvs = makeTextCanvas(panel.text, panel.sub, 512, 192, accentHex);
-          const tex = new THREE.CanvasTexture(cvs);
-          const mesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(6, 2.3),
-            new THREE.MeshBasicMaterial({ map: tex, transparent: true })
-          );
-          mesh.position.copy(worldPos);
-          scene.add(mesh);
-        }
+    // Gallery back walls (connecting corridor to wings)
+    addBox(-8.5,2.75,-1, 11,5.5,0.15, wallMat.clone());
+    addBox(8.5,2.75,-1, 11,5.5,0.15, wallMat.clone());
 
-        if (panel.type === "title") {
-          const cvs = makeTextCanvas(panel.text, panel.sub, 512, 180, accentHex);
-          const tex = new THREE.CanvasTexture(cvs);
-          const mesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(5.5, 2),
-            new THREE.MeshBasicMaterial({ map: tex, transparent: true })
-          );
-          mesh.position.copy(worldPos);
-          scene.add(mesh);
-        }
+    // Far end wall
+    addBox(0,2.75,80, 30,5.5,0.15, wallMat.clone());
 
-        if (panel.type === "stat") {
-          const cvs = makeTextCanvas(panel.label, panel.sub, 256, 200, accentHex);
-          const tex = new THREE.CanvasTexture(cvs);
-          const frame = new THREE.Mesh(
-            new THREE.BoxGeometry(2.5, 2.5, 0.04),
-            new THREE.MeshStandardMaterial({
-              color: 0x080C18, roughness: 0.8,
-              emissive: new THREE.Color(room.accent).multiplyScalar(0.04),
-            })
-          );
-          frame.position.copy(worldPos);
-          scene.add(frame);
-          const panel3d = new THREE.Mesh(
-            new THREE.PlaneGeometry(2.2, 2.2),
-            new THREE.MeshBasicMaterial({ map: tex, transparent: true })
-          );
-          panel3d.position.copy(worldPos);
-          panel3d.position.z += 0.03;
-          scene.add(panel3d);
-          // glowing edge
-          const edgeMat = new THREE.MeshBasicMaterial({ color: room.accent, wireframe: false });
-          const edge = new THREE.Mesh(new THREE.EdgesGeometry(new THREE.BoxGeometry(2.55, 2.55, 0.04)), edgeMat);
-          edge.position.copy(worldPos);
-          scene.add(edge);
-        }
-
-        if (panel.type === "video" || panel.type === "card") {
-          // Video/image panel — glowing dark frame with label
-          const cvs = makeTextCanvas(panel.label, panel.sub || "SERAPHIC SIGHT", 512, 288, accentHex);
-          const tex = new THREE.CanvasTexture(cvs);
-          const frame = new THREE.Mesh(
-            new THREE.BoxGeometry(4.5, 3, 0.06),
-            new THREE.MeshStandardMaterial({
-              color: 0x060A14,
-              emissive: new THREE.Color(room.accent).multiplyScalar(0.06),
-              roughness: 0.7,
-            })
-          );
-          frame.position.copy(worldPos);
-          frame.rotation.y = panel.pos[0] < 0 ? Math.PI / 2 : (panel.pos[0] > 5 ? -Math.PI / 2 : 0);
-          frame.userData = { type: "hotspot", label: panel.label, room: panel.room };
-          frame.castShadow = true;
-          scene.add(frame);
-          panelMeshes.push(frame);
-          const screen = new THREE.Mesh(
-            new THREE.PlaneGeometry(4.1, 2.6),
-            new THREE.MeshBasicMaterial({ map: tex, transparent: true })
-          );
-          screen.position.copy(worldPos);
-          screen.rotation.copy(frame.rotation);
-          screen.position.x += frame.rotation.y === Math.PI / 2 ? 0.04 : 0;
-          screen.position.x += frame.rotation.y === -Math.PI / 2 ? -0.04 : 0;
-          screen.position.z += frame.rotation.y === 0 ? 0.04 : 0;
-          scene.add(screen);
-        }
-
-        if (panel.type === "nav") {
-          // Navigation arrow panel
-          const cvs = makeTextCanvas(panel.text, "CLICK TO ENTER", 384, 140, accentHex);
-          const tex = new THREE.CanvasTexture(cvs);
-          const navMesh = new THREE.Mesh(
-            new THREE.PlaneGeometry(4, 1.4),
-            new THREE.MeshBasicMaterial({ map: tex, transparent: true })
-          );
-          navMesh.position.copy(worldPos);
-          navMesh.userData = { type: "nav", room: panel.room };
-          scene.add(navMesh);
-          panelMeshes.push(navMesh);
-
-          // Glow floor arrow
-          const arrowGeo = new THREE.PlaneGeometry(0.4, 1.2);
-          const arrowMat = new THREE.MeshBasicMaterial({
-            color: room.accent, transparent: true, opacity: 0.5,
-          });
-          const arrow = new THREE.Mesh(arrowGeo, arrowMat);
-          arrow.rotation.x = -Math.PI / 2;
-          arrow.position.set(worldPos.x, ry + 0.02, worldPos.z + 1);
-          scene.add(arrow);
-        }
-      });
+    // ACCENT TRIM — baseboards (blue glow)
+    [[-3,0.03,34],[-14,0.03,36],[3,0.03,34],[14,0.03,36]].forEach(([x,y,z])=>
+      addTrim(x,y,z, 0.01, 0, trimMat) // handled by box strips below
+    );
+    // Baseboard glow strips
+    [[-14.05,0.05,36,72,0],[-3.05,0.05,33,92,0],[3.05,0.05,33,92,0],[14.05,0.05,36,72,0]].forEach(([x,y,z,len])=>{
+      const m=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.04,len), trimMat.clone());
+      m.position.set(x,y,z); scene.add(m);
     });
 
-    // ── Player movement ───────────────────────────────────────────
-    const keys = {};
-    const SPEED = 0.08;
-    const euler = new THREE.Euler(0, 0, 0, "YXZ");
-    let isPointerLocked = false;
+    // Ceiling accent strips
+    [[-14.05,5.48,36,72],[-3.05,5.48,33,92],[3.05,5.48,33,92],[14.05,5.48,36,72]].forEach(([x,y,z,len])=>{
+      const m=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.04,len), trimTealMat.clone());
+      m.position.set(x,y,z); scene.add(m);
+    });
 
-    const onKeyDown = e => { keys[e.code] = true; };
-    const onKeyUp   = e => { keys[e.code] = false; };
-    const onMouseMove = e => {
-      if (!isPointerLocked) return;
+    // Ceiling recessed lights (emissive dots)
+    [[0,5.4,-8],[0,5.4,2],[0,5.4,12],[0,5.4,22],[0,5.4,32],[0,5.4,42],[0,5.4,52],[0,5.4,62],[0,5.4,72],
+     [-8.5,5.4,6],[-8.5,5.4,18],[-8.5,5.4,30],[-8.5,5.4,42],[-8.5,5.4,54],[-8.5,5.4,66],
+     [8.5,5.4,6],[8.5,5.4,18],[8.5,5.4,30],[8.5,5.4,42],[8.5,5.4,54],[8.5,5.4,66],
+    ].forEach(([x,y,z])=>{
+      const spot=new THREE.Mesh(new THREE.CircleGeometry(.25,16),
+        new THREE.MeshBasicMaterial({color:0xCCDDFF}));
+      spot.rotation.x=Math.PI/2; spot.position.set(x,y,z); scene.add(spot);
+      const pl=new THREE.PointLight(0x8899FF,0.9,12);
+      pl.position.set(x,5.2,z); scene.add(pl);
+    });
+
+    // Ambient
+    scene.add(new THREE.AmbientLight(0x101828, 1.2));
+
+    // ── Photo panels (left gallery wall, X≈-13.9) ─────────────────
+    const hotspots = [];
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = "anonymous";
+
+    const FRAME_W=4.2, FRAME_H=2.8;
+    const LABEL_H=0.7;
+    const GAP=1.2;
+    const COL_COUNT=2; // 2 columns
+    const photoWallX=-13.9;
+    const videoWallX=13.9;
+
+    PHOTOS.forEach((ph, i) => {
+      const col = i % COL_COUNT;
+      const row = Math.floor(i / COL_COUNT);
+      const y = 2.9 - col*(FRAME_H+0.4);
+      const z = 4 + row*(FRAME_H+GAP+LABEL_H);
+
+      // Frame box
+      const frameMat = new THREE.MeshStandardMaterial({
+        color:0x0D1525, roughness:0.3, metalness:0.8,
+        emissive:new THREE.Color(0x001133), emissiveIntensity:0.4,
+      });
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(FRAME_W+0.14,FRAME_H+0.14,0.08), frameMat);
+      frame.position.set(photoWallX+0.06, y, z);
+      frame.rotation.y=Math.PI/2;
+      frame.castShadow=true;
+      scene.add(frame);
+
+      // Screen with Cloudinary image
+      const tex = loader.load(cImg(ph.id, 840, 560));
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const screen = new THREE.Mesh(
+        new THREE.PlaneGeometry(FRAME_W, FRAME_H),
+        new THREE.MeshBasicMaterial({ map: tex })
+      );
+      screen.position.set(photoWallX+0.11, y, z);
+      screen.rotation.y=Math.PI/2;
+      scene.add(screen);
+
+      // Label below
+      const lTex = new THREE.CanvasTexture(makeLabelTex(ph.label, ph.tag, "#0077FF"));
+      const label = new THREE.Mesh(
+        new THREE.PlaneGeometry(FRAME_W, LABEL_H),
+        new THREE.MeshBasicMaterial({ map:lTex, transparent:true })
+      );
+      label.position.set(photoWallX+0.12, y-(FRAME_H/2+LABEL_H/2+0.1), z);
+      label.rotation.y=Math.PI/2;
+      scene.add(label);
+
+      // Accent glow at top of frame
+      const glowMat=new THREE.MeshBasicMaterial({color:0x0044CC,transparent:true,opacity:0.7});
+      const glow=new THREE.Mesh(new THREE.BoxGeometry(FRAME_W+0.14,0.03,0.03), glowMat);
+      glow.position.set(photoWallX+0.05, y+FRAME_H/2+0.07+0.07, z);
+      glow.rotation.y=Math.PI/2;
+      scene.add(glow);
+
+      // Panel spotlight
+      const sl=new THREE.SpotLight(0x4477FF, 1.2, 10, Math.PI/6, 0.4);
+      sl.position.set(photoWallX+4, y+3, z);
+      sl.target.position.set(photoWallX+0.1, y, z);
+      scene.add(sl); scene.add(sl.target);
+
+      // Hotspot for click
+      screen.userData = { type:"photo", ...ph };
+      hotspots.push(screen);
+    });
+
+    // ── Video panels (right gallery wall, X≈13.9) ─────────────────
+    VIDEOS.forEach((vid, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const y = 2.9 - col*(FRAME_H+0.4);
+      const z = 4 + row*(FRAME_H+GAP+LABEL_H);
+
+      const frameMat = new THREE.MeshStandardMaterial({
+        color:0x0D1020, roughness:0.3, metalness:0.8,
+        emissive:new THREE.Color(0x001122), emissiveIntensity:0.4,
+      });
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(FRAME_W+0.14,FRAME_H+0.14,0.08), frameMat);
+      frame.position.set(videoWallX-0.06, y, z);
+      frame.rotation.y=-Math.PI/2;
+      frame.castShadow=true;
+      scene.add(frame);
+
+      // Video element → VideoTexture
+      const videoEl = document.createElement("video");
+      videoEl.src = cVid(vid.id);
+      videoEl.loop = true;
+      videoEl.muted = true;
+      videoEl.playsInline = true;
+      videoEl.crossOrigin = "anonymous";
+      videoEl.autoplay = true;
+      videoEl.play().catch(()=>{});
+
+      const vTex = new THREE.VideoTexture(videoEl);
+      vTex.colorSpace = THREE.SRGBColorSpace;
+      const screen = new THREE.Mesh(
+        new THREE.PlaneGeometry(FRAME_W, FRAME_H),
+        new THREE.MeshBasicMaterial({ map: vTex })
+      );
+      screen.position.set(videoWallX-0.11, y, z);
+      screen.rotation.y=-Math.PI/2;
+      scene.add(screen);
+
+      // Label
+      const lTex = new THREE.CanvasTexture(makeLabelTex(vid.label, vid.tag, "#00BFA6"));
+      const label = new THREE.Mesh(
+        new THREE.PlaneGeometry(FRAME_W, LABEL_H),
+        new THREE.MeshBasicMaterial({ map:lTex, transparent:true })
+      );
+      label.position.set(videoWallX-0.12, y-(FRAME_H/2+LABEL_H/2+0.1), z);
+      label.rotation.y=-Math.PI/2;
+      scene.add(label);
+
+      const glowMat=new THREE.MeshBasicMaterial({color:0x004433,transparent:true,opacity:0.7});
+      const glow=new THREE.Mesh(new THREE.BoxGeometry(FRAME_W+0.14,0.03,0.03), glowMat);
+      glow.position.set(videoWallX-0.05, y+FRAME_H/2+0.07+0.07, z);
+      glow.rotation.y=-Math.PI/2;
+      scene.add(glow);
+
+      const sl=new THREE.SpotLight(0x004455, 1.2, 10, Math.PI/6, 0.4);
+      sl.position.set(videoWallX-4, y+3, z);
+      sl.target.position.set(videoWallX-0.1, y, z);
+      scene.add(sl); scene.add(sl.target);
+
+      screen.userData = { type:"video", ...vid };
+      hotspots.push(screen);
+    });
+
+    // ── Section signs on corridor walls ───────────────────────────
+    [
+      { text:"PHOTO GALLERY", x:-2.9, y:4.5, z:2, accent:"#0077FF" },
+      { text:"VIDEO GALLERY", x:2.9, y:4.5, z:2, accent:"#00BFA6", ry:Math.PI },
+      { text:"SERAPHIC SIGHT", x:0, y:3.5, z:-11.8, accent:"#0077FF" },
+    ].forEach(s=>{
+      const cvs=makeSectionTex(s.text, s.accent);
+      const tex=new THREE.CanvasTexture(cvs);
+      const m=new THREE.Mesh(
+        new THREE.PlaneGeometry(5,0.7),
+        new THREE.MeshBasicMaterial({map:tex,transparent:true})
+      );
+      m.position.set(s.x,s.y,s.z);
+      if(s.ry) m.rotation.y=s.ry;
+      scene.add(m);
+    });
+
+    // Entry arch glow ring
+    const ringGeo=new THREE.TorusGeometry(2.2,0.05,8,64);
+    const ringMat=new THREE.MeshBasicMaterial({color:0x0044BB,transparent:true,opacity:0.6});
+    const ring=new THREE.Mesh(ringGeo,ringMat);
+    ring.position.set(0,2.75,-11); ring.rotation.x=Math.PI/2; scene.add(ring);
+
+    // ── Movement / pointer lock ────────────────────────────────────
+    const keys={};
+    const euler=new THREE.Euler(0,0,0,"YXZ");
+    let locked=false;
+
+    const onKey=(e,v)=>{keys[e.code]=v;};
+    const onMove=(e)=>{
+      if(!locked) return;
       euler.setFromQuaternion(camera.quaternion);
-      euler.y -= e.movementX * 0.002;
-      euler.x -= e.movementY * 0.002;
-      euler.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, euler.x));
+      euler.y -= e.movementX*.0018;
+      euler.x -= e.movementY*.0018;
+      euler.x = Math.max(-Math.PI*.35, Math.min(Math.PI*.35, euler.x));
       camera.quaternion.setFromEuler(euler);
     };
-    const onPointerLockChange = () => {
-      isPointerLocked = document.pointerLockElement === renderer.domElement;
-    };
-    const onClick = () => {
-      if (!isPointerLocked) {
-        renderer.domElement.requestPointerLock();
-        return;
-      }
-      // Raycast hotspots
-      raycaster.setFromCamera(center, camera);
-      const hits = raycaster.intersectObjects(panelMeshes);
-      if (hits.length > 0) {
-        const data = hits[0].object.userData;
-        if (data.room) {
-          const target = ROOMS.find(r => r.id === data.room);
-          if (target) {
-            camera.position.set(target.pos[0], 1.7, target.pos[2] + target.size[2] / 2 - 2);
-          }
-        }
-      }
+    const onLock=()=>{ locked=document.pointerLockElement===renderer.domElement; };
+    const onClick=()=>{
+      if(!locked){ renderer.domElement.requestPointerLock(); return; }
+      raycaster.setFromCamera({x:0,y:0}, camera);
+      const hits=raycaster.intersectObjects(hotspots);
+      if(hits.length>0) setModal(hits[0].object.userData);
     };
 
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("pointerlockchange", onPointerLockChange);
-    renderer.domElement.addEventListener("click", onClick);
+    window.addEventListener("keydown",e=>onKey(e,true));
+    window.addEventListener("keyup",e=>onKey(e,false));
+    document.addEventListener("mousemove",onMove);
+    document.addEventListener("pointerlockchange",onLock);
+    renderer.domElement.addEventListener("click",onClick);
 
-    const raycaster = new THREE.Raycaster();
-    const center    = new THREE.Vector2(0, 0);
-    const direction = new THREE.Vector3();
-    const right     = new THREE.Vector3();
+    const raycaster=new THREE.Raycaster();
+    const dir=new THREE.Vector3(), right=new THREE.Vector3();
+    const SPEED=0.06;
 
-    // ── Collision bounds (AABB per room) ─────────────────────────
-    const roomBounds = ROOMS.map(r => ({
-      id: r.id,
-      floor: r.floor,
-      minX: r.pos[0] - r.size[0] / 2 + 0.5,
-      maxX: r.pos[0] + r.size[0] / 2 - 0.5,
-      minZ: r.pos[2] - r.size[2] / 2 + 0.5,
-      maxZ: r.pos[2] + r.size[2] / 2 - 0.5,
-    }));
+    // Zone detection
+    const getZone=(p)=>{
+      if(p.z < 0) return "ENTRY HALL";
+      if(p.x < -3.5) return "PHOTO GALLERY";
+      if(p.x > 3.5) return "VIDEO GALLERY";
+      if(p.z > 72) return "CONTACT";
+      return "MAIN CORRIDOR";
+    };
 
-    // ── Animate ───────────────────────────────────────────────────
     let rafId;
-    const tick = () => {
-      rafId = requestAnimationFrame(tick);
-
-      // WASD movement
-      camera.getWorldDirection(direction);
-      direction.y = 0; direction.normalize();
-      right.crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize();
-
-      const vel = new THREE.Vector3();
-      if (keys["KeyW"] || keys["ArrowUp"])    vel.add(direction);
-      if (keys["KeyS"] || keys["ArrowDown"])  vel.sub(direction);
-      if (keys["KeyA"] || keys["ArrowLeft"])  vel.sub(right);
-      if (keys["KeyD"] || keys["ArrowRight"]) vel.add(right);
-
-      if (vel.length() > 0) {
+    const tick=()=>{
+      rafId=requestAnimationFrame(tick);
+      camera.getWorldDirection(dir); dir.y=0; dir.normalize();
+      right.crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
+      const vel=new THREE.Vector3();
+      if(keys["KeyW"]||keys["ArrowUp"])    vel.add(dir);
+      if(keys["KeyS"]||keys["ArrowDown"])  vel.sub(dir);
+      if(keys["KeyA"]||keys["ArrowLeft"])  vel.sub(right);
+      if(keys["KeyD"]||keys["ArrowRight"]) vel.add(right);
+      if(vel.length()>0) {
         vel.normalize().multiplyScalar(SPEED);
-        const next = camera.position.clone().add(vel);
-        // Soft bounds — let player move freely, just clamp to world AABB
-        const worldMin = -35, worldMax = 35, worldMinZ = -5, worldMaxZ = 85;
-        next.x = Math.max(worldMin, Math.min(worldMax, next.x));
-        next.z = Math.max(worldMinZ, Math.min(worldMaxZ, next.z));
-        camera.position.copy(next);
-        camera.position.y = 1.7;
+        const nx=Math.max(-13.7,Math.min(13.7, camera.position.x+vel.x));
+        const nz=Math.max(-11.5,Math.min(79.5, camera.position.z+vel.z));
+        camera.position.x=nx; camera.position.z=nz; camera.position.y=1.7;
       }
+      const cp=camera.position;
+      setPos([Math.round(cp.x*10)/10, Math.round(cp.z*10)/10]);
+      setZone(getZone(cp));
 
-      // Detect current room
-      const cp = camera.position;
-      const inRoom = roomBounds.find(b =>
-        cp.x >= b.minX && cp.x <= b.maxX && cp.z >= b.minZ && cp.z <= b.maxZ
-      );
-      if (inRoom && inRoom.id !== currentRoom) {
-        setCurrentRoom(inRoom.id);
-        setFloorLabel(inRoom.floor);
-      }
-      setPlayerPos([Math.round(cp.x * 10) / 10, cp.y, Math.round(cp.z * 10) / 10]);
-      setCompass(Math.round(THREE.MathUtils.radToDeg(-euler.y)));
-
-      // Panel glow pulse
-      const t = performance.now() / 1000;
-      panelMeshes.forEach((m, i) => {
-        if (m.material.emissive) {
-          const base = ROOMS.find(r =>
-            r.panels.some(p => {
-              const wx = r.pos[0] + p.pos[0];
-              const wz = r.pos[2] + p.pos[2];
-              return Math.abs(m.position.x - wx) < 0.5 && Math.abs(m.position.z - wz) < 0.5;
-            })
-          );
-          const ac = base ? new THREE.Color(base.accent) : new THREE.Color(0x0077FF);
-          const pulse = 0.04 + 0.025 * Math.sin(t * 1.8 + i * 0.7);
-          m.material.emissive.copy(ac).multiplyScalar(pulse);
+      // Glow pulse on frames
+      const t=performance.now()*.001;
+      hotspots.forEach((h,i)=>{
+        const dist=camera.position.distanceTo(h.position);
+        if(h.parent) {
+          // subtle breathe effect on nearby panels
         }
       });
 
-      renderer.render(scene, camera);
+      renderer.render(scene,camera);
     };
     tick();
 
-    // ── Resize ────────────────────────────────────────────────────
-    const onResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    const onResize=()=>{
+      camera.aspect=window.innerWidth/window.innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(window.innerWidth,window.innerHeight);
     };
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize",onResize);
 
-    return () => {
+    return ()=>{
       cancelAnimationFrame(rafId);
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("pointerlockchange", onPointerLockChange);
-      renderer.domElement.removeEventListener("click", onClick);
-      window.removeEventListener("resize", onResize);
-      if (document.pointerLockElement) document.exitPointerLock();
+      window.removeEventListener("keydown",e=>onKey(e,true));
+      window.removeEventListener("keyup",e=>onKey(e,false));
+      document.removeEventListener("mousemove",onMove);
+      document.removeEventListener("pointerlockchange",onLock);
+      renderer.domElement.removeEventListener("click",onClick);
+      window.removeEventListener("resize",onResize);
+      if(document.pointerLockElement) document.exitPointerLock();
       renderer.dispose();
-      if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
+      if(el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
-  }, [started]); // eslint-disable-line react-hooks/exhaustive-deps
+  },[started]);
 
   return (
-    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#020408" }}>
-      {!started && <Onboarding onStart={() => setStarted(true)} />}
-      <div ref={mountRef} style={{ width: "100%", height: "100%", display: started ? "block" : "none" }} />
+    <div style={{width:"100vw",height:"100vh",overflow:"hidden",background:"#020408"}}>
+      {!started && <Onboarding onStart={()=>setStarted(true)}/>}
+      <div ref={mountRef} style={{width:"100%",height:"100%",display:started?"block":"none"}}/>
       {started && (
         <>
-          <Minimap playerPos={playerPos} currentRoom={currentRoom} />
-          <HUD
-            currentRoom={currentRoom}
-            floorLabel={floorLabel}
-            compass={compass}
-            helpVisible={helpVisible}
-            setHelpVisible={setHelpVisible}
-          />
+          <Minimap px={pos[0]} pz={pos[1]}/>
+          <HUD zone={zone} showHelp={showHelp} setShowHelp={setShowHelp}/>
+          <PanelModal item={modal} onClose={()=>setModal(null)}/>
         </>
       )}
     </div>
