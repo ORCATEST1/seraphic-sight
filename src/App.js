@@ -205,8 +205,8 @@ function Footer() {
             </Link>
             <p style={{ fontSize:13,color:"#6066A0",lineHeight:1.7,marginBottom:18,maxWidth:260 }}>FAA Part 107 certified drone services for real estate and construction across Southern & Central California.</p>
             <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-              <a href="tel:9093159891" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>\u{1F4DE} 909.315.9891</a>
-              <a href="mailto:joseph@seraphicsight.com" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>\u2709\uFE0F joseph@seraphicsight.com</a>
+              <a href="tel:9093159891" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>&#x1F4DE; 909.315.9891</a>
+              <a href="mailto:joseph@seraphicsight.com" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>&#x2709;&#xFE0F; joseph@seraphicsight.com</a>
               <a href="https://www.google.com/maps/search/?api=1&query=Seraphic+Sight+LLC" target="_blank" rel="noopener noreferrer" style={{ fontSize:13,color:"#0077FF",textDecoration:"none" }}>\u2B50 Google Business Profile</a>
             </div>
           </div>
@@ -933,7 +933,7 @@ function FAQ() {
     { q: "How long does it take to receive my deliverables?", a: "Standard turnaround is 3\u20134 business days from the date of the flight. Rush delivery (1\u20132 business days) is available as an add-on. Large DroneDeploy mapping or construction projects may require additional processing time \u2014 we'll confirm timelines when scoping your project." },
     { q: "What file formats do you deliver?", a: "Property marketing: edited JPEG/PNG photos (MLS-ready), MP4 video in 16:9 and 9:16 (Reels/TikTok cuts), and hosted 360\u00B0 tour links. Construction/mapping: GeoTIFF orthomosaics, LAS/LAZ point clouds, and Procore / BIM 360-compatible outputs. All files delivered via a cloud download link." },
     { q: "Do you handle airspace authorization?", a: "Yes \u2014 we manage all LAANC authorizations for controlled airspace through the FAA's automated system. For restricted or complex airspace, we obtain manual waivers as needed at no additional cost to you." },
-    { q: "What is your travel fee?", a: "We charge $0.70 per mile. Jobs under 50 miles are billed round-trip; jobs 50 miles or more are billed one-way. For most projects in the greater Los Angeles, Inland Empire, or San Diego areas, travel fees are minimal or Zero." },
+    { q: "What is your travel fee?", a: "We charge $0.70 per mile. Jobs under 50 miles are billed round-trip; jobs 50 miles or more are billed one-way. For most projects in the greater Los Angeles, Inland Empire, or San Diego areas, travel fees are minimal or zero." },
     { q: "How do I book a shoot?", a: "Fill out our quote request form with your project address (or APN for land/construction sites), your deliverable list, and your timeline. We respond within 24 hours with pricing and availability. A 50% deposit is required to hold your shoot date." },
     { q: "Do you work with real estate agents and brokerages?", a: "Absolutely \u2014 we work with individual agents, teams, and brokerages on a per-listing or retainer basis. If you have regular listing volume, ask about agent pricing. We're happy to build a workflow that fits your business and turnaround requirements." },
     { q: "Can you accommodate urgent timelines?", a: "We do our best to accommodate tight deadlines. Same-week availability is typical. For same-day or next-day requests, reach out directly and we'll make every effort to be on site when you need us." },
