@@ -21,13 +21,11 @@ const STYLES = `
   }
 `;
 
-// Seeded pseudo-random — consistent point positions across renders
 function makeRng(seed) {
   let s = seed;
   return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
 }
 
-// Terrain height from layered sines (approximates Perlin noise for a SoCal landscape)
 function terrainH(x, z) {
   return (
     Math.sin(x * 0.18) * 3.5 +
@@ -38,7 +36,6 @@ function terrainH(x, z) {
   );
 }
 
-// LiDAR elevation colour ramp: deep navy → brand blue → teal → cyan-white
 function elevColor(t) {
   const tc = Math.max(0, Math.min(1, t));
   let r, g, b;
@@ -60,7 +57,6 @@ function elevColor(t) {
 
 export default function CinematicHero() {
   const containerRef = useRef(null);
-  const stickyRef    = useRef(null);
   const canvasRef    = useRef(null);
   const progressRef  = useRef(null);
   const textOpenRef  = useRef(null);
@@ -73,7 +69,6 @@ export default function CinematicHero() {
   useEffect(() => {
     const mobile = window.innerWidth < 768 || navigator.maxTouchPoints > 1;
 
-    // ── Inject styles ──────────────────────────────────────────────
     const styleEl = document.createElement("style");
     styleEl.textContent = STYLES;
     document.head.appendChild(styleEl);
@@ -96,18 +91,17 @@ export default function CinematicHero() {
 
     // ── Camera ─────────────────────────────────────────────────────
     const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 300);
-    camera.position.set(0, 30, 50);
+    camera.position.set(0, 28, 48);
     camera.lookAt(0, 0, 0);
 
     // ── Build point cloud ──────────────────────────────────────────
-    const rng         = makeRng(42);
-    const positions   = [];
-    const colors      = [];
+    const rng       = makeRng(42);
+    const positions = [];
+    const colors    = [];
     const MIN_Y = -8, MAX_Y = 15, YRANGE = MAX_Y - MIN_Y;
-    const SPREAD      = 90;
-    const N_TERRAIN   = mobile ? 42000 : 135000;
+    const SPREAD    = 90;
+    const N_TERRAIN = mobile ? 42000 : 135000;
 
-    // Ground + terrain layer
     for (let i = 0; i < N_TERRAIN; i++) {
       const x = (rng() - 0.5) * SPREAD;
       const z = (rng() - 0.5) * SPREAD;
@@ -117,7 +111,6 @@ export default function CinematicHero() {
       colors.push(r, g, b);
     }
 
-    // Structure clusters — represent buildings/infrastructure
     const structs = [
       { x: -18, z: -12, w: 7,  d: 7,  h: 9  },
       { x:  12, z:  -6, w: 9,  d: 8,  h: 12 },
@@ -127,8 +120,8 @@ export default function CinematicHero() {
       { x:   4, z: -22, w: 7,  d: 7,  h: 10 },
       { x:  -2, z:   3, w: 12, d: 10, h: 5  },
     ];
-    const N_STRUCT    = mobile ? 5000 : 22000;
-    const perS        = Math.floor(N_STRUCT / structs.length);
+    const N_STRUCT = mobile ? 5000 : 22000;
+    const perS     = Math.floor(N_STRUCT / structs.length);
     structs.forEach(s => {
       const base = terrainH(s.x, s.z);
       for (let i = 0; i < perS; i++) {
@@ -141,13 +134,13 @@ export default function CinematicHero() {
       }
     });
 
-    // ── Shader material (high quality crisp points) ────────────────
+    // ── Shader — points ALWAYS visible; scan beam adds glow ────────
     const mat = new THREE.ShaderMaterial({
       uniforms: {
-        uScanY:     { value: -25.0 },
-        uScanW:     { value: 2.8   },
-        uScanStr:   { value: 0.0   },
-        uDpr:       { value: renderer.getPixelRatio() },
+        uScanY:   { value: 16.0 },   // starts above terrain → full cloud visible
+        uScanW:   { value: 3.2  },
+        uScanStr: { value: 0.8  },   // glow visible from the start
+        uDpr:     { value: renderer.getPixelRatio() },
       },
       vertexShader: `
         attribute vec3 color;
@@ -157,29 +150,27 @@ export default function CinematicHero() {
         uniform float uDpr;
         varying vec3  vColor;
         varying float vGlow;
-        varying float vAlpha;
         void main() {
           vColor = color;
-          float ds  = abs(position.y - uScanY);
-          vGlow     = max(0.0, 1.0 - ds / uScanW) * uScanStr;
-          vAlpha    = step(position.y, uScanY + 1.0) * 0.90;
-          vec4 mv   = modelViewMatrix * vec4(position, 1.0);
-          float d   = max(1.0, -mv.z);
-          gl_PointSize = clamp((2.6 + vGlow * 5.5) * (30.0 / d) * uDpr, 1.0, 8.0);
+          float ds = abs(position.y - uScanY);
+          vGlow    = max(0.0, 1.0 - ds / uScanW) * uScanStr;
+          vec4 mv  = modelViewMatrix * vec4(position, 1.0);
+          float d  = max(1.0, -mv.z);
+          gl_PointSize = clamp((2.2 + vGlow * 5.0) * (30.0 / d) * uDpr, 1.0, 8.0);
           gl_Position  = projectionMatrix * mv;
         }
       `,
       fragmentShader: `
         varying vec3  vColor;
         varying float vGlow;
-        varying float vAlpha;
         void main() {
           vec2  uv = gl_PointCoord - 0.5;
           float r  = length(uv);
           if (r > 0.5) discard;
           float soft = 1.0 - smoothstep(0.28, 0.5, r);
           vec3  col  = vColor + vGlow * vec3(0.25, 1.0, 0.82);
-          gl_FragColor = vec4(col, soft * vAlpha);
+          // base alpha 0.82 so cloud is always visible
+          gl_FragColor = vec4(col, soft * 0.82);
         }
       `,
       transparent: true,
@@ -193,18 +184,19 @@ export default function CinematicHero() {
     const cloud = new THREE.Points(geo, mat);
     scene.add(cloud);
 
-    // ── Scan beam (thin glowing plane at scan height) ──────────────
+    // ── Scan beam plane ────────────────────────────────────────────
     const scanPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(200, 0.5),
-      new THREE.MeshBasicMaterial({ color: 0x00FFCC, transparent: true, opacity: 0, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({ color: 0x00FFCC, transparent: true, opacity: 0.14, side: THREE.DoubleSide })
     );
     scanPlane.rotation.x = Math.PI / 2;
+    scanPlane.position.y = 16;
     scene.add(scanPlane);
 
     // ── Animation state ────────────────────────────────────────────
     const state = {
-      camY: 30, camZ: 50,
-      scanY: -25, scanStr: 0,
+      camY: 28, camZ: 48,
+      scanY: 16, scanStr: 0.8,
       cloudRotY: 0,
     };
 
@@ -221,11 +213,10 @@ export default function CinematicHero() {
           if (chapterRef.current) {
             const p = self.progress;
             if      (p < 0.02) chapterRef.current.style.opacity = 0;
-            else if (p < 0.38) { chapterRef.current.textContent = "I — Scanning";    chapterRef.current.style.opacity = 1; }
-            else if (p < 0.68) { chapterRef.current.textContent = "II — Mapping";    chapterRef.current.style.opacity = 1; }
+            else if (p < 0.38) { chapterRef.current.textContent = "I — Scanning";     chapterRef.current.style.opacity = 1; }
+            else if (p < 0.68) { chapterRef.current.textContent = "II — Mapping";     chapterRef.current.style.opacity = 1; }
             else               { chapterRef.current.textContent = "III — Delivering"; chapterRef.current.style.opacity = 1; }
           }
-          // Live altitude HUD
           if (hudAltRef.current) {
             const alt = Math.round(350 - self.progress * 320);
             hudAltRef.current.textContent = `ALT ${alt}ft AGL`;
@@ -234,23 +225,23 @@ export default function CinematicHero() {
       },
     });
 
-    // Scene 1 (0–34): Scan sweeps up, cloud reveals
-    tl.to(state, { scanY: 22, scanStr: 1.3, camY: 22, camZ: 42, duration: 34, ease: "power2.inOut" }, 0);
-    tl.to(textOpenRef.current, { opacity: 1, duration: 6  }, 5);
-    tl.to(textOpenRef.current, { opacity: 0, duration: 5  }, 24);
-    tl.to(hintRef.current,     { opacity: 0, duration: 4  }, 5);
+    // Scene 1 (0–34): Scan sweeps down through terrain, camera descends
+    tl.to(state, { scanY: -6, scanStr: 1.4, camY: 22, camZ: 42, duration: 34, ease: "power2.inOut" }, 0);
+    tl.to(textOpenRef.current, { opacity: 1, duration: 6 }, 5);
+    tl.to(textOpenRef.current, { opacity: 0, duration: 5 }, 24);
+    tl.to(hintRef.current,     { opacity: 0, duration: 4 }, 5);
 
-    // Scene 2 (34–68): Camera descends, pans
-    tl.to(state, { scanY: 4, scanStr: 0.35, camY: 11, camZ: 27, cloudRotY: 0.38, duration: 34, ease: "power2.inOut" }, 34);
-    tl.to(textMidRef.current,  { opacity: 1, duration: 6  }, 39);
-    tl.to(textMidRef.current,  { opacity: 0, duration: 5  }, 57);
+    // Scene 2 (34–68): Camera descends closer, scan fades out
+    tl.to(state, { scanY: -20, scanStr: 0.2, camY: 11, camZ: 27, cloudRotY: 0.38, duration: 34, ease: "power2.inOut" }, 34);
+    tl.to(textMidRef.current,  { opacity: 1, duration: 6 }, 39);
+    tl.to(textMidRef.current,  { opacity: 0, duration: 5 }, 57);
 
-    // Scene 3 (68–100): Low flythrough
+    // Scene 3 (68–100): Low flythrough, cloud rotates
     tl.to(state, { scanStr: 0, camY: 5, camZ: 15, cloudRotY: 0.75, duration: 32, ease: "power3.in" }, 68);
-    tl.to(textEndRef.current,  { opacity: 1, duration: 6  }, 73);
-    tl.to(textEndRef.current,  { opacity: 0, duration: 5  }, 91);
+    tl.to(textEndRef.current,  { opacity: 1, duration: 6 }, 73);
+    tl.to(textEndRef.current,  { opacity: 0, duration: 5 }, 91);
 
-    // ── Input parallax (mouse + touch) ─────────────────────────────
+    // ── Mouse / touch parallax ─────────────────────────────────────
     let mx = 0, my = 0, offX = 0, offY = 0;
     const onMouse = e => {
       mx = (e.clientX / window.innerWidth  - 0.5) * 2;
@@ -265,7 +256,7 @@ export default function CinematicHero() {
     window.addEventListener("mousemove", onMouse);
     window.addEventListener("touchmove", onTouch, { passive: true });
 
-    // ── Render loop (30fps mobile, 60fps desktop) ──────────────────
+    // ── Render loop ────────────────────────────────────────────────
     let rafId, lastTs = 0;
     const FRAME_MS = mobile ? 1000 / 30 : 1000 / 60;
 
@@ -274,7 +265,6 @@ export default function CinematicHero() {
       if (ts - lastTs < FRAME_MS) return;
       lastTs = ts;
 
-      // Camera position from state + parallax offset
       offX += (mx * 3.5 - offX) * 0.04;
       offY += (-my * 2.0 - offY) * 0.04;
       camera.position.set(
@@ -284,15 +274,12 @@ export default function CinematicHero() {
       );
       camera.lookAt(0, 0, 0);
 
-      // Shader uniforms
       mat.uniforms.uScanY.value   = state.scanY;
       mat.uniforms.uScanStr.value = state.scanStr;
 
-      // Scan plane
       scanPlane.position.y       = state.scanY;
       scanPlane.material.opacity = state.scanStr * 0.16;
 
-      // Very slow cloud drift
       cloud.rotation.y = state.cloudRotY * 0.14 + (lastTs / 1000) * 0.007;
 
       renderer.render(scene, camera);
@@ -308,7 +295,6 @@ export default function CinematicHero() {
     };
     window.addEventListener("resize", onResize);
 
-    // ── Cleanup ────────────────────────────────────────────────────
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener("mousemove", onMouse);
@@ -323,7 +309,7 @@ export default function CinematicHero() {
 
   return (
     <div ref={containerRef} style={{ height: "350vh", position: "relative" }}>
-      <div ref={stickyRef} style={{
+      <div style={{
         position: "sticky", top: 0,
         width: "100%", height: "100vh", overflow: "hidden",
       }}>
@@ -336,7 +322,7 @@ export default function CinematicHero() {
           background: "radial-gradient(ellipse 85% 75% at 50% 50%, transparent 35%, rgba(5,8,16,0.65) 100%)",
         }} />
 
-        {/* HUD data readout — top-left */}
+        {/* HUD — top-left */}
         <div style={{
           position: "absolute", top: "1.6rem", left: "2rem",
           fontFamily: "monospace", fontSize: "clamp(0.5rem, 0.9vw, 0.65rem)",
@@ -359,65 +345,53 @@ export default function CinematicHero() {
           <div>SoCal · <span style={{ color: "rgba(0,119,255,0.7)" }}>ACTIVE</span></div>
         </div>
 
-        {/* ── Scene 1 text ── */}
+        {/* Scene 1 */}
         <div ref={textOpenRef} className="ch-overlay-text"
           style={{ top: "50%", left: "50%", transform: "translate(-50%,-50%)", textAlign: "center" }}>
           <p style={{
             fontSize: "clamp(0.58rem, 1.15vw, 0.8rem)", letterSpacing: "0.42em",
             textTransform: "uppercase", color: "#00BFA6", marginBottom: "1rem", fontWeight: 600,
-          }}>
-            FAA Part 107 · Southern California
-          </p>
+          }}>FAA Part 107 · Southern California</p>
           <h1 style={{
             fontSize: "clamp(2.2rem, 6.5vw, 5rem)", fontWeight: 800,
             letterSpacing: "-0.025em", color: "#fff", lineHeight: 1.06,
             textShadow: "0 0 50px rgba(0,119,255,0.45), 0 0 100px rgba(0,119,255,0.2)",
-          }}>
-            Seraphic Sight
-          </h1>
+          }}>Seraphic Sight</h1>
           <p style={{
             marginTop: "1rem", fontSize: "clamp(0.72rem, 1.4vw, 0.95rem)",
             letterSpacing: "0.22em", color: "rgba(0,191,166,0.75)", textTransform: "uppercase",
-          }}>
-            Aerial Imaging &amp; Site Documentation
-          </p>
+          }}>Aerial Imaging &amp; Site Documentation</p>
         </div>
 
-        {/* ── Scene 2 text ── */}
+        {/* Scene 2 */}
         <div ref={textMidRef} className="ch-overlay-text"
           style={{ bottom: "18%", left: "8%", maxWidth: "min(400px, 46vw)" }}>
           <h2 style={{
             fontSize: "clamp(1.3rem, 3.2vw, 2.4rem)", fontWeight: 700,
             letterSpacing: "-0.03em", lineHeight: 1.2, color: "#fff",
-          }}>
-            Sell listings<br />
-            <span style={{ background: "linear-gradient(90deg,#0077FF,#00BFA6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              faster.
-            </span>
+          }}>Sell listings<br />
+            <span style={{ background: "linear-gradient(90deg,#0077FF,#00BFA6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>faster.</span>
           </h2>
           <p style={{ fontSize: "clamp(0.76rem,1.2vw,0.88rem)", color: "#8888A0", marginTop: "0.7rem", lineHeight: 1.7 }}>
             MLS-ready aerial photography &amp; drone video — delivered in 3–4 days.
           </p>
         </div>
 
-        {/* ── Scene 3 text ── */}
+        {/* Scene 3 */}
         <div ref={textEndRef} className="ch-overlay-text"
           style={{ top: "22%", right: "8%", maxWidth: "min(360px, 42vw)", textAlign: "right" }}>
           <h2 style={{
             fontSize: "clamp(1.1rem, 2.8vw, 2.1rem)", fontWeight: 700,
             letterSpacing: "-0.02em", lineHeight: 1.3, color: "#fff",
-          }}>
-            Document every<br />
-            <span style={{ background: "linear-gradient(90deg,#00BFA6,#0077FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              phase.
-            </span>
+          }}>Document every<br />
+            <span style={{ background: "linear-gradient(90deg,#00BFA6,#0077FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>phase.</span>
           </h2>
           <p style={{ fontSize: "clamp(0.7rem,1.1vw,0.86rem)", color: "#8888A0", marginTop: "0.7rem", lineHeight: 1.7 }}>
             DroneDeploy workflows &amp; audit-ready progress docs.
           </p>
         </div>
 
-        {/* ── Scroll hint ── */}
+        {/* Scroll hint */}
         <div ref={hintRef} style={{
           position: "absolute", bottom: "2.2rem", left: "50%",
           transform: "translateX(-50%)", textAlign: "center",
