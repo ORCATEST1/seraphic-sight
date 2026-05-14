@@ -805,9 +805,10 @@ function VideoCard({ item, onClick }) {
     >
       <img
         src={vThumb(item.id)}
-        alt={item.tags.join(", ")}
+        alt=""
         loading="lazy"
         style={{ display: hov ? "none" : "block" }}
+        onError={e => { const card = e.target.closest(".ps-card"); if(card) card.style.display="none"; }}
       />
       <video
         ref={vidRef}
@@ -845,8 +846,9 @@ function PhotoCard({ item, onClick }) {
     >
       <img
         src={img(item.id)}
-        alt={item.tags.join(", ")}
+        alt=""
         loading="lazy"
+        onError={e => { const card = e.target.closest(".ps-card"); if(card) card.style.display="none"; }}
       />
       <div className="ps-card-overlay">
         <div className="ps-card-tags">
