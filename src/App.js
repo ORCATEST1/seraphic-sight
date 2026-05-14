@@ -12,6 +12,7 @@ import { useGSAP } from "@gsap/react";
 import Lenis from "lenis";
 import CinematicHero from "./components/CinematicHero";
 import PortfolioSection from "./components/PortfolioSection";
+import SpatialShowroom from "./components/SpatialShowroom";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -990,6 +991,7 @@ export default function App() {
         <Route path="/service-area" element={<ServiceArea/>}/>
         <Route path="/contact" element={<Contact/>}/>
         <Route path="/faq" element={<FAQ/>}/>
+          <Route path="/showroom" element={<SpatialShowroom />} />
       </Routes>
       <Footer/>
     </div>
