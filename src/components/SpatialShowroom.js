@@ -1,6 +1,6 @@
-// SpatialShowroom.js v4
-// Key fixes: T-junction geometry (no blocking walls), lighter floor/walls,
-//            wall-wash lighting, floor-level fill lights.
+// SpatialShowroom.js v5
+// Key fix: MeshBasicMaterial for all structural geometry (walls/floor/ceiling)
+// so brightness is guaranteed regardless of lighting/tone-mapping.
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -37,16 +37,29 @@ const VIDEOS = [
 function makeFloorTex() {
   const c = document.createElement("canvas"); c.width=512; c.height=512;
   const ctx = c.getContext("2d");
-  ctx.fillStyle="#1E2E45"; ctx.fillRect(0,0,512,512);
-  ctx.strokeStyle="rgba(80,140,255,0.18)"; ctx.lineWidth=1;
+  ctx.fillStyle="#1A2D48"; ctx.fillRect(0,0,512,512);
+  ctx.strokeStyle="rgba(60,100,180,0.25)"; ctx.lineWidth=1;
   for (let i=0;i<=512;i+=32){
     ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,512);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(512,i);ctx.stroke();
   }
-  ctx.strokeStyle="rgba(0,220,200,0.28)"; ctx.lineWidth=2;
+  ctx.strokeStyle="rgba(0,180,160,0.35)"; ctx.lineWidth=2;
   for (let x=0;x<=512;x+=128) for (let y=0;y<=512;y+=128){
     ctx.beginPath();ctx.moveTo(x-10,y);ctx.lineTo(x+10,y);ctx.stroke();
     ctx.beginPath();ctx.moveTo(x,y-10);ctx.lineTo(x,y+10);ctx.stroke();
+  }
+  return c;
+}
+function makeWallTex() {
+  const c = document.createElement("canvas"); c.width=256; c.height=512;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle="#2A3F60"; ctx.fillRect(0,0,256,512);
+  ctx.strokeStyle="rgba(50,80,140,0.3)"; ctx.lineWidth=0.5;
+  for (let y=0;y<512;y+=64){
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(256,y);ctx.stroke();
+  }
+  for (let x=0;x<256;x+=64){
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,512);ctx.stroke();
   }
   return c;
 }
@@ -62,7 +75,7 @@ function makeLabelTex(title, sub, accent) {
 function makeSectionTex(title, accent) {
   const c=document.createElement("canvas"); c.width=1024; c.height=128;
   const ctx=c.getContext("2d"); ctx.clearRect(0,0,1024,128);
-  ctx.fillStyle="rgba(5,10,25,0.7)"; ctx.fillRect(0,0,1024,128);
+  ctx.fillStyle="rgba(5,10,25,0.8)"; ctx.fillRect(0,0,1024,128);
   ctx.fillStyle=accent; ctx.fillRect(0,0,8,128);
   ctx.fillStyle="#FFFFFF"; ctx.font="bold 68px Arial"; ctx.textAlign="left"; ctx.fillText(title,28,94);
   return c;
@@ -78,14 +91,11 @@ function Minimap({ px, pz }) {
     ctx.fillStyle="rgba(4,8,20,0.9)"; ctx.fillRect(0,0,130,130);
     ctx.strokeStyle="rgba(0,119,255,0.4)"; ctx.lineWidth=1; ctx.strokeRect(0,0,130,130);
     const tM=(x,z)=>[(x+16)*(130/32),(z+12)*(130/95)];
-    // Draw gallery floor
     const [ax,az]=tM(-14,0),[bx,bz]=tM(14,72);
     ctx.fillStyle="rgba(0,70,160,0.25)"; ctx.fillRect(ax,az,bx-ax,bz-az);
     ctx.strokeStyle="rgba(0,140,255,0.5)"; ctx.lineWidth=1; ctx.strokeRect(ax,az,bx-ax,bz-az);
-    // Draw entry corridor
     const [cx2,cz2]=tM(-3,-12),[dx,dz]=tM(3,0);
     ctx.fillStyle="rgba(0,60,140,0.3)"; ctx.fillRect(cx2,cz2,dx-cx2,dz-cz2);
-    // Player
     const [pdx,pdz]=tM(px,pz);
     ctx.fillStyle="#00D4FF"; ctx.beginPath(); ctx.arc(pdx,pdz,4,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle="#FFF"; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(pdx,pdz,4,0,Math.PI*2); ctx.stroke();
@@ -242,138 +252,146 @@ export default function SpatialShowroom() {
     if(!started) return;
     const el=mountRef.current; if(!el) return;
 
-    // Renderer
+    // Renderer — no tone mapping so BasicMaterial colors render exactly as specified
     const renderer=new THREE.WebGLRenderer({antialias:true});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     renderer.setSize(window.innerWidth,window.innerHeight);
     renderer.shadowMap.enabled=false;
-    renderer.toneMapping=THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure=1.6;
+    renderer.toneMapping=THREE.LinearToneMapping;
+    renderer.toneMappingExposure=1.0;
     el.appendChild(renderer.domElement);
 
     // Scene
     const scene=new THREE.Scene();
     scene.background=new THREE.Color(0x0D1C33);
-    scene.fog=new THREE.Fog(0x0D1C33,45,120);
+    scene.fog=new THREE.Fog(0x0D1C33,50,130);
 
-    const camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,0.1,130);
+    const camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,0.1,140);
     camera.position.set(0,1.7,-10);
     camera.lookAt(0,1.7,0);
 
-    // ── Materials ──────────────────────────────────────────────────
+    // ── Textures ────────────────────────────────────────────────────
     const floorTex=new THREE.CanvasTexture(makeFloorTex());
     floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;
     floorTex.repeat.set(6,18);
 
-    // Floor: matte, medium-dark blue — receives ambient well, not a dark mirror
-    const floorMat=new THREE.MeshStandardMaterial({map:floorTex,roughness:0.88,metalness:0.04,color:0x253C58});
-    // Walls: visible blue-grey
-    const wallMat=new THREE.MeshStandardMaterial({color:0x243650,roughness:0.82,metalness:0.05});
-    // Ceiling: slightly lighter than before so ceiling lights reflect
-    const ceilMat=new THREE.MeshStandardMaterial({color:0x131E30,roughness:0.85,metalness:0.0});
-    // Emissive trim
-    const trimB=new THREE.MeshStandardMaterial({color:0x3377FF,emissive:new THREE.Color(0x1155DD),emissiveIntensity:1.5,roughness:0.2,metalness:0.5});
-    const trimT=new THREE.MeshStandardMaterial({color:0x00CCBB,emissive:new THREE.Color(0x00AA99),emissiveIntensity:1.2,roughness:0.2,metalness:0.5});
+    const wallTex=new THREE.CanvasTexture(makeWallTex());
+    wallTex.wrapS=wallTex.wrapT=THREE.RepeatWrapping;
+    wallTex.repeat.set(4,2);
 
-    function bx(px,py,pz,w,h,d,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(px,py,pz);m.receiveShadow=true;scene.add(m);return m;}
-    function fl(px,py,pz,w,d,mat){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);m.rotation.x=-Math.PI/2;m.position.set(px,py,pz);m.receiveShadow=true;scene.add(m);}
-    function strip(px,py,pz,len,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.05,len),mat.clone());m.position.set(px,py,pz);scene.add(m);}
+    // ── MATERIALS (BasicMaterial = unlit, always shows color) ──────
+    const floorMat = new THREE.MeshBasicMaterial({map:floorTex});
+    const wallMat  = new THREE.MeshBasicMaterial({map:wallTex,color:0x3A5580});
+    const ceilMat  = new THREE.MeshBasicMaterial({color:0x1E3050});
+
+    // Emissive trim strips (still StandardMaterial so they glow)
+    const trimBlueMat = new THREE.MeshStandardMaterial({color:0x3377FF,emissive:new THREE.Color(0x1155DD),emissiveIntensity:2.0,roughness:0.2,metalness:0.5});
+    const trimTealMat = new THREE.MeshStandardMaterial({color:0x00CCBB,emissive:new THREE.Color(0x00AA99),emissiveIntensity:1.8,roughness:0.2,metalness:0.5});
+
+    function bx(px,py,pz,w,h,d,mat){
+      const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+      m.position.set(px,py,pz); scene.add(m); return m;
+    }
+    function fl(px,py,pz,w,d,mat){
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);
+      m.rotation.x=-Math.PI/2; m.position.set(px,py,pz); scene.add(m);
+    }
+    function strip(px,py,pz,len,mat){
+      const m=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.06,len),mat.clone());
+      m.position.set(px,py,pz); scene.add(m);
+    }
 
     // ── GEOMETRY: OPEN T-JUNCTION ──────────────────────────────────
-    // Layout:
-    //  Entry corridor: x=-3..+3, z=-12..0   (6w x 12d)
-    //  Main gallery:   x=-14..+14, z=0..72  (28w x 72d)  OPEN, no dividing walls!
-    //  Photos on LEFT wall (x=-14), videos on RIGHT wall (x=+14)
+    // Entry corridor: x=-3..+3, z=-12..0  (6w x 12d)
+    // Main gallery:   x=-14..+14, z=0..72 (28w x 72d) — fully open
 
     // FLOORS
-    fl(0,0,-6,6,12,floorMat.clone());           // entry corridor floor
-    fl(0,0,36,28,72,floorMat);                   // main gallery floor
+    fl(0,0,-6,  6, 12, floorMat.clone());       // entry corridor
+    fl(0,0,36, 28, 72, floorMat);               // main gallery
 
     // CEILING
-    bx(0,5.5,-6,6,0.3,12,ceilMat.clone());      // entry corridor ceiling
-    bx(0,5.5,36,28,0.3,72,ceilMat.clone());     // gallery ceiling
+    bx(0,5.5,-6,  6,0.3,12, ceilMat.clone());  // entry corridor ceiling
+    bx(0,5.5,36, 28,0.3,72, ceilMat.clone());  // gallery ceiling
 
-    // OUTER WALLS (left and right)
-    bx(-14.08,2.75,36,0.15,5.5,72,wallMat.clone());  // left gallery wall
-    bx(14.08,2.75,36,0.15,5.5,72,wallMat.clone());   // right gallery wall
+    // WALLS — side walls of gallery
+    // Clone wallTex repeat for each long wall section
+    const makeWallMat = ()=>{
+      const t=wallTex.clone(); t.needsUpdate=true;
+      t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(4,1.5);
+      return new THREE.MeshBasicMaterial({map:t,color:0x3A5580});
+    };
+    bx(-14.08,2.75,36, 0.15,5.5,72, makeWallMat()); // left gallery wall
+    bx( 14.08,2.75,36, 0.15,5.5,72, makeWallMat()); // right gallery wall
 
-    // ENTRY CORRIDOR side walls (only z=-12 to z=0 — NOT through the gallery)
-    bx(-3.08,2.75,-6,0.15,5.5,12,wallMat.clone());   // left entry wall
-    bx(3.08,2.75,-6,0.15,5.5,12,wallMat.clone());    // right entry wall
+    // Entry corridor side walls (ONLY z=-12..0)
+    bx(-3.08,2.75,-6, 0.15,5.5,12, makeWallMat());
+    bx( 3.08,2.75,-6, 0.15,5.5,12, makeWallMat());
 
-    // SIDE WALLS: small sections connecting entry to gallery sides
-    // Left connector (fills gap between entry left wall x=-3 and gallery left wall x=-14) at z=0
-    bx(-8.5,2.75,-0.07,11,5.5,0.15,wallMat.clone());
-    // Right connector
-    bx(8.5,2.75,-0.07,11,5.5,0.15,wallMat.clone());
+    // Connector walls at gallery entrance (fill gap from entry to gallery walls)
+    bx(-8.5,2.75,-0.07, 11,5.5,0.15, makeWallMat());
+    bx( 8.5,2.75,-0.07, 11,5.5,0.15, makeWallMat());
 
-    // But cut the doorway archways: remove solid wall above the corridor opening
-    // Instead add pillar posts at corners of entry-gallery junction
-    [[-3.0,2.75,0],[-3.0,2.75,0],[3.0,2.75,0]].forEach(()=>{}); // just for clarity
-    // Four corner pillar posts at the gallery entrance
+    // Corner pillar posts at entry-gallery junction
     [[-3.08,2.75,0],[3.08,2.75,0]].forEach(([x,y,z])=>{
-      bx(x,y,z,0.3,5.5,0.3,wallMat.clone());
+      bx(x,y,z,0.3,5.5,0.3,new THREE.MeshBasicMaterial({color:0x4A6A9A}));
     });
 
-    // FAR END wall
-    bx(0,2.75,72.08,28,5.5,0.15,wallMat.clone());
-    // ENTRY BACK wall
-    bx(0,2.75,-12.08,6,5.5,0.15,wallMat.clone());
+    // Far end wall + entry back wall
+    bx(0,2.75, 72.08, 28,5.5,0.15, makeWallMat());
+    bx(0,2.75,-12.08,  6,5.5,0.15, makeWallMat());
 
     // ── TRIM STRIPS ───────────────────────────────────────────────
-    // Gallery floor baseboards (blue glow)
-    [[-14.05,0.04,36,72],[14.05,0.04,36,72],[-3.08,0.04,-6,12],[3.08,0.04,-6,12]].forEach(([x,y,z,l])=>strip(x,y,z,l,trimB));
-    // Gallery ceiling strips (teal)
-    [[-14.05,5.47,36,72],[14.05,5.47,36,72]].forEach(([x,y,z,l])=>strip(x,y,z,l,trimT));
+    [[-14.05,0.04,36,72],[14.05,0.04,36,72],[-3.08,0.04,-6,12],[3.08,0.04,-6,12]]
+      .forEach(([x,y,z,l])=>strip(x,y,z,l,trimBlueMat));
+    [[-14.05,5.47,36,72],[14.05,5.47,36,72]]
+      .forEach(([x,y,z,l])=>strip(x,y,z,l,trimTealMat));
+
     // Entry arch ring
     const ring=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.07,8,64),
-      new THREE.MeshStandardMaterial({color:0x0066EE,emissive:new THREE.Color(0x0044BB),emissiveIntensity:2.0,roughness:0.2,metalness:0.8}));
+      new THREE.MeshStandardMaterial({color:0x0066EE,emissive:new THREE.Color(0x0044BB),emissiveIntensity:2.5,roughness:0.2,metalness:0.8}));
     ring.position.set(0,2.75,-0.1); ring.rotation.x=Math.PI/2; scene.add(ring);
 
-    // Floor guide lines down the center (help orientation)
-    const guideMat=new THREE.MeshBasicMaterial({color:0x1A3A60});
-    const guideL=new THREE.Mesh(new THREE.PlaneGeometry(0.08,72),guideMat);
-    guideL.rotation.x=-Math.PI/2; guideL.position.set(-1.5,0.01,36); scene.add(guideL);
-    const guideR=new THREE.Mesh(new THREE.PlaneGeometry(0.08,72),guideMat.clone());
-    guideR.rotation.x=-Math.PI/2; guideR.position.set(1.5,0.01,36); scene.add(guideR);
+    // Center guide lines
+    const guideMat=new THREE.MeshBasicMaterial({color:0x1A3050});
+    const gL=new THREE.Mesh(new THREE.PlaneGeometry(0.08,72),guideMat);
+    gL.rotation.x=-Math.PI/2; gL.position.set(-1.5,0.01,36); scene.add(gL);
+    const gR=new THREE.Mesh(new THREE.PlaneGeometry(0.08,72),guideMat.clone());
+    gR.rotation.x=-Math.PI/2; gR.position.set(1.5,0.01,36); scene.add(gR);
 
-    // ── LIGHTING ──────────────────────────────────────────────────
-    // Strong white ambient — gallery needs overall brightness
-    scene.add(new THREE.AmbientLight(0xFFFFFF,1.4));
-    // Hemisphere fills upper/lower
-    scene.add(new THREE.HemisphereLight(0x8899CC,0x223355,1.8));
-
-    // Ceiling lights along center aisle (warm white)
-    const ceilZ=[2,10,18,26,34,42,50,58,66];
-    ceilZ.forEach(z=>{
-      const disc=new THREE.Mesh(new THREE.CircleGeometry(0.3,16),new THREE.MeshBasicMaterial({color:0xFFFFEE}));
+    // ── LIGHTING (for panel illumination and glowing trims) ────────
+    // Minimal ambient so StandardMaterial glows still work
+    scene.add(new THREE.AmbientLight(0xFFFFFF,0.6));
+    // Ceiling point lights
+    [2,10,18,26,34,42,50,58,66].forEach(z=>{
+      const disc=new THREE.Mesh(new THREE.CircleGeometry(0.3,16),
+        new THREE.MeshBasicMaterial({color:0xFFFFEE}));
       disc.rotation.x=Math.PI/2; disc.position.set(0,5.42,z); scene.add(disc);
-      const pl=new THREE.PointLight(0xFFEEDD,3.0,24);
+      const pl=new THREE.PointLight(0xFFEEDD,4.0,28);
       pl.position.set(0,5.2,z); scene.add(pl);
     });
-
-    // Wall-wash lights: aimed at the photo/video walls from close range
-    // Left wall wash (photos) — lights positioned 3m from left wall, at mid-height
+    // Wall-wash for photos (left) and videos (right)
     [6,16,26,36,46,56,66].forEach(z=>{
-      const pl=new THREE.PointLight(0xFFEECC,2.2,12);
-      pl.position.set(-11,3.5,z); scene.add(pl);
+      const l=new THREE.PointLight(0xFFEECC,3.0,14);
+      l.position.set(-11,3.5,z); scene.add(l);
+      const r=new THREE.PointLight(0xFFEECC,3.0,14);
+      r.position.set(11,3.5,z); scene.add(r);
     });
-    // Right wall wash (videos)
-    [6,16,26,36,46,56,66].forEach(z=>{
-      const pl=new THREE.PointLight(0xFFEECC,2.2,12);
-      pl.position.set(11,3.5,z); scene.add(pl);
-    });
-    // Floor fill — low-mounted fill lights to kill floor shadows
+    // Floor fill
     [10,26,42,58].forEach(z=>{
-      const pl=new THREE.PointLight(0xCCDDFF,1.0,20);
+      const pl=new THREE.PointLight(0xCCDDFF,1.2,22);
       pl.position.set(0,0.8,z); scene.add(pl);
+    });
+    // Entry corridor lights
+    [-8,-4].forEach(z=>{
+      const pl=new THREE.PointLight(0xFFEEDD,3.0,12);
+      pl.position.set(0,4.8,z); scene.add(pl);
     });
 
     // ── SECTION SIGNS ─────────────────────────────────────────────
     [
-      {text:"PHOTO GALLERY", x:-9, y:4.8, z:2, accent:"#0088FF"},
-      {text:"VIDEO GALLERY", x: 9, y:4.8, z:2, accent:"#00BFA6"},
-      {text:"SERAPHIC SIGHT",x: 0, y:4.2, z:-9.5,accent:"#0088FF"},
+      {text:"PHOTO GALLERY", x:-9,  y:4.8, z:2,    accent:"#0088FF"},
+      {text:"VIDEO GALLERY", x: 9,  y:4.8, z:2,    accent:"#00BFA6"},
+      {text:"SERAPHIC SIGHT",x: 0,  y:4.2, z:-9.5, accent:"#0088FF"},
     ].forEach(s=>{
       const tex=new THREE.CanvasTexture(makeSectionTex(s.text,s.accent));
       const m=new THREE.Mesh(new THREE.PlaneGeometry(6.5,0.85),
@@ -392,26 +410,27 @@ export default function SpatialShowroom() {
       const y=col===0?YU:YL, z=3+row*ZGAP;
       const wx=-13.9;
       // Frame
-      const fm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,FH+0.18,0.1),
+      bx(wx+0.08,y,z, FW+0.18,FH+0.18,0.1,
         new THREE.MeshStandardMaterial({color:0x1A2A3E,roughness:0.2,metalness:0.9,
-          emissive:new THREE.Color(0x001C44),emissiveIntensity:0.6}));
-      fm.position.set(wx+0.08,y,z); fm.rotation.y=Math.PI/2; scene.add(fm);
-      // Screen
+          emissive:new THREE.Color(0x001C44),emissiveIntensity:0.8}));
+      // Screen (photo texture)
       const tex=loader.load(cImg(ph.id,840,560));
       tex.colorSpace=THREE.SRGBColorSpace;
-      const sc=new THREE.Mesh(new THREE.PlaneGeometry(FW,FH),new THREE.MeshBasicMaterial({map:tex}));
+      const sc=new THREE.Mesh(new THREE.PlaneGeometry(FW,FH),
+        new THREE.MeshBasicMaterial({map:tex}));
       sc.position.set(wx+0.14,y,z); sc.rotation.y=Math.PI/2; scene.add(sc);
       // Label
       const lt=new THREE.CanvasTexture(makeLabelTex(ph.label,ph.tag,"#0077FF"));
-      const lb=new THREE.Mesh(new THREE.PlaneGeometry(FW,0.65),new THREE.MeshBasicMaterial({map:lt,transparent:true}));
+      const lb=new THREE.Mesh(new THREE.PlaneGeometry(FW,0.65),
+        new THREE.MeshBasicMaterial({map:lt,transparent:true}));
       lb.position.set(wx+0.15,y-(FH/2+0.43),z); lb.rotation.y=Math.PI/2; scene.add(lb);
       // Glow top bar
-      const gm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,0.05,0.05),
-        new THREE.MeshStandardMaterial({color:0x2255FF,emissive:new THREE.Color(0x0044EE),emissiveIntensity:2.5}));
+      const gm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,0.06,0.06),
+        new THREE.MeshStandardMaterial({color:0x2255FF,emissive:new THREE.Color(0x0044EE),emissiveIntensity:3.0}));
       gm.position.set(wx+0.07,y+FH/2+0.12,z); gm.rotation.y=Math.PI/2; scene.add(gm);
-      // Spotlight from right, aimed at panel
-      const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/8,0.4);
-      sl.position.set(wx+6,y+1.5,z); sl.target.position.set(wx+0.1,y,z);
+      // Spotlight from gallery center
+      const sl=new THREE.SpotLight(0xFFFFFF,6.0,16,Math.PI/8,0.35);
+      sl.position.set(wx+6,y+2,z); sl.target.position.set(wx+0.1,y,z);
       scene.add(sl); scene.add(sl.target);
       sc.userData={type:"photo",...ph}; hotspots.push(sc);
     });
@@ -420,26 +439,27 @@ export default function SpatialShowroom() {
       const col=i%2, row=Math.floor(i/2);
       const y=col===0?YU:YL, z=3+row*ZGAP;
       const wx=13.9;
-      const fm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,FH+0.18,0.1),
+      bx(wx-0.08,y,z, FW+0.18,FH+0.18,0.1,
         new THREE.MeshStandardMaterial({color:0x1A1F35,roughness:0.2,metalness:0.9,
-          emissive:new THREE.Color(0x001830),emissiveIntensity:0.6}));
-      fm.position.set(wx-0.08,y,z); fm.rotation.y=-Math.PI/2; scene.add(fm);
+          emissive:new THREE.Color(0x001830),emissiveIntensity:0.8}));
       const videoEl=document.createElement("video");
       videoEl.src=cVid(vid.id); videoEl.loop=true; videoEl.muted=true;
       videoEl.playsInline=true; videoEl.crossOrigin="anonymous"; videoEl.autoplay=true;
       videoEl.play().catch(()=>{});
       const vTex=new THREE.VideoTexture(videoEl);
       vTex.colorSpace=THREE.SRGBColorSpace;
-      const sc=new THREE.Mesh(new THREE.PlaneGeometry(FW,FH),new THREE.MeshBasicMaterial({map:vTex}));
+      const sc=new THREE.Mesh(new THREE.PlaneGeometry(FW,FH),
+        new THREE.MeshBasicMaterial({map:vTex}));
       sc.position.set(wx-0.14,y,z); sc.rotation.y=-Math.PI/2; scene.add(sc);
       const lt=new THREE.CanvasTexture(makeLabelTex(vid.label,vid.tag,"#00BFA6"));
-      const lb=new THREE.Mesh(new THREE.PlaneGeometry(FW,0.65),new THREE.MeshBasicMaterial({map:lt,transparent:true}));
+      const lb=new THREE.Mesh(new THREE.PlaneGeometry(FW,0.65),
+        new THREE.MeshBasicMaterial({map:lt,transparent:true}));
       lb.position.set(wx-0.15,y-(FH/2+0.43),z); lb.rotation.y=-Math.PI/2; scene.add(lb);
-      const gm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,0.05,0.05),
-        new THREE.MeshStandardMaterial({color:0x00AABB,emissive:new THREE.Color(0x008899),emissiveIntensity:2.5}));
+      const gm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,0.06,0.06),
+        new THREE.MeshStandardMaterial({color:0x00AABB,emissive:new THREE.Color(0x008899),emissiveIntensity:3.0}));
       gm.position.set(wx-0.07,y+FH/2+0.12,z); gm.rotation.y=-Math.PI/2; scene.add(gm);
-      const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/8,0.4);
-      sl.position.set(wx-6,y+1.5,z); sl.target.position.set(wx-0.1,y,z);
+      const sl=new THREE.SpotLight(0xFFFFFF,6.0,16,Math.PI/8,0.35);
+      sl.position.set(wx-6,y+2,z); sl.target.position.set(wx-0.1,y,z);
       scene.add(sl); scene.add(sl.target);
       sc.userData={type:"video",...vid}; hotspots.push(sc);
     });
@@ -448,7 +468,8 @@ export default function SpatialShowroom() {
     const keys={};
     const euler=new THREE.Euler(0,0,0,"YXZ");
     let locked=false;
-    const onKey=(e,v)=>{keys[e.code]=v;};
+    const onKeyDown=(e)=>{keys[e.code]=true;};
+    const onKeyUp=(e)=>{keys[e.code]=false;};
     const onMove=(e)=>{
       if(!locked) return;
       euler.setFromQuaternion(camera.quaternion);
@@ -464,13 +485,14 @@ export default function SpatialShowroom() {
       const hits=raycaster.intersectObjects(hotspots);
       if(hits.length>0) setModal(hits[0].object.userData);
     };
-    window.addEventListener("keydown",e=>onKey(e,true));
-    window.addEventListener("keyup",e=>onKey(e,false));
+    window.addEventListener("keydown",onKeyDown);
+    window.addEventListener("keyup",onKeyUp);
     document.addEventListener("mousemove",onMove);
     document.addEventListener("pointerlockchange",onLock);
     renderer.domElement.addEventListener("click",onClick);
+
     const dir=new THREE.Vector3(),right=new THREE.Vector3();
-    const SPEED=0.08;
+    const SPEED=0.09;
     const getZone=(p)=>{
       if(p.z<0) return "ENTRY HALL";
       if(p.x<-4) return "PHOTO GALLERY";
@@ -484,10 +506,10 @@ export default function SpatialShowroom() {
       camera.getWorldDirection(dir); dir.y=0; dir.normalize();
       right.crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
       const vel=new THREE.Vector3();
-      if(keys["KeyW"]||keys["ArrowUp"])   vel.add(dir);
-      if(keys["KeyS"]||keys["ArrowDown"]) vel.sub(dir);
-      if(keys["KeyA"]||keys["ArrowLeft"]) vel.sub(right);
-      if(keys["KeyD"]||keys["ArrowRight"])vel.add(right);
+      if(keys["KeyW"]||keys["ArrowUp"])    vel.add(dir);
+      if(keys["KeyS"]||keys["ArrowDown"])  vel.sub(dir);
+      if(keys["KeyA"]||keys["ArrowLeft"])  vel.sub(right);
+      if(keys["KeyD"]||keys["ArrowRight"]) vel.add(right);
       if(vel.length()>0){
         vel.normalize().multiplyScalar(SPEED);
         const nx=Math.max(-13.5,Math.min(13.5,camera.position.x+vel.x));
@@ -499,16 +521,18 @@ export default function SpatialShowroom() {
       renderer.render(scene,camera);
     };
     tick();
+
     const onResize=()=>{
       camera.aspect=window.innerWidth/window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth,window.innerHeight);
     };
     window.addEventListener("resize",onResize);
+
     return()=>{
       cancelAnimationFrame(rafId);
-      window.removeEventListener("keydown",e=>onKey(e,true));
-      window.removeEventListener("keyup",e=>onKey(e,false));
+      window.removeEventListener("keydown",onKeyDown);
+      window.removeEventListener("keyup",onKeyUp);
       document.removeEventListener("mousemove",onMove);
       document.removeEventListener("pointerlockchange",onLock);
       renderer.domElement.removeEventListener("click",onClick);
