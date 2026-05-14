@@ -209,13 +209,10 @@ export default function CinematicHero() {
     window.addEventListener("touchmove", onTouch, { passive: true });
 
     // ── Render loop ───────────────────────────────────────────────
-    let rafId, lastTs = 0;
-    const FPS = isMobile ? 1000/30 : 1000/60;
+    let rafId;
 
     const tick = ts => {
       rafId = requestAnimationFrame(tick);
-      if (ts - lastTs < FPS) return;
-      lastTs = ts;
 
       offX += (mx * 3.5 - offX) * .04;
       offY += (-my * 2.0 - offY) * .04;
