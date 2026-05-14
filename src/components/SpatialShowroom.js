@@ -1,6 +1,6 @@
-// SpatialShowroom.js v3 -- Seraphic Sight 3D Gallery
-// Fixes: bright lighting overhaul, correct panel heights (both rows visible),
-//        double-sided section signs with correct rotations, fog pushed out to 40-110.
+// SpatialShowroom.js v4
+// Key fixes: T-junction geometry (no blocking walls), lighter floor/walls,
+//            wall-wash lighting, floor-level fill lights.
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -33,78 +33,67 @@ const VIDEOS = [
   { id:"Copy_of_DJI_0719_rlyiv1",  label:"Drone Flight",         tag:"Drone"       },
 ];
 
+// ─── Canvas helpers ──────────────────────────────────────────────────────────
 function makeFloorTex() {
-  const c = document.createElement("canvas");
-  c.width = 512; c.height = 512;
+  const c = document.createElement("canvas"); c.width=512; c.height=512;
   const ctx = c.getContext("2d");
-  ctx.fillStyle = "#0D1A2E";
-  ctx.fillRect(0,0,512,512);
-  ctx.strokeStyle = "rgba(0,140,255,0.18)";
-  ctx.lineWidth = 1;
-  for (let i = 0; i <= 512; i += 32) {
-    ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,512); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(512,i); ctx.stroke();
+  ctx.fillStyle="#1E2E45"; ctx.fillRect(0,0,512,512);
+  ctx.strokeStyle="rgba(80,140,255,0.18)"; ctx.lineWidth=1;
+  for (let i=0;i<=512;i+=32){
+    ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,512);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(512,i);ctx.stroke();
   }
-  ctx.strokeStyle = "rgba(0,220,200,0.22)";
-  ctx.lineWidth = 1.5;
-  for (let x = 0; x <= 512; x += 128) for (let y = 0; y <= 512; y += 128) {
-    ctx.beginPath(); ctx.moveTo(x-8,y); ctx.lineTo(x+8,y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x,y-8); ctx.lineTo(x,y+8); ctx.stroke();
+  ctx.strokeStyle="rgba(0,220,200,0.28)"; ctx.lineWidth=2;
+  for (let x=0;x<=512;x+=128) for (let y=0;y<=512;y+=128){
+    ctx.beginPath();ctx.moveTo(x-10,y);ctx.lineTo(x+10,y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,y-10);ctx.lineTo(x,y+10);ctx.stroke();
   }
   return c;
 }
-
 function makeLabelTex(title, sub, accent) {
-  const c = document.createElement("canvas");
-  c.width = 512; c.height = 128;
-  const ctx = c.getContext("2d");
-  ctx.clearRect(0,0,512,128);
-  ctx.fillStyle = accent + "33";
-  ctx.roundRect(0,0,512,128,8); ctx.fill();
-  ctx.strokeStyle = accent + "88"; ctx.lineWidth = 1.5;
-  ctx.roundRect(0.5,0.5,511,127,8); ctx.stroke();
-  ctx.fillStyle = accent; ctx.font = "bold 38px Arial"; ctx.textAlign = "center";
-  ctx.fillText(title, 256, 58);
-  ctx.fillStyle = "rgba(200,210,230,0.8)"; ctx.font = "22px Arial";
-  ctx.fillText(sub, 256, 96);
+  const c=document.createElement("canvas"); c.width=512; c.height=128;
+  const ctx=c.getContext("2d"); ctx.clearRect(0,0,512,128);
+  ctx.fillStyle=accent+"33"; ctx.roundRect(0,0,512,128,8); ctx.fill();
+  ctx.strokeStyle=accent+"99"; ctx.lineWidth=1.5; ctx.roundRect(0.5,0.5,511,127,8); ctx.stroke();
+  ctx.fillStyle=accent; ctx.font="bold 38px Arial"; ctx.textAlign="center"; ctx.fillText(title,256,58);
+  ctx.fillStyle="rgba(200,215,240,0.85)"; ctx.font="22px Arial"; ctx.fillText(sub,256,96);
   return c;
 }
-
 function makeSectionTex(title, accent) {
-  const c = document.createElement("canvas");
-  c.width = 1024; c.height = 128;
-  const ctx = c.getContext("2d");
-  ctx.clearRect(0,0,1024,128);
-  ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(0,0,1024,128);
-  ctx.fillStyle = accent; ctx.fillRect(0,0,8,128);
-  ctx.fillStyle = "#FFFFFF"; ctx.font = "bold 68px Arial"; ctx.textAlign = "left";
-  ctx.fillText(title, 28, 94);
+  const c=document.createElement("canvas"); c.width=1024; c.height=128;
+  const ctx=c.getContext("2d"); ctx.clearRect(0,0,1024,128);
+  ctx.fillStyle="rgba(5,10,25,0.7)"; ctx.fillRect(0,0,1024,128);
+  ctx.fillStyle=accent; ctx.fillRect(0,0,8,128);
+  ctx.fillStyle="#FFFFFF"; ctx.font="bold 68px Arial"; ctx.textAlign="left"; ctx.fillText(title,28,94);
   return c;
 }
 
+// ─── Minimap ─────────────────────────────────────────────────────────────────
 function Minimap({ px, pz }) {
-  const cvs = useRef(null);
-  useEffect(() => {
-    if (!cvs.current) return;
-    const ctx = cvs.current.getContext("2d");
-    const W = 130, H = 130;
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = "rgba(4,8,20,0.9)"; ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle = "rgba(0,119,255,0.4)"; ctx.lineWidth = 1; ctx.strokeRect(0,0,W,H);
-    const toM = (x,z) => [(x+16)*(W/32), (z+12)*(H/95)];
-    const rooms = [[-3,-12,3,80,"rgba(0,80,180,0.2)"],[-14,0,-3,72,"rgba(0,60,140,0.2)"],[3,0,14,72,"rgba(0,60,140,0.2)"]];
-    rooms.forEach(([lx,lz,rx,rz,col]) => {
-      const [ax,az]=toM(lx,lz), [bx,bz]=toM(rx,rz);
-      ctx.fillStyle=col; ctx.fillRect(ax,az,bx-ax,bz-az);
-      ctx.strokeStyle="rgba(0,150,255,0.5)"; ctx.lineWidth=1; ctx.strokeRect(ax,az,bx-ax,bz-az);
-    });
-    const [pdx,pdz]=toM(px,pz);
+  const cvs=useRef(null);
+  useEffect(()=>{
+    if(!cvs.current) return;
+    const ctx=cvs.current.getContext("2d");
+    ctx.clearRect(0,0,130,130);
+    ctx.fillStyle="rgba(4,8,20,0.9)"; ctx.fillRect(0,0,130,130);
+    ctx.strokeStyle="rgba(0,119,255,0.4)"; ctx.lineWidth=1; ctx.strokeRect(0,0,130,130);
+    const tM=(x,z)=>[(x+16)*(130/32),(z+12)*(130/95)];
+    // Draw gallery floor
+    const [ax,az]=tM(-14,0),[bx,bz]=tM(14,72);
+    ctx.fillStyle="rgba(0,70,160,0.25)"; ctx.fillRect(ax,az,bx-ax,bz-az);
+    ctx.strokeStyle="rgba(0,140,255,0.5)"; ctx.lineWidth=1; ctx.strokeRect(ax,az,bx-ax,bz-az);
+    // Draw entry corridor
+    const [cx2,cz2]=tM(-3,-12),[dx,dz]=tM(3,0);
+    ctx.fillStyle="rgba(0,60,140,0.3)"; ctx.fillRect(cx2,cz2,dx-cx2,dz-cz2);
+    // Player
+    const [pdx,pdz]=tM(px,pz);
     ctx.fillStyle="#00D4FF"; ctx.beginPath(); ctx.arc(pdx,pdz,4,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle="#FFF"; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(pdx,pdz,4,0,Math.PI*2); ctx.stroke();
   },[px,pz]);
   return (
-    <div style={{position:"fixed",bottom:18,left:18,zIndex:300,border:"1px solid rgba(0,119,255,0.5)",
-      boxShadow:"0 0 16px rgba(0,100,255,0.3)",borderRadius:6,overflow:"hidden",background:"rgba(4,8,20,0.92)"}}>
+    <div style={{position:"fixed",bottom:18,left:18,zIndex:300,
+      border:"1px solid rgba(0,119,255,0.5)",boxShadow:"0 0 16px rgba(0,100,255,0.3)",
+      borderRadius:6,overflow:"hidden",background:"rgba(4,8,20,0.92)"}}>
       <canvas ref={cvs} width={130} height={130}/>
       <div style={{position:"absolute",top:4,left:6,fontSize:9,fontFamily:"monospace",
         color:"rgba(0,200,255,0.8)",letterSpacing:"0.08em"}}>MINIMAP</div>
@@ -112,6 +101,7 @@ function Minimap({ px, pz }) {
   );
 }
 
+// ─── HUD ─────────────────────────────────────────────────────────────────────
 function HUD({ zone, showHelp, setShowHelp }) {
   return (
     <>
@@ -132,33 +122,27 @@ function HUD({ zone, showHelp, setShowHelp }) {
       {[{l:"SHARE",i:"↗",top:120},{l:"SOUND",i:"♪",top:168},{l:"INFO",i:"i",top:216}].map(b=>(
         <button key={b.l} onClick={b.l==="INFO"?()=>setShowHelp(h=>!h):null} style={{
           position:"fixed",right:0,zIndex:300,top:b.top,
-          background:"rgba(150,0,0,0.82)",border:"none",borderBottom:"1px solid rgba(255,255,255,0.12)",
+          background:"rgba(140,0,0,0.85)",border:"none",borderBottom:"1px solid rgba(255,255,255,0.12)",
           color:"#fff",cursor:"pointer",writingMode:"vertical-rl",
-          padding:"10px 8px",fontFamily:"monospace",fontSize:9,letterSpacing:"0.1em"}}>
-          {b.i} {b.l}
-        </button>
+          padding:"10px 8px",fontFamily:"monospace",fontSize:9,letterSpacing:"0.1em"}}>{b.i} {b.l}</button>
       ))}
       {showHelp && (
-        <div style={{position:"fixed",right:50,top:110,zIndex:300,
-          background:"rgba(4,6,14,0.95)",border:"1px solid rgba(0,119,255,0.25)",
-          borderRadius:8,padding:"16px 20px",fontFamily:"monospace",
-          color:"rgba(200,220,255,0.85)",fontSize:12,lineHeight:1.8,minWidth:220}}>
+        <div style={{position:"fixed",right:50,top:110,zIndex:300,background:"rgba(4,6,14,0.95)",
+          border:"1px solid rgba(0,119,255,0.25)",borderRadius:8,padding:"16px 20px",
+          fontFamily:"monospace",color:"rgba(200,220,255,0.85)",fontSize:12,lineHeight:1.8,minWidth:220}}>
           <div style={{color:"#00D4FF",marginBottom:8,letterSpacing:"0.1em"}}>CONTROLS</div>
-          <div>W A S D &nbsp;&mdash; Move</div>
-          <div>Mouse &nbsp;&nbsp;&mdash; Look</div>
-          <div>Click &nbsp;&nbsp;&mdash; Open panel</div>
-          <div>ESC &nbsp;&nbsp;&nbsp;&mdash; Release mouse</div>
+          <div>W A S D &mdash; Move</div><div>Mouse &mdash; Look</div>
+          <div>Click panel &mdash; View full size</div><div>ESC &mdash; Release mouse</div>
           <button onClick={()=>setShowHelp(false)} style={{marginTop:12,background:"none",
             border:"1px solid rgba(255,255,255,0.15)",color:"rgba(180,200,255,0.7)",
-            cursor:"pointer",borderRadius:4,padding:"4px 12px",fontFamily:"monospace",fontSize:11}}>
-            CLOSE
-          </button>
+            cursor:"pointer",borderRadius:4,padding:"4px 12px",fontFamily:"monospace",fontSize:11}}>CLOSE</button>
         </div>
       )}
     </>
   );
 }
 
+// ─── PanelModal ───────────────────────────────────────────────────────────────
 function PanelModal({ item, onClose }) {
   if (!item) return null;
   return (
@@ -168,231 +152,266 @@ function PanelModal({ item, onClose }) {
       <div onClick={e=>e.stopPropagation()} style={{background:"rgba(6,10,20,0.98)",
         border:"1px solid rgba(0,119,255,0.25)",borderRadius:12,padding:24,
         maxWidth:"85vw",maxHeight:"85vh",display:"flex",flexDirection:"column",alignItems:"center"}}>
-        {item.type==="photo" ? (
-          <img src={cImg(item.id,1400,900)} alt={item.label}
-            style={{maxWidth:"100%",maxHeight:"70vh",objectFit:"contain",borderRadius:8}}/>
-        ) : (
-          <video src={cVid(item.id)} autoPlay muted loop playsInline controls
-            style={{maxWidth:"100%",maxHeight:"70vh",borderRadius:8}}/>
-        )}
+        {item.type==="photo"
+          ? <img src={cImg(item.id,1400,900)} alt={item.label}
+              style={{maxWidth:"100%",maxHeight:"70vh",objectFit:"contain",borderRadius:8}}/>
+          : <video src={cVid(item.id)} autoPlay muted loop playsInline controls
+              style={{maxWidth:"100%",maxHeight:"70vh",borderRadius:8}}/>}
         <div style={{marginTop:16,color:"#E0EAFF",fontFamily:"monospace",fontSize:14,letterSpacing:"0.06em"}}>
           {item.label} &nbsp;&middot;&nbsp; <span style={{color:"#0077FF"}}>{item.tag}</span>
         </div>
         <button onClick={onClose} style={{marginTop:14,background:"rgba(255,255,255,0.06)",
           border:"1px solid rgba(255,255,255,0.15)",color:"rgba(200,220,255,0.8)",
-          cursor:"pointer",borderRadius:6,padding:"6px 20px",fontFamily:"monospace",fontSize:11}}>
-          CLOSE
-        </button>
+          cursor:"pointer",borderRadius:6,padding:"6px 20px",fontFamily:"monospace",fontSize:11}}>CLOSE</button>
       </div>
     </div>
   );
 }
 
+// ─── Onboarding ───────────────────────────────────────────────────────────────
 function Onboarding({ onStart }) {
-  const [phase, setPhase] = useState("hello");
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    if (phase==="hello") { const t=setTimeout(()=>setPhase("mode"),2000); return ()=>clearTimeout(t); }
-    if (phase==="loading") {
+  const [phase,setPhase]=useState("hello");
+  const [prog,setProg]=useState(0);
+  useEffect(()=>{
+    if(phase==="hello"){const t=setTimeout(()=>setPhase("mode"),2000);return()=>clearTimeout(t);}
+    if(phase==="loading"){
       let p=0;
-      const iv=setInterval(()=>{ p+=Math.random()*14+4; if(p>=100){p=100;clearInterval(iv);setTimeout(()=>setPhase("enter"),400);} setProgress(Math.min(100,p)); },80);
-      return ()=>clearInterval(iv);
+      const iv=setInterval(()=>{p+=Math.random()*14+4;if(p>=100){p=100;clearInterval(iv);setTimeout(()=>setPhase("enter"),400);}setProg(Math.min(100,p));},80);
+      return()=>clearInterval(iv);
     }
   },[phase]);
   const base={position:"fixed",inset:0,zIndex:999,display:"flex",flexDirection:"column",
     alignItems:"center",justifyContent:"center",
-    background:"radial-gradient(ellipse 100% 100% at 50% 0%, #08122A 0%, #020408 70%)",
-    fontFamily:"monospace"};
-  if (phase==="hello") return (
+    background:"radial-gradient(ellipse 100% 100% at 50% 0%,#08122A 0%,#020408 70%)",fontFamily:"monospace"};
+  if(phase==="hello") return (
     <div style={base}>
-      <div style={{fontSize:48,letterSpacing:"0.35em",color:"#00D4FF",animation:"pulse 1.5s ease-in-out infinite"}}>SERAPHIC</div>
+      <div style={{fontSize:48,letterSpacing:"0.35em",color:"#00D4FF",animation:"pls 1.5s ease-in-out infinite"}}>SERAPHIC</div>
       <div style={{fontSize:14,letterSpacing:"0.5em",color:"rgba(0,180,255,0.5)",marginTop:8}}>SIGHT &middot; SHOWROOM</div>
-      <style>{`@keyframes pulse{0%,100%{opacity:0.7}50%{opacity:1}}`}</style>
+      <style>{`@keyframes pls{0%,100%{opacity:0.7}50%{opacity:1}}`}</style>
     </div>
   );
-  if (phase==="mode") return (
+  if(phase==="mode") return (
     <div style={base}>
-      <div style={{fontSize:13,letterSpacing:"0.3em",color:"rgba(0,200,255,0.6)",marginBottom:32}}>SELECT NAVIGATION MODE</div>
-      {[{k:"normal",label:"STANDARD",desc:"WASD + Mouse Look"},{k:"easy",label:"EASY",desc:"Click to Teleport"}].map(m=>(
-        <button key={m.k} onClick={()=>setPhase("loading")} style={{marginBottom:14,
+      <div style={{fontSize:13,letterSpacing:"0.3em",color:"rgba(0,200,255,0.6)",marginBottom:32}}>SELECT MODE</div>
+      {["STANDARD","EASY"].map(m=>(
+        <button key={m} onClick={()=>setPhase("loading")} style={{marginBottom:14,
           background:"rgba(255,255,255,0.03)",border:"1px solid rgba(0,119,255,0.3)",
           color:"#E0F0FF",cursor:"pointer",borderRadius:8,padding:"14px 48px",
           fontFamily:"monospace",fontSize:14,letterSpacing:"0.15em",width:280}}
           onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,119,255,0.12)";e.currentTarget.style.borderColor="rgba(0,119,255,0.6)";}}
           onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.03)";e.currentTarget.style.borderColor="rgba(0,119,255,0.3)";}}>
-          <div>{m.label}</div>
-          <div style={{fontSize:10,color:"rgba(180,210,255,0.5)",marginTop:4}}>{m.desc}</div>
+          {m}
         </button>
       ))}
     </div>
   );
-  if (phase==="loading") return (
+  if(phase==="loading") return (
     <div style={base}>
-      <div style={{fontSize:11,letterSpacing:"0.35em",color:"rgba(0,200,255,0.7)",marginBottom:20}}>INITIALIZING GALLERY</div>
+      <div style={{fontSize:11,letterSpacing:"0.35em",color:"rgba(0,200,255,0.7)",marginBottom:20}}>LOADING GALLERY</div>
       <div style={{width:300,height:2,background:"rgba(255,255,255,0.08)",borderRadius:2}}>
-        <div style={{height:"100%",borderRadius:2,transition:"width 0.08s linear",
-          background:"linear-gradient(90deg,#0077FF,#00BFA6)",width:`${progress}%`}}/>
+        <div style={{height:"100%",borderRadius:2,background:"linear-gradient(90deg,#0077FF,#00BFA6)",width:`${prog}%`,transition:"width 0.08s linear"}}/>
       </div>
-      <div style={{marginTop:12,fontSize:10,color:"rgba(0,200,255,0.5)",letterSpacing:"0.2em"}}>{Math.round(progress)}%</div>
+      <div style={{marginTop:12,fontSize:10,color:"rgba(0,200,255,0.5)",letterSpacing:"0.2em"}}>{Math.round(prog)}%</div>
     </div>
   );
   return (
     <div style={base}>
-      <div style={{fontSize:13,letterSpacing:"0.35em",color:"rgba(0,210,255,0.7)",marginBottom:8}}>READY TO EXPLORE</div>
+      <div style={{fontSize:13,letterSpacing:"0.35em",color:"rgba(0,210,255,0.7)",marginBottom:8}}>READY</div>
       <div style={{fontSize:10,color:"rgba(150,180,220,0.5)",marginBottom:32,letterSpacing:"0.15em"}}>
-        <strong>Mouse</strong> to look &nbsp;&middot;&nbsp; <strong>WASD</strong> to move &nbsp;&middot;&nbsp; <strong>Click</strong> panel to view
+        Mouse to look &nbsp;&middot;&nbsp; WASD to move &nbsp;&middot;&nbsp; Click panel to view
       </div>
       <button onClick={onStart} style={{background:"linear-gradient(135deg,#0077FF,#00BFA6)",
-        border:"none",color:"#fff",cursor:"pointer",borderRadius:8,padding:"14px 52px",
-        fontFamily:"monospace",fontSize:14,letterSpacing:"0.2em"}}>
+        border:"none",color:"#fff",cursor:"pointer",borderRadius:8,
+        padding:"14px 52px",fontFamily:"monospace",fontSize:14,letterSpacing:"0.2em"}}>
         ENTER GALLERY
       </button>
     </div>
   );
 }
 
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function SpatialShowroom() {
-  const mountRef = useRef(null);
-  const [started, setStarted] = useState(false);
-  const [pos, setPos] = useState([0,-10]);
-  const [zone, setZone] = useState("ENTRY HALL");
-  const [modal, setModal] = useState(null);
-  const [showHelp, setShowHelp] = useState(false);
+  const mountRef=useRef(null);
+  const [started,setStarted]=useState(false);
+  const [pos,setPos]=useState([0,-10]);
+  const [zone,setZone]=useState("ENTRY HALL");
+  const [modal,setModal]=useState(null);
+  const [showHelp,setShowHelp]=useState(false);
 
   useEffect(()=>{
-    if (!started) return;
-    const el = mountRef.current;
-    if (!el) return;
+    if(!started) return;
+    const el=mountRef.current; if(!el) return;
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias:true });
+    const renderer=new THREE.WebGLRenderer({antialias:true});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.8;
+    renderer.setSize(window.innerWidth,window.innerHeight);
+    renderer.shadowMap.enabled=false;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=1.6;
     el.appendChild(renderer.domElement);
 
     // Scene
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0B1628);
-    scene.fog = new THREE.Fog(0x0B1628, 40, 110);
+    const scene=new THREE.Scene();
+    scene.background=new THREE.Color(0x0D1C33);
+    scene.fog=new THREE.Fog(0x0D1C33,45,120);
 
-    const camera = new THREE.PerspectiveCamera(72, window.innerWidth/window.innerHeight, 0.1, 120);
-    camera.position.set(0, 1.7, -10);
-    camera.lookAt(0, 1.7, 0);
+    const camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,0.1,130);
+    camera.position.set(0,1.7,-10);
+    camera.lookAt(0,1.7,0);
 
-    // Materials
-    const floorTex = new THREE.CanvasTexture(makeFloorTex());
-    floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-    floorTex.repeat.set(8, 20);
-    const floorMat = new THREE.MeshStandardMaterial({ map:floorTex, roughness:0.1, metalness:0.5, color:0x131E30 });
-    const ceilMat  = new THREE.MeshStandardMaterial({ color:0x0F1829, roughness:0.9, metalness:0.05 });
-    const wallMat  = new THREE.MeshStandardMaterial({ color:0x1E2D45, roughness:0.8, metalness:0.08 });
-    const trimMatB = new THREE.MeshStandardMaterial({ color:0x2266FF, emissive:new THREE.Color(0x0044CC), emissiveIntensity:1.2, roughness:0.2, metalness:0.6 });
-    const trimMatT = new THREE.MeshStandardMaterial({ color:0x00BBAA, emissive:new THREE.Color(0x009988), emissiveIntensity:1.0, roughness:0.2, metalness:0.6 });
+    // ── Materials ──────────────────────────────────────────────────
+    const floorTex=new THREE.CanvasTexture(makeFloorTex());
+    floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;
+    floorTex.repeat.set(6,18);
 
-    function box(px,py,pz,w,h,d,mat) {
-      const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-      m.position.set(px,py,pz); m.receiveShadow=true; scene.add(m); return m;
-    }
-    function floor(px,py,pz,w,d,mat) {
-      const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);
-      m.rotation.x=-Math.PI/2; m.position.set(px,py,pz); m.receiveShadow=true; scene.add(m);
-    }
-    function strip(px,py,pz,len,mat) {
-      const m=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.05,len),mat.clone());
-      m.position.set(px,py,pz); scene.add(m);
-    }
+    // Floor: matte, medium-dark blue — receives ambient well, not a dark mirror
+    const floorMat=new THREE.MeshStandardMaterial({map:floorTex,roughness:0.88,metalness:0.04,color:0x253C58});
+    // Walls: visible blue-grey
+    const wallMat=new THREE.MeshStandardMaterial({color:0x243650,roughness:0.82,metalness:0.05});
+    // Ceiling: slightly lighter than before so ceiling lights reflect
+    const ceilMat=new THREE.MeshStandardMaterial({color:0x131E30,roughness:0.85,metalness:0.0});
+    // Emissive trim
+    const trimB=new THREE.MeshStandardMaterial({color:0x3377FF,emissive:new THREE.Color(0x1155DD),emissiveIntensity:1.5,roughness:0.2,metalness:0.5});
+    const trimT=new THREE.MeshStandardMaterial({color:0x00CCBB,emissive:new THREE.Color(0x00AA99),emissiveIntensity:1.2,roughness:0.2,metalness:0.5});
 
-    // Floors
-    floor(0,0,34,30,92,floorMat);
-    floor(-8.5,0,36,11,72,floorMat.clone());
-    floor(8.5,0,36,11,72,floorMat.clone());
+    function bx(px,py,pz,w,h,d,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(px,py,pz);m.receiveShadow=true;scene.add(m);return m;}
+    function fl(px,py,pz,w,d,mat){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);m.rotation.x=-Math.PI/2;m.position.set(px,py,pz);m.receiveShadow=true;scene.add(m);}
+    function strip(px,py,pz,len,mat){const m=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.05,len),mat.clone());m.position.set(px,py,pz);scene.add(m);}
 
-    // Ceilings
-    box(0,5.5,34,30,0.3,92,ceilMat.clone());
-    box(-8.5,5.5,36,11,0.3,72,ceilMat.clone());
-    box(8.5,5.5,36,11,0.3,72,ceilMat.clone());
+    // ── GEOMETRY: OPEN T-JUNCTION ──────────────────────────────────
+    // Layout:
+    //  Entry corridor: x=-3..+3, z=-12..0   (6w x 12d)
+    //  Main gallery:   x=-14..+14, z=0..72  (28w x 72d)  OPEN, no dividing walls!
+    //  Photos on LEFT wall (x=-14), videos on RIGHT wall (x=+14)
 
-    // Walls
-    box(-3.08,2.75,33,0.15,5.5,92,wallMat.clone());
-    box(3.08,2.75,33,0.15,5.5,92,wallMat.clone());
-    box(-14.08,2.75,36,0.15,5.5,72,wallMat.clone());
-    box(14.08,2.75,36,0.15,5.5,72,wallMat.clone());
-    box(-8.5,2.75,-1,11,5.5,0.15,wallMat.clone());
-    box(8.5,2.75,-1,11,5.5,0.15,wallMat.clone());
-    box(0,2.75,80,30,5.5,0.15,wallMat.clone());
-    box(-8.5,2.75,72,11,5.5,0.15,wallMat.clone());
-    box(8.5,2.75,72,11,5.5,0.15,wallMat.clone());
+    // FLOORS
+    fl(0,0,-6,6,12,floorMat.clone());           // entry corridor floor
+    fl(0,0,36,28,72,floorMat);                   // main gallery floor
 
-    // Trim
-    [[-14.05,0.03,36,72],[-3.05,0.03,33,92],[3.05,0.03,33,92],[14.05,0.03,36,72]].forEach(([x,y,z,l])=>strip(x,y,z,l,trimMatB));
-    [[-14.05,5.48,36,72],[-3.05,5.48,33,92],[3.05,5.48,33,92],[14.05,5.48,36,72]].forEach(([x,y,z,l])=>strip(x,y,z,l,trimMatT));
+    // CEILING
+    bx(0,5.5,-6,6,0.3,12,ceilMat.clone());      // entry corridor ceiling
+    bx(0,5.5,36,28,0.3,72,ceilMat.clone());     // gallery ceiling
 
-    // Entry arch ring
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(2.4,0.06,8,64),new THREE.MeshStandardMaterial({
-      color:0x0066EE,emissive:new THREE.Color(0x0044BB),emissiveIntensity:1.5,roughness:0.2,metalness:0.8}));
-    ring.position.set(0,2.75,-11); ring.rotation.x=Math.PI/2; scene.add(ring);
+    // OUTER WALLS (left and right)
+    bx(-14.08,2.75,36,0.15,5.5,72,wallMat.clone());  // left gallery wall
+    bx(14.08,2.75,36,0.15,5.5,72,wallMat.clone());   // right gallery wall
 
-    // LIGHTING -- the big fix
-    scene.add(new THREE.AmbientLight(0xFFFFFF, 1.2));
-    scene.add(new THREE.HemisphereLight(0x6688CC, 0x112233, 2.0));
-    // Ceiling point lights: warm white, 2.5 intensity, 22 unit range
-    [[0,-8],[0,2],[0,12],[0,22],[0,32],[0,42],[0,52],[0,62],[0,72],
-     [-8.5,6],[-8.5,18],[-8.5,30],[-8.5,42],[-8.5,54],[-8.5,66],
-     [8.5,6],[8.5,18],[8.5,30],[8.5,42],[8.5,54],[8.5,66]
-    ].forEach(([x,z])=>{
-      const disc=new THREE.Mesh(new THREE.CircleGeometry(0.28,16),new THREE.MeshBasicMaterial({color:0xEEEEFF}));
-      disc.rotation.x=Math.PI/2; disc.position.set(x,5.4,z); scene.add(disc);
-      const pl=new THREE.PointLight(0xFFEEDD,2.5,22);
-      pl.position.set(x,5.2,z); scene.add(pl);
+    // ENTRY CORRIDOR side walls (only z=-12 to z=0 — NOT through the gallery)
+    bx(-3.08,2.75,-6,0.15,5.5,12,wallMat.clone());   // left entry wall
+    bx(3.08,2.75,-6,0.15,5.5,12,wallMat.clone());    // right entry wall
+
+    // SIDE WALLS: small sections connecting entry to gallery sides
+    // Left connector (fills gap between entry left wall x=-3 and gallery left wall x=-14) at z=0
+    bx(-8.5,2.75,-0.07,11,5.5,0.15,wallMat.clone());
+    // Right connector
+    bx(8.5,2.75,-0.07,11,5.5,0.15,wallMat.clone());
+
+    // But cut the doorway archways: remove solid wall above the corridor opening
+    // Instead add pillar posts at corners of entry-gallery junction
+    [[-3.0,2.75,0],[-3.0,2.75,0],[3.0,2.75,0]].forEach(()=>{}); // just for clarity
+    // Four corner pillar posts at the gallery entrance
+    [[-3.08,2.75,0],[3.08,2.75,0]].forEach(([x,y,z])=>{
+      bx(x,y,z,0.3,5.5,0.3,wallMat.clone());
     });
 
-    // Section signs -- DoubleSide, correct positions facing corridor entrance
+    // FAR END wall
+    bx(0,2.75,72.08,28,5.5,0.15,wallMat.clone());
+    // ENTRY BACK wall
+    bx(0,2.75,-12.08,6,5.5,0.15,wallMat.clone());
+
+    // ── TRIM STRIPS ───────────────────────────────────────────────
+    // Gallery floor baseboards (blue glow)
+    [[-14.05,0.04,36,72],[14.05,0.04,36,72],[-3.08,0.04,-6,12],[3.08,0.04,-6,12]].forEach(([x,y,z,l])=>strip(x,y,z,l,trimB));
+    // Gallery ceiling strips (teal)
+    [[-14.05,5.47,36,72],[14.05,5.47,36,72]].forEach(([x,y,z,l])=>strip(x,y,z,l,trimT));
+    // Entry arch ring
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.07,8,64),
+      new THREE.MeshStandardMaterial({color:0x0066EE,emissive:new THREE.Color(0x0044BB),emissiveIntensity:2.0,roughness:0.2,metalness:0.8}));
+    ring.position.set(0,2.75,-0.1); ring.rotation.x=Math.PI/2; scene.add(ring);
+
+    // Floor guide lines down the center (help orientation)
+    const guideMat=new THREE.MeshBasicMaterial({color:0x1A3A60});
+    const guideL=new THREE.Mesh(new THREE.PlaneGeometry(0.08,72),guideMat);
+    guideL.rotation.x=-Math.PI/2; guideL.position.set(-1.5,0.01,36); scene.add(guideL);
+    const guideR=new THREE.Mesh(new THREE.PlaneGeometry(0.08,72),guideMat.clone());
+    guideR.rotation.x=-Math.PI/2; guideR.position.set(1.5,0.01,36); scene.add(guideR);
+
+    // ── LIGHTING ──────────────────────────────────────────────────
+    // Strong white ambient — gallery needs overall brightness
+    scene.add(new THREE.AmbientLight(0xFFFFFF,1.4));
+    // Hemisphere fills upper/lower
+    scene.add(new THREE.HemisphereLight(0x8899CC,0x223355,1.8));
+
+    // Ceiling lights along center aisle (warm white)
+    const ceilZ=[2,10,18,26,34,42,50,58,66];
+    ceilZ.forEach(z=>{
+      const disc=new THREE.Mesh(new THREE.CircleGeometry(0.3,16),new THREE.MeshBasicMaterial({color:0xFFFFEE}));
+      disc.rotation.x=Math.PI/2; disc.position.set(0,5.42,z); scene.add(disc);
+      const pl=new THREE.PointLight(0xFFEEDD,3.0,24);
+      pl.position.set(0,5.2,z); scene.add(pl);
+    });
+
+    // Wall-wash lights: aimed at the photo/video walls from close range
+    // Left wall wash (photos) — lights positioned 3m from left wall, at mid-height
+    [6,16,26,36,46,56,66].forEach(z=>{
+      const pl=new THREE.PointLight(0xFFEECC,2.2,12);
+      pl.position.set(-11,3.5,z); scene.add(pl);
+    });
+    // Right wall wash (videos)
+    [6,16,26,36,46,56,66].forEach(z=>{
+      const pl=new THREE.PointLight(0xFFEECC,2.2,12);
+      pl.position.set(11,3.5,z); scene.add(pl);
+    });
+    // Floor fill — low-mounted fill lights to kill floor shadows
+    [10,26,42,58].forEach(z=>{
+      const pl=new THREE.PointLight(0xCCDDFF,1.0,20);
+      pl.position.set(0,0.8,z); scene.add(pl);
+    });
+
+    // ── SECTION SIGNS ─────────────────────────────────────────────
     [
-      {text:"PHOTO GALLERY",x:-8.5,y:4.6,z:-0.3,accent:"#0088FF"},
-      {text:"VIDEO GALLERY",x:8.5,y:4.6,z:-0.3,accent:"#00BFA6"},
-      {text:"SERAPHIC SIGHT",x:0,y:4.2,z:-10.5,accent:"#0088FF"},
+      {text:"PHOTO GALLERY", x:-9, y:4.8, z:2, accent:"#0088FF"},
+      {text:"VIDEO GALLERY", x: 9, y:4.8, z:2, accent:"#00BFA6"},
+      {text:"SERAPHIC SIGHT",x: 0, y:4.2, z:-9.5,accent:"#0088FF"},
     ].forEach(s=>{
       const tex=new THREE.CanvasTexture(makeSectionTex(s.text,s.accent));
-      const m=new THREE.Mesh(new THREE.PlaneGeometry(6,0.8),
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(6.5,0.85),
         new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));
       m.position.set(s.x,s.y,s.z); scene.add(m);
     });
 
-    // Panels
+    // ── PANELS ────────────────────────────────────────────────────
     const hotspots=[];
-    const loader=new THREE.TextureLoader();
-    loader.crossOrigin="anonymous";
-    const FW=3.8, FH=2.2, ZGAP=4.8;
-    const YU=3.3, YL=1.1;  // upper row: frame 2.2-4.4, lower row: frame 0.0-2.2
+    const loader=new THREE.TextureLoader(); loader.crossOrigin="anonymous";
+    const FW=3.8, FH=2.2, ZGAP=5.2;
+    const YU=3.2, YL=1.1;
 
     PHOTOS.forEach((ph,i)=>{
       const col=i%2, row=Math.floor(i/2);
       const y=col===0?YU:YL, z=3+row*ZGAP;
-      const pX=-13.9;
+      const wx=-13.9;
       // Frame
-      const fm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.16,FH+0.16,0.09),
-        new THREE.MeshStandardMaterial({color:0x1A2A3E,roughness:0.25,metalness:0.85,emissive:new THREE.Color(0x002255),emissiveIntensity:0.5}));
-      fm.position.set(pX+0.07,y,z); fm.rotation.y=Math.PI/2; fm.castShadow=true; scene.add(fm);
+      const fm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,FH+0.18,0.1),
+        new THREE.MeshStandardMaterial({color:0x1A2A3E,roughness:0.2,metalness:0.9,
+          emissive:new THREE.Color(0x001C44),emissiveIntensity:0.6}));
+      fm.position.set(wx+0.08,y,z); fm.rotation.y=Math.PI/2; scene.add(fm);
       // Screen
       const tex=loader.load(cImg(ph.id,840,560));
       tex.colorSpace=THREE.SRGBColorSpace;
       const sc=new THREE.Mesh(new THREE.PlaneGeometry(FW,FH),new THREE.MeshBasicMaterial({map:tex}));
-      sc.position.set(pX+0.12,y,z); sc.rotation.y=Math.PI/2; scene.add(sc);
+      sc.position.set(wx+0.14,y,z); sc.rotation.y=Math.PI/2; scene.add(sc);
       // Label
       const lt=new THREE.CanvasTexture(makeLabelTex(ph.label,ph.tag,"#0077FF"));
       const lb=new THREE.Mesh(new THREE.PlaneGeometry(FW,0.65),new THREE.MeshBasicMaterial({map:lt,transparent:true}));
-      lb.position.set(pX+0.13,y-(FH/2+0.42),z); lb.rotation.y=Math.PI/2; scene.add(lb);
-      // Glow bar
-      const gm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.16,0.04,0.04),
-        new THREE.MeshStandardMaterial({color:0x0055FF,emissive:new THREE.Color(0x0033CC),emissiveIntensity:2.0}));
-      gm.position.set(pX+0.06,y+FH/2+0.1,z); gm.rotation.y=Math.PI/2; scene.add(gm);
-      // Spotlight
-      const sl=new THREE.SpotLight(0xFFFFFF,4.0,12,Math.PI/7,0.5);
-      sl.position.set(pX+5,y+2,z); sl.target.position.set(pX+0.1,y,z);
+      lb.position.set(wx+0.15,y-(FH/2+0.43),z); lb.rotation.y=Math.PI/2; scene.add(lb);
+      // Glow top bar
+      const gm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,0.05,0.05),
+        new THREE.MeshStandardMaterial({color:0x2255FF,emissive:new THREE.Color(0x0044EE),emissiveIntensity:2.5}));
+      gm.position.set(wx+0.07,y+FH/2+0.12,z); gm.rotation.y=Math.PI/2; scene.add(gm);
+      // Spotlight from right, aimed at panel
+      const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/8,0.4);
+      sl.position.set(wx+6,y+1.5,z); sl.target.position.set(wx+0.1,y,z);
       scene.add(sl); scene.add(sl.target);
       sc.userData={type:"photo",...ph}; hotspots.push(sc);
     });
@@ -400,10 +419,11 @@ export default function SpatialShowroom() {
     VIDEOS.forEach((vid,i)=>{
       const col=i%2, row=Math.floor(i/2);
       const y=col===0?YU:YL, z=3+row*ZGAP;
-      const pX=13.9;
-      const fm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.16,FH+0.16,0.09),
-        new THREE.MeshStandardMaterial({color:0x1A2035,roughness:0.25,metalness:0.85,emissive:new THREE.Color(0x001C33),emissiveIntensity:0.5}));
-      fm.position.set(pX-0.07,y,z); fm.rotation.y=-Math.PI/2; fm.castShadow=true; scene.add(fm);
+      const wx=13.9;
+      const fm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,FH+0.18,0.1),
+        new THREE.MeshStandardMaterial({color:0x1A1F35,roughness:0.2,metalness:0.9,
+          emissive:new THREE.Color(0x001830),emissiveIntensity:0.6}));
+      fm.position.set(wx-0.08,y,z); fm.rotation.y=-Math.PI/2; scene.add(fm);
       const videoEl=document.createElement("video");
       videoEl.src=cVid(vid.id); videoEl.loop=true; videoEl.muted=true;
       videoEl.playsInline=true; videoEl.crossOrigin="anonymous"; videoEl.autoplay=true;
@@ -411,20 +431,20 @@ export default function SpatialShowroom() {
       const vTex=new THREE.VideoTexture(videoEl);
       vTex.colorSpace=THREE.SRGBColorSpace;
       const sc=new THREE.Mesh(new THREE.PlaneGeometry(FW,FH),new THREE.MeshBasicMaterial({map:vTex}));
-      sc.position.set(pX-0.12,y,z); sc.rotation.y=-Math.PI/2; scene.add(sc);
+      sc.position.set(wx-0.14,y,z); sc.rotation.y=-Math.PI/2; scene.add(sc);
       const lt=new THREE.CanvasTexture(makeLabelTex(vid.label,vid.tag,"#00BFA6"));
       const lb=new THREE.Mesh(new THREE.PlaneGeometry(FW,0.65),new THREE.MeshBasicMaterial({map:lt,transparent:true}));
-      lb.position.set(pX-0.13,y-(FH/2+0.42),z); lb.rotation.y=-Math.PI/2; scene.add(lb);
-      const gm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.16,0.04,0.04),
-        new THREE.MeshStandardMaterial({color:0x00AABB,emissive:new THREE.Color(0x007788),emissiveIntensity:2.0}));
-      gm.position.set(pX-0.06,y+FH/2+0.1,z); gm.rotation.y=-Math.PI/2; scene.add(gm);
-      const sl=new THREE.SpotLight(0xFFFFFF,4.0,12,Math.PI/7,0.5);
-      sl.position.set(pX-5,y+2,z); sl.target.position.set(pX-0.1,y,z);
+      lb.position.set(wx-0.15,y-(FH/2+0.43),z); lb.rotation.y=-Math.PI/2; scene.add(lb);
+      const gm=new THREE.Mesh(new THREE.BoxGeometry(FW+0.18,0.05,0.05),
+        new THREE.MeshStandardMaterial({color:0x00AABB,emissive:new THREE.Color(0x008899),emissiveIntensity:2.5}));
+      gm.position.set(wx-0.07,y+FH/2+0.12,z); gm.rotation.y=-Math.PI/2; scene.add(gm);
+      const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/8,0.4);
+      sl.position.set(wx-6,y+1.5,z); sl.target.position.set(wx-0.1,y,z);
       scene.add(sl); scene.add(sl.target);
       sc.userData={type:"video",...vid}; hotspots.push(sc);
     });
 
-    // Controls
+    // ── CONTROLS ──────────────────────────────────────────────────
     const keys={};
     const euler=new THREE.Euler(0,0,0,"YXZ");
     let locked=false;
@@ -449,15 +469,14 @@ export default function SpatialShowroom() {
     document.addEventListener("mousemove",onMove);
     document.addEventListener("pointerlockchange",onLock);
     renderer.domElement.addEventListener("click",onClick);
-
-    const dir=new THREE.Vector3(), right=new THREE.Vector3();
-    const SPEED=0.07;
+    const dir=new THREE.Vector3(),right=new THREE.Vector3();
+    const SPEED=0.08;
     const getZone=(p)=>{
       if(p.z<0) return "ENTRY HALL";
-      if(p.x<-3.5) return "PHOTO GALLERY";
-      if(p.x>3.5)  return "VIDEO GALLERY";
-      if(p.z>72)   return "CONTACT";
-      return "MAIN CORRIDOR";
+      if(p.x<-4) return "PHOTO GALLERY";
+      if(p.x>4)  return "VIDEO GALLERY";
+      if(p.z>68) return "GALLERY END";
+      return "MAIN GALLERY";
     };
     let rafId;
     const tick=()=>{
@@ -471,8 +490,8 @@ export default function SpatialShowroom() {
       if(keys["KeyD"]||keys["ArrowRight"])vel.add(right);
       if(vel.length()>0){
         vel.normalize().multiplyScalar(SPEED);
-        const nx=Math.max(-13.7,Math.min(13.7,camera.position.x+vel.x));
-        const nz=Math.max(-11.5,Math.min(79.5,camera.position.z+vel.z));
+        const nx=Math.max(-13.5,Math.min(13.5,camera.position.x+vel.x));
+        const nz=Math.max(-11.5,Math.min(71.5,camera.position.z+vel.z));
         camera.position.x=nx; camera.position.z=nz; camera.position.y=1.7;
       }
       setPos([Math.round(camera.position.x*10)/10,Math.round(camera.position.z*10)/10]);
@@ -486,7 +505,7 @@ export default function SpatialShowroom() {
       renderer.setSize(window.innerWidth,window.innerHeight);
     };
     window.addEventListener("resize",onResize);
-    return ()=>{
+    return()=>{
       cancelAnimationFrame(rafId);
       window.removeEventListener("keydown",e=>onKey(e,true));
       window.removeEventListener("keyup",e=>onKey(e,false));
@@ -501,7 +520,7 @@ export default function SpatialShowroom() {
   },[started]);
 
   return (
-    <div style={{width:"100vw",height:"100vh",overflow:"hidden",background:"#0B1628"}}>
+    <div style={{width:"100vw",height:"100vh",overflow:"hidden",background:"#0D1C33"}}>
       {!started && <Onboarding onStart={()=>setStarted(true)}/>}
       <div ref={mountRef} style={{width:"100%",height:"100%",display:started?"block":"none"}}/>
       {started && (
@@ -509,10 +528,10 @@ export default function SpatialShowroom() {
           <Minimap px={pos[0]} pz={pos[1]}/>
           <HUD zone={zone} showHelp={showHelp} setShowHelp={setShowHelp}/>
           <PanelModal item={modal} onClose={()=>setModal(null)}/>
-          <div style={{position:"fixed",bottom:52,left:"50%",transform:"translateX(-50%)",
+          <div style={{position:"fixed",bottom:50,left:"50%",transform:"translateX(-50%)",
             fontFamily:"monospace",fontSize:11,letterSpacing:"0.18em",
-            color:"rgba(0,200,255,0.5)",textTransform:"uppercase",pointerEvents:"none",zIndex:200}}>
-            Click canvas to start &nbsp;&middot;&nbsp; WASD to move &nbsp;&middot;&nbsp; ESC to release
+            color:"rgba(0,200,255,0.45)",textTransform:"uppercase",pointerEvents:"none",zIndex:200}}>
+            Click to start &nbsp;&middot;&nbsp; WASD to move &nbsp;&middot;&nbsp; ESC to release
           </div>
         </>
       )}
