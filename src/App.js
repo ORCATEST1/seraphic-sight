@@ -130,7 +130,7 @@ function Nav() {
         </div>
       </nav>
       {menuOpen&&<div style={{ position:"fixed",inset:0,background:"rgba(10,10,18,0.98)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:28 }}>
-        <div style={{ position:"absolute",top:24,right:32,color:"#fff",fontSize:28,cursor:"pointer" }} onClick={()=>setMenuOpen(false)}>\u2715</div>
+        <div style={{ position:"absolute",top:24,right:32,color:"#fff",fontSize:28,cursor:"pointer" }} onClick={()=>setMenuOpen(false)}>✕</div>
         {NAV_LINKS.map(p=><Link key={p} to={R[p]} style={{ color:"#fff",textDecoration:"none",fontSize:20,fontWeight:500,letterSpacing:1 }} onClick={()=>setMenuOpen(false)}>{p}</Link>)}
       </div>}
     </>
@@ -207,7 +207,7 @@ function Footer() {
             <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
               <a href="tel:9093159891" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>&#x1F4DE; 909.315.9891</a>
               <a href="mailto:joseph@seraphicsight.com" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>&#x2709;&#xFE0F; joseph@seraphicsight.com</a>
-              <a href="https://www.google.com/maps/search/?api=1&query=Seraphic+Sight+LLC" target="_blank" rel="noopener noreferrer" style={{ fontSize:13,color:"#0077FF",textDecoration:"none" }}>\u2B50 Google Business Profile</a>
+              <a href="https://www.google.com/maps/search/?api=1&query=Seraphic+Sight+LLC" target="_blank" rel="noopener noreferrer" style={{ fontSize:13,color:"#0077FF",textDecoration:"none" }}>⭐ Google Business Profile</a>
             </div>
           </div>
           <div>
@@ -224,7 +224,7 @@ function Footer() {
           </div>
         </div>
         <div style={{ borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:24 }}>
-          <p style={{ fontSize:11,color:"#3A3A55" }}>\u00A9 2026 Seraphic Sight LLC \u00B7 FAA Part 107 Certified \u00B7 Fully Insured \u00B7 Southern & Central California</p>
+          <p style={{ fontSize:11,color:"#3A3A55" }}>© 2026 Seraphic Sight LLC · FAA Part 107 Certified · Fully Insured · Southern & Central California</p>
         </div>
       </div>
     </footer>
@@ -241,7 +241,7 @@ function TravelFeeNote({ accent = "#0077FF" }) {
       </div>
       <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>|</div>
       <span style={{ fontSize:13,color:"#8888A0" }}>{TRAVEL_FEE.nearRule}</span>
-      <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>\u00B7</div>
+      <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>·</div>
       <span style={{ fontSize:13,color:"#8888A0" }}>{TRAVEL_FEE.farRule}</span>
     </div>
   );
@@ -257,17 +257,17 @@ function Home() {
   const scrambledHero = useTextScramble("Aerial Imaging &", { duration: 950, delay: 350 });
 
   useGSAP(() => {
-    // \u2500\u2500 Reveal animations: section titles
+    // ── Reveal animations: section titles
     gsap.utils.toArray(".section-title").forEach(el => {
       gsap.from(el, { y: 32, opacity: 0, duration: 0.85, ease: "power3.out",
         scrollTrigger: { trigger: el, start: "top 88%", once: true } });
     });
-    // \u2500\u2500 Reveal animations: cards (staggered by column)
+    // ── Reveal animations: cards (staggered by column)
     gsap.utils.toArray(".card-hover").forEach((el, i) => {
       gsap.from(el, { y: 44, opacity: 0, duration: 0.7, delay: (i % 3) * 0.08, ease: "power3.out",
         scrollTrigger: { trigger: el, start: "top 90%", once: true } });
     });
-    // \u2500\u2500 Counter animations
+    // ── Counter animations
     gsap.utils.toArray(".count-up").forEach(el => {
       const end = parseFloat(el.dataset.end);
       const suffix = el.dataset.suffix || "";
@@ -278,7 +278,7 @@ function Home() {
         onUpdate() { el.textContent = (decimals ? obj.val.toFixed(decimals) : Math.round(obj.val)) + suffix; }
       });
     });
-    // \u2500\u2500 Horizontal scroll: Two Verticals + Testimonials (desktop only)
+    // ── Horizontal scroll: Two Verticals + Testimonials (desktop only)
     const mm = gsap.matchMedia();
     mm.add("(min-width: 769px)", () => {
       // Two Verticals
@@ -312,10 +312,10 @@ function Home() {
 
   return (
     <div ref={homeRef}>
-      {/* \u2500\u2500 Cinematic 3D scroll hero \u2500\u2500 */}
+      {/* ── Cinematic 3D scroll hero ── */}
       <CinematicHero />
 
-      {/* \u2500\u2500 Brand intro \u2014 hero content below the cinematic fold \u2500\u2500 */}
+      {/* ── Brand intro — hero content below the cinematic fold ── */}
       <section style={{
         position: "relative",
         padding: "120px 24px 100px",
@@ -332,25 +332,25 @@ function Home() {
         <div className="animate-fadeUp" style={{ position: "relative", zIndex: 2, maxWidth: 860, margin: "0 auto" }}>
           <div className="tag-pill" style={{ background: "rgba(0,119,255,0.1)", border: "1px solid rgba(0,119,255,0.2)", color: "#0077FF", marginBottom: 32, display: "inline-flex" }}>
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#0077FF", animation: "pulse 2s infinite" }} />
-            FAA Part 107 Certified \u00B7 Fully Insured
+            FAA Part 107 Certified · Fully Insured
           </div>
           <h1 className="hero-title" style={{ fontSize: 54, fontWeight: 800, lineHeight: 1.08, letterSpacing: "-1.5px", color: "#fff", marginBottom: 24, fontVariantNumeric: "tabular-nums" }}>
             {scrambledHero}<br /><span className="gradient-text">Site Documentation</span><br />for Southern California
           </h1>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
-            <span style={{ color: "#FFD700", fontSize: 13, letterSpacing: 1 }}>\u2605\u2605\u2605\u2605\u2605</span>
-            <span style={{ fontSize: 13, color: "#8888A0" }}>5.0 \u00B7 26 verified reviews on</span>
+            <span style={{ color: "#FFD700", fontSize: 13, letterSpacing: 1 }}>★★★★★</span>
+            <span style={{ fontSize: 13, color: "#8888A0" }}>5.0 · 26 verified reviews on</span>
             <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#6066A0", textDecoration: "none" }}>Droners.io</a>
           </div>
           <p className="hero-subtitle" style={{ fontSize: 18, lineHeight: 1.7, color: "#8888A0", maxWidth: 600, margin: "0 auto 40px" }}>
-            FAA-certified drone services for property marketing, construction monitoring, and site visualization \u2014 from APN to final deliverables.
+            FAA-certified drone services for property marketing, construction monitoring, and site visualization — from APN to final deliverables.
           </p>
           <div className="btn-row" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <Link to="/contact?type=property-marketing"><MagneticBtn className="btn-primary">Property Marketing</MagneticBtn></Link>
             <Link to="/contact?type=construction"><MagneticBtn className="btn-outline">Construction & Development</MagneticBtn></Link>
           </div>
           <p style={{ fontSize: 12, color: "#444460", marginTop: 14 }}>
-            Packages from <strong style={{ color: "#666680" }}>$249</strong> \u00B7 Quote within 24 hrs \u00B7 No obligation
+            Packages from <strong style={{ color: "#666680" }}>$249</strong> · Quote within 24 hrs · No obligation
           </p>
         </div>
       </section>
@@ -374,24 +374,24 @@ function Home() {
       <section ref={verticalsRef} style={{ overflow:"hidden",position:"relative" }}>
         <div ref={verticalsTrackRef} style={{ display:"flex",width:"200vw",flexWrap:"nowrap" }}>
 
-          {/* Panel 1 \u2014 Property Marketing */}
+          {/* Panel 1 — Property Marketing */}
           <div style={{ width:"100vw",minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
             <div style={{ position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(0,119,255,0.1) 0%,rgba(10,10,18,0.98) 60%)" }}/>
             <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,119,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,119,255,0.05) 1px,transparent 1px)",backgroundSize:"48px 48px",opacity:0.6 }}/>
             <div style={{ position:"relative",zIndex:2,maxWidth:680,padding:"100px 40px",textAlign:"center" }}>
-              <div className="tag-pill" style={{ background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.25)",color:"#0077FF",marginBottom:28,display:"inline-flex" }}>01 \u2014 Property Marketing</div>
+              <div className="tag-pill" style={{ background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.25)",color:"#0077FF",marginBottom:28,display:"inline-flex" }}>01 — Property Marketing</div>
               <h2 style={{ fontSize:58,fontWeight:900,color:"#fff",letterSpacing:"-1.8px",lineHeight:1.02,marginBottom:22 }}>
                 Sell listings<br/><span className="gradient-text">faster.</span>
               </h2>
               <p style={{ fontSize:17,color:"#8888A0",lineHeight:1.75,maxWidth:480,margin:"0 auto 40px" }}>
-                MLS-ready aerial photography, drone video, 360\u00B0 virtual tours, and complete marketing packages. Send us the APN \u2014 we handle the rest.
+                MLS-ready aerial photography, drone video, 360° virtual tours, and complete marketing packages. Send us the APN — we handle the rest.
               </p>
               <div style={{ display:"flex",gap:14,justifyContent:"center",flexWrap:"wrap",marginBottom:52 }}>
-                <Link to="/property-marketing"><MagneticBtn className="btn-primary">View Services \u2192</MagneticBtn></Link>
+                <Link to="/property-marketing"><MagneticBtn className="btn-primary">View Services →</MagneticBtn></Link>
                 <Link to="/contact?type=property-marketing"><MagneticBtn className="btn-outline" style={{borderColor:"rgba(0,119,255,0.3)",color:"#0077FF"}}>Get a Quote</MagneticBtn></Link>
               </div>
               <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16 }}>
-                {[{v:"$249",l:"Starting from"},{v:"3\u20134 Day",l:"Turnaround"},{v:"26",l:"5-Star Reviews"}].map((s,i)=>(
+                {[{v:"$249",l:"Starting from"},{v:"3–4 Day",l:"Turnaround"},{v:"26",l:"5-Star Reviews"}].map((s,i)=>(
                   <div key={i} style={{ padding:"18px 12px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(0,119,255,0.12)",borderRadius:10 }}>
                     <div style={{ fontSize:22,fontWeight:800,color:"#fff",letterSpacing:"-0.5px" }}>{s.v}</div>
                     <div style={{ fontSize:10,color:"#6066A0",fontWeight:600,textTransform:"uppercase",letterSpacing:1.3,marginTop:4 }}>{s.l}</div>
@@ -401,12 +401,12 @@ function Home() {
             </div>
           </div>
 
-          {/* Panel 2 \u2014 Construction */}
+          {/* Panel 2 — Construction */}
           <div style={{ width:"100vw",minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
             <div style={{ position:"absolute",inset:0,background:"linear-gradient(225deg,rgba(0,191,166,0.1) 0%,rgba(10,10,18,0.98) 60%)" }}/>
             <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,191,166,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,191,166,0.05) 1px,transparent 1px)",backgroundSize:"48px 48px",opacity:0.6 }}/>
             <div style={{ position:"relative",zIndex:2,maxWidth:680,padding:"100px 40px",textAlign:"center" }}>
-              <div className="tag-pill" style={{ background:"rgba(0,191,166,0.08)",border:"1px solid rgba(0,191,166,0.25)",color:"#00BFA6",marginBottom:28,display:"inline-flex" }}>02 \u2014 Construction & Development</div>
+              <div className="tag-pill" style={{ background:"rgba(0,191,166,0.08)",border:"1px solid rgba(0,191,166,0.25)",color:"#00BFA6",marginBottom:28,display:"inline-flex" }}>02 — Construction & Development</div>
               <h2 style={{ fontSize:58,fontWeight:900,color:"#fff",letterSpacing:"-1.8px",lineHeight:1.02,marginBottom:22 }}>
                 Document every<br/><span style={{ background:"linear-gradient(90deg,#00BFA6,#0077FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>phase.</span>
               </h2>
@@ -414,7 +414,7 @@ function Home() {
                 DroneDeploy automated workflows, orthomosaic mapping, and audit-ready progress documentation for multi-million dollar projects.
               </p>
               <div style={{ display:"flex",gap:14,justifyContent:"center",flexWrap:"wrap",marginBottom:52 }}>
-                <Link to="/construction"><MagneticBtn className="btn-primary" style={{background:"linear-gradient(135deg,#00BFA6,#0077FF)"}}>View Services \u2192</MagneticBtn></Link>
+                <Link to="/construction"><MagneticBtn className="btn-primary" style={{background:"linear-gradient(135deg,#00BFA6,#0077FF)"}}>View Services →</MagneticBtn></Link>
                 <Link to="/contact?type=construction"><MagneticBtn className="btn-outline" style={{borderColor:"rgba(0,191,166,0.3)",color:"#00BFA6"}}>Get a Quote</MagneticBtn></Link>
               </div>
               <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16 }}>
@@ -440,7 +440,7 @@ function Home() {
         <div style={{ maxWidth:1200,margin:"0 auto" }}>
           <SectionTitle title="From Scope to Deliverables in Days"/>
           <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:28 }}>
-            {[{n:"01",t:"Define the Scope",d:"Send us the APN, project address, or site details along with your deliverable requirements."},{n:"02",t:"We Fly the Site",d:"Our FAA-certified pilots capture your property or project using industry-standard equipment and automated workflows."},{n:"03",t:"Receive Deliverables",d:"Processed, organized, and delivered within 3\u20134 business days. Ready for MLS, stakeholders, or project records."}].map((s,i)=>(
+            {[{n:"01",t:"Define the Scope",d:"Send us the APN, project address, or site details along with your deliverable requirements."},{n:"02",t:"We Fly the Site",d:"Our FAA-certified pilots capture your property or project using industry-standard equipment and automated workflows."},{n:"03",t:"Receive Deliverables",d:"Processed, organized, and delivered within 3–4 business days. Ready for MLS, stakeholders, or project records."}].map((s,i)=>(
               <div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:36,textAlign:"center" }}>
                 <div className="gradient-text" style={{ fontSize:44,fontWeight:900,marginBottom:16 }}>{s.n}</div>
                 <h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{s.t}</h3>
@@ -453,7 +453,7 @@ function Home() {
 
       {/* ===== TESTIMONIALS: Pinned horizontal strip (desktop) / stack (mobile) ===== */}
       <section ref={testimonialsRef} style={{ background:"rgba(0,0,0,0.22)",overflow:"hidden" }}>
-        {/* Header \u2014 stays pinned above the scrolling track */}
+        {/* Header — stays pinned above the scrolling track */}
         <div style={{ maxWidth:1200,margin:"0 auto",padding:"80px 24px 40px",display:"flex",alignItems:"flex-end",justifyContent:"space-between",flexWrap:"wrap",gap:16 }}>
           <div>
             <p style={{ fontSize:11,fontWeight:700,color:"#444460",letterSpacing:2,textTransform:"uppercase",marginBottom:10 }}>Client Reviews</p>
@@ -461,8 +461,8 @@ function Home() {
           </div>
           <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer"
             style={{ display:"flex",alignItems:"center",gap:8,textDecoration:"none",padding:"10px 20px",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,background:"rgba(255,255,255,0.02)" }}>
-            <span style={{ color:"#FFD700",letterSpacing:2,fontSize:13 }}>\u2605\u2605\u2605\u2605\u2605</span>
-            <span style={{ fontSize:13,color:"#8888A0" }}>5.0 \u00B7 26 reviews \u00B7 Droners.io</span>
+            <span style={{ color:"#FFD700",letterSpacing:2,fontSize:13 }}>★★★★★</span>
+            <span style={{ fontSize:13,color:"#8888A0" }}>5.0 · 26 reviews · Droners.io</span>
           </a>
         </div>
         {/* Horizontal card track */}
@@ -486,7 +486,7 @@ function Home() {
                   <div style={{ fontSize:13,fontWeight:700,color:"#fff" }}>{t.name}</div>
                   <div style={{ fontSize:11,color:"#555570",marginTop:2 }}>{t.context}</div>
                 </div>
-                <span style={{ color:"#FFD700",fontSize:11,letterSpacing:1.5 }}>\u2605\u2605\u2605\u2605\u2605</span>
+                <span style={{ color:"#FFD700",fontSize:11,letterSpacing:1.5 }}>★★★★★</span>
               </div>
             </div>
           ))}
@@ -498,12 +498,12 @@ function Home() {
           <div>
             <div className="tag-pill" style={{ background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",color:"#0077FF",marginBottom:20,display:"inline-flex" }}>About</div>
             <h2 style={{ fontSize:32,fontWeight:800,color:"#fff",letterSpacing:"-0.8px",marginBottom:6,lineHeight:1.15 }}>Joseph Perez</h2>
-            <p style={{ fontSize:13,color:"#555570",marginBottom:20,fontWeight:500 }}>FAA Part 107 Certified \u00B7 Seraphic Sight LLC</p>
-            <p style={{ fontSize:15,color:"#8888A0",lineHeight:1.8,marginBottom:32 }}>FAA Part 107 certified drone pilot with over 5 years of experience serving Southern California's real estate and construction industries. Based in the Inland Empire \u2014 delivering MLS-ready aerial photography, cinematic marketing videos, 360\u00B0 virtual tours, and DroneDeploy automated site documentation across 7 coverage regions, from San Diego to Bakersfield.</p>
+            <p style={{ fontSize:13,color:"#555570",marginBottom:20,fontWeight:500 }}>FAA Part 107 Certified · Seraphic Sight LLC</p>
+            <p style={{ fontSize:15,color:"#8888A0",lineHeight:1.8,marginBottom:32 }}>FAA Part 107 certified drone pilot with over 5 years of experience serving Southern California's real estate and construction industries. Based in the Inland Empire — delivering MLS-ready aerial photography, cinematic marketing videos, 360° virtual tours, and DroneDeploy automated site documentation across 7 coverage regions, from San Diego to Bakersfield.</p>
             <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
               {[
                 {v:"300+", l:"Projects Completed", end:300, suffix:"+", decimals:0},
-                {v:"5.0 \u2605", l:"Droners.io Rating", end:5.0, suffix:" \u2605", decimals:1},
+                {v:"5.0 ★", l:"Droners.io Rating", end:5.0, suffix:" ★", decimals:1},
                 {v:"5 Yrs", l:"Industry Experience", end:5, suffix:" Yrs", decimals:0},
                 {v:"7",    l:"Coverage Regions",    end:7,  suffix:"",    decimals:0},
               ].map((s,i)=>(
@@ -523,14 +523,14 @@ function Home() {
               <div style={{ textAlign:"center",padding:"0 20px" }}>
                 <p style={{ fontSize:14,fontWeight:700,color:"#fff",margin:0 }}>Joseph Perez</p>
                 <p style={{ fontSize:12,color:"#6066A0",margin:"4px 0 12px" }}>Seraphic Sight LLC</p>
-                <p style={{ fontSize:11,color:"#444460",lineHeight:1.6 }}>FAA Part 107 \u00B7 LAANC Authorized<br/>Fully Insured \u00B7 COI Available</p>
+                <p style={{ fontSize:11,color:"#444460",lineHeight:1.6 }}>FAA Part 107 · LAANC Authorized<br/>Fully Insured · COI Available</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <CTABanner title="Ready to Scope Your Next Project?" sub="Tell us what you need \u2014 APN, address, deliverables. We'll send you a quote within 24 hours." btn="Get a Quote \u2192"/>
+      <CTABanner title="Ready to Scope Your Next Project?" sub="Tell us what you need — APN, address, deliverables. We'll send you a quote within 24 hours." btn="Get a Quote →"/>
     </div>
   );
 }
@@ -541,7 +541,7 @@ function PropertyMarketing() {
   usePageReveal(pageRef);
   return (
     <div ref={pageRef}>
-      <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="MLS-ready aerial content delivered in 3\u20134 business days. LAANC-authorized for controlled airspace. Send us the APN and your deliverable list \u2014 we handle the rest." accent="#0077FF" videoUrl={PROP_HERO_VIDEO_URL}/>
+      <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="MLS-ready aerial content delivered in 3–4 business days. LAANC-authorized for controlled airspace. Send us the APN and your deliverable list — we handle the rest." accent="#0077FF" videoUrl={PROP_HERO_VIDEO_URL}/>
       <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
         <SectionTitle title="What We Deliver" sub="Every service designed to move listings faster."/>
         <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
@@ -557,7 +557,7 @@ function PropertyMarketing() {
               <h3 style={{ fontSize:16,fontWeight:600,color:"#8888A0",letterSpacing:1,textTransform:"uppercase",marginBottom:12 }}>{p.name}</h3>
               <div style={{ fontSize:42,fontWeight:800,color:"#fff",letterSpacing:"-1px",marginBottom:24 }}>{p.price}</div>
               <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-                {p.features.map((f,j)=>(<div key={j} style={{ display:"flex",alignItems:"flex-start",gap:10 }}><span style={{ color:"#0077FF",fontSize:14,marginTop:2,flexShrink:0 }}>\u2713</span><span style={{ fontSize:14,color:"#C0C0D0",lineHeight:1.5 }}>{f}</span></div>))}
+                {p.features.map((f,j)=>(<div key={j} style={{ display:"flex",alignItems:"flex-start",gap:10 }}><span style={{ color:"#0077FF",fontSize:14,marginTop:2,flexShrink:0 }}>✓</span><span style={{ fontSize:14,color:"#C0C0D0",lineHeight:1.5 }}>{f}</span></div>))}
               </div>
               <Link to="/contact?type=property-marketing"><button className={p.popular?"btn-primary":"btn-outline"} style={{ width:"100%",marginTop:28 }}>Get Started</button></Link>
             </div>))}
@@ -578,7 +578,7 @@ function PropertyMarketing() {
           {PROP_PROCESS.map((s,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",gap:28,padding:"28px 0",alignItems:"flex-start" }}><div style={{ width:50,height:50,borderRadius:"50%",background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800,color:"#0077FF",flexShrink:0,position:"relative",zIndex:2 }}>{s.num}</div><div><h4 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{s.title}</h4><p style={{ fontSize:14,color:"#8888A0",lineHeight:1.7 }}>{s.desc}</p></div></div>))}
         </div>
       </section>
-      <CTABanner title="Ready to Market Your Listing?" sub="Send us the APN and deliverables \u2014 we'll get you a quote within 24 hours." btn="Get a Quote \u2192"/>
+      <CTABanner title="Ready to Market Your Listing?" sub="Send us the APN and deliverables — we'll get you a quote within 24 hours." btn="Get a Quote →"/>
     </div>
   );
 }
@@ -602,7 +602,7 @@ function Construction() {
         <div style={{ borderRadius:16,overflow:"hidden",border:"1px solid rgba(0,191,166,0.15)" }}>
           <img src="https://res.cloudinary.com/dpc1noikx/image/upload/v1778210648/map-snapshot_q3dk25.png" alt="DroneDeploy orthomosaic map - active construction site" style={{ width:"100%",display:"block" }}/>
           <div style={{ padding:"16px 24px",background:"rgba(0,191,166,0.04)",borderTop:"1px solid rgba(0,191,166,0.1)" }}>
-            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map \uFFFD live DroneDeploy flight, construction progress monitoring, Southern California.</p>
+            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map � live DroneDeploy flight, construction progress monitoring, Southern California.</p>
           </div>
         </div>
       </section>
@@ -619,7 +619,7 @@ function Construction() {
           {CON_PRICING.map((p,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,flexWrap:"wrap",gap:12 }}><span style={{ fontSize:14,color:"#C0C0D0" }}>{p.service}</span><span style={{ fontSize:15,fontWeight:700,color:"#00BFA6",flexShrink:0 }}>{p.price}</span></div>))}
         </div>
         <div style={{ marginTop:32,padding:24,background:"rgba(0,191,166,0.05)",border:"1px solid rgba(0,191,166,0.12)",borderRadius:12 }}>
-          <p style={{ fontSize:13,color:"#8888A0",lineHeight:1.8 }}><strong style={{ color:"#fff" }}>Every engagement includes:</strong> DroneDeploy automated flight plans \u00B7 GeoTIFF + LAS/LAZ deliverables \u00B7 Procore / BIM 360 compatible outputs \u00B7 Organized, timestamped progress imagery \u00B7 Site superintendent coordination \u00B7 COI provided upon request</p>
+          <p style={{ fontSize:13,color:"#8888A0",lineHeight:1.8 }}><strong style={{ color:"#fff" }}>Every engagement includes:</strong> DroneDeploy automated flight plans · GeoTIFF + LAS/LAZ deliverables · Procore / BIM 360 compatible outputs · Organized, timestamped progress imagery · Site superintendent coordination · COI provided upon request</p>
         </div>
         <TravelFeeNote accent="#00BFA6"/>
       </section>
@@ -631,7 +631,7 @@ function Construction() {
           </div>
         </div>
       </section>
-      <CTABanner title="Scope Your Next Project" sub="Send us your site details and deliverable requirements. We'll respond with a detailed proposal within 48 hours." btn="Request a Proposal \u2192"/>
+      <CTABanner title="Scope Your Next Project" sub="Send us your site details and deliverable requirements. We'll respond with a detailed proposal within 48 hours." btn="Request a Proposal →"/>
     </div>
   );
 }
@@ -651,7 +651,7 @@ function PortfolioLightbox({ p, images, videoUrl, initialTab, onClose }) {
   const tabs = [
     images.length && "Photos",
     videoUrl && "Video",
-    p.media?.tour360 && "360\u00B0 Tour",
+    p.media?.tour360 && "360° Tour",
     p.media?.walkthrough && "Walkthrough",
   ].filter(Boolean);
 
@@ -672,7 +672,7 @@ function PortfolioLightbox({ p, images, videoUrl, initialTab, onClose }) {
               {t}
             </button>
           ))}
-          <button onClick={onClose} style={{ color:"#8888A0",fontSize:22,background:"none",border:"none",cursor:"pointer",padding:"0 4px",lineHeight:1,marginLeft:8 }}>\u2715</button>
+          <button onClick={onClose} style={{ color:"#8888A0",fontSize:22,background:"none",border:"none",cursor:"pointer",padding:"0 4px",lineHeight:1,marginLeft:8 }}>✕</button>
         </div>
       </div>
       <div style={{ flex:1,overflow:"hidden",display:"flex",flexDirection:"column",padding:"28px 40px",minHeight:0 }}>
@@ -707,7 +707,7 @@ function PortfolioLightbox({ p, images, videoUrl, initialTab, onClose }) {
             <video controls autoPlay style={{ maxWidth:"100%",maxHeight:"100%",borderRadius:10 }} src={videoUrl}/>
           </div>
         )}
-        {tab==="360\u00B0 Tour"&&p.media?.tour360&&(
+        {tab==="360° Tour"&&p.media?.tour360&&(
           <div style={{ height:"100%",borderRadius:10,overflow:"hidden" }}>
             <iframe src={p.media.tour360} title="360 Tour" style={{ width:"100%",height:"100%",border:"none" }}
               allow="xr-spatial-tracking; gyroscope; accelerometer" allowFullScreen/>
@@ -751,7 +751,7 @@ function PortfolioCard({ p }) {
   const tabs = [
     (hasCld || images.length) && "Photos",
     (hasCld || videoUrl) && "Video",
-    p.media?.tour360 && "360\u00B0 Tour",
+    p.media?.tour360 && "360° Tour",
     p.media?.walkthrough && "Walkthrough",
   ].filter(Boolean);
 
@@ -801,7 +801,7 @@ function Portfolio() {
 function ServiceArea() {
   return (
     <div>
-      <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast \u2014 if your project is in our range, we'll be on site."/>
+      <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast — if your project is in our range, we'll be on site."/>
       <section style={{ padding:"0 24px 60px",maxWidth:1200,margin:"0 auto" }}>
         <div style={{ maxWidth:900,margin:"0 auto 60px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",padding:48 }}>
           <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:32,textAlign:"center" }}>
@@ -820,7 +820,7 @@ function ServiceArea() {
       </section>
       <section style={{ padding:"60px 24px 100px",textAlign:"center" }}>
         <p style={{ fontSize:15,color:"#8888A0",marginBottom:8 }}>Not sure if we cover your area?</p>
-        <p style={{ fontSize:18,fontWeight:700,color:"#fff" }}>Reach out \u2014 if you're in range, we'll be there.</p>
+        <p style={{ fontSize:18,fontWeight:700,color:"#fff" }}>Reach out — if you're in range, we'll be there.</p>
       </section>
     </div>
   );
@@ -860,7 +860,7 @@ function Contact() {
     return (
       <section style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px" }}>
         <div>
-          <div style={{ fontSize: 64, marginBottom: 24 }}>\u2713</div>
+          <div style={{ fontSize: 64, marginBottom: 24 }}>✓</div>
           <h2 style={{ fontSize: 34, fontWeight: 800, color: "#fff", marginBottom: 16 }}>Quote Request Received</h2>
           <p style={{ color: "#8888A0", fontSize: 16, lineHeight: 1.7, maxWidth: 450, margin: "0 auto" }}>
             Thank you. We'll review your project details and respond within 24 hours.
@@ -872,7 +872,7 @@ function Contact() {
 
   return (
     <div>
-      <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need \u2014 APN, address, deliverables. We'll respond within 24 hours." />
+      <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need — APN, address, deliverables. We'll respond within 24 hours." />
       <section style={{ padding: "0 24px 100px", maxWidth: 640, margin: "0 auto" }}>
         <div style={{ display: "grid", gap: 24 }}>
           <div style={{ display: "none" }}>
@@ -908,7 +908,7 @@ function Contact() {
             onClick={handleSubmit}
             disabled={status === "sending"}
           >
-            {status === "sending" ? "Sending\u2026" : "Submit Quote Request"}
+            {status === "sending" ? "Sending…" : "Submit Quote Request"}
           </button>
         </div>
         <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
@@ -928,16 +928,16 @@ function Contact() {
 function FAQ() {
   const [open, setOpen] = React.useState(null);
   const items = [
-    { q: "Are you FAA Part 107 certified?", a: "Yes. Joseph Perez holds an FAA Part 107 Remote Pilot Certificate, required for all commercial drone operations in the U.S. We are also fully insured and can provide a Certificate of Insurance (COI) upon request \u2014 standard for GCs, brokerages, and property management companies." },
-    { q: "What areas do you serve?", a: "Southern and Central California \u2014 from San Diego to Bakersfield, and the Inland Empire to the coast. Primary coverage includes Los Angeles, Orange County, Riverside County, San Bernardino County, the Coachella Valley, and surrounding areas. Travel fees apply beyond our primary service zone." },
-    { q: "How long does it take to receive my deliverables?", a: "Standard turnaround is 3\u20134 business days from the date of the flight. Rush delivery (1\u20132 business days) is available as an add-on. Large DroneDeploy mapping or construction projects may require additional processing time \u2014 we'll confirm timelines when scoping your project." },
-    { q: "What file formats do you deliver?", a: "Property marketing: edited JPEG/PNG photos (MLS-ready), MP4 video in 16:9 and 9:16 (Reels/TikTok cuts), and hosted 360\u00B0 tour links. Construction/mapping: GeoTIFF orthomosaics, LAS/LAZ point clouds, and Procore / BIM 360-compatible outputs. All files delivered via a cloud download link." },
-    { q: "Do you handle airspace authorization?", a: "Yes \u2014 we manage all LAANC authorizations for controlled airspace through the FAA's automated system. For restricted or complex airspace, we obtain manual waivers as needed at no additional cost to you." },
+    { q: "Are you FAA Part 107 certified?", a: "Yes. Joseph Perez holds an FAA Part 107 Remote Pilot Certificate, required for all commercial drone operations in the U.S. We are also fully insured and can provide a Certificate of Insurance (COI) upon request — standard for GCs, brokerages, and property management companies." },
+    { q: "What areas do you serve?", a: "Southern and Central California — from San Diego to Bakersfield, and the Inland Empire to the coast. Primary coverage includes Los Angeles, Orange County, Riverside County, San Bernardino County, the Coachella Valley, and surrounding areas. Travel fees apply beyond our primary service zone." },
+    { q: "How long does it take to receive my deliverables?", a: "Standard turnaround is 3–4 business days from the date of the flight. Rush delivery (1–2 business days) is available as an add-on. Large DroneDeploy mapping or construction projects may require additional processing time — we'll confirm timelines when scoping your project." },
+    { q: "What file formats do you deliver?", a: "Property marketing: edited JPEG/PNG photos (MLS-ready), MP4 video in 16:9 and 9:16 (Reels/TikTok cuts), and hosted 360° tour links. Construction/mapping: GeoTIFF orthomosaics, LAS/LAZ point clouds, and Procore / BIM 360-compatible outputs. All files delivered via a cloud download link." },
+    { q: "Do you handle airspace authorization?", a: "Yes — we manage all LAANC authorizations for controlled airspace through the FAA's automated system. For restricted or complex airspace, we obtain manual waivers as needed at no additional cost to you." },
     { q: "What is your travel fee?", a: "We charge $0.70 per mile. Jobs under 50 miles are billed round-trip; jobs 50 miles or more are billed one-way. For most projects in the greater Los Angeles, Inland Empire, or San Diego areas, travel fees are minimal or zero." },
     { q: "How do I book a shoot?", a: "Fill out our quote request form with your project address (or APN for land/construction sites), your deliverable list, and your timeline. We respond within 24 hours with pricing and availability. A 50% deposit is required to hold your shoot date." },
-    { q: "Do you work with real estate agents and brokerages?", a: "Absolutely \u2014 we work with individual agents, teams, and brokerages on a per-listing or retainer basis. If you have regular listing volume, ask about agent pricing. We're happy to build a workflow that fits your business and turnaround requirements." },
+    { q: "Do you work with real estate agents and brokerages?", a: "Absolutely — we work with individual agents, teams, and brokerages on a per-listing or retainer basis. If you have regular listing volume, ask about agent pricing. We're happy to build a workflow that fits your business and turnaround requirements." },
     { q: "Can you accommodate urgent timelines?", a: "We do our best to accommodate tight deadlines. Same-week availability is typical. For same-day or next-day requests, reach out directly and we'll make every effort to be on site when you need us." },
-    { q: "What equipment do you use?", a: "We fly DJI drones (Mavic 3 Pro, Phantom 4 RTK) for photography, cinematic video, and precision mapping. 360\u00B0 virtual tours are captured with the Ricoh Theta Z1 and Insta360 X series. Construction flight plans are powered by DroneDeploy's automated workflow platform." },
+    { q: "What equipment do you use?", a: "We fly DJI drones (Mavic 3 Pro, Phantom 4 RTK) for photography, cinematic video, and precision mapping. 360° virtual tours are captured with the Ricoh Theta Z1 and Insta360 X series. Construction flight plans are powered by DroneDeploy's automated workflow platform." },
   ];
   return (
     <div>
@@ -958,7 +958,7 @@ function FAQ() {
           </div>
         ))}
       </section>
-      <CTABanner title="Still Have Questions?" sub="Reach out directly \u2014 we respond within 24 hours." btn="Contact Us \u2192"/>
+      <CTABanner title="Still Have Questions?" sub="Reach out directly — we respond within 24 hours." btn="Contact Us →"/>
     </div>
   );
 }
