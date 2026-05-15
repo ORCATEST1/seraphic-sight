@@ -38,7 +38,7 @@ export default async function handler(req, res) {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
     body: JSON.stringify({
-      from: "Joseph@SeraphicSight.com",
+      from: "joseph@seraphicsight.com",
       to:   email,
       subject: "Your Free Parcel Overlay — Mission Complete 🎯",
       html: `
