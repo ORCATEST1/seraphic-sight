@@ -53,8 +53,12 @@ const PHOTOS = [
   { id: "DJI_0002_xzpfp5",   tags: ["Commercial"] },
   { id: "map-snapshot_q3dk25", tags: ["Construction", "Land"] },
   { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: ["Land"] },
-  // ── 25 more coming — paste public IDs here once uploaded to Cloudinary ──
-  // { id: "YOUR_ID_HERE", tags: ["Real Estate"] },
+  { id: "DJI_0944_gho2t4",        tags: ["Real Estate"] },
+  { id: "DJI_0147-Pano-2_ewomdl", tags: ["Commercial"] },
+  { id: "5-DJI_0138-HDR_eroxlw",  tags: ["Commercial"] },
+  { id: "DJI_0726_c1ezfe",        tags: ["Commercial"] },
+  { id: "B8BF74C3-98E2-4C69-8958-D92124D1FE27_mlcue4", tags: ["Commercial"] },
+  { id: "dji_fly_20230107_145206_631_1673132863018_photo_m5emzx", tags: ["Commercial"] },
 ];
 
 const VIDEOS = [
