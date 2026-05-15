@@ -30,6 +30,12 @@ const PHOTOS = [
   { id:"DJI_0322_khfwqi",   label:"Site Documentation"    },
   { id:"Aerial_27_qw5yqr",  label:"Commercial Aerial"     },
   { id:"DJI_0872_vddljb",   label:"Listing Photography"   },
+  { id:"DJI_0944_gho2t4",        label:"Downtown at Golden Hour"  },
+  { id:"DJI_0147-Pano-2_ewomdl", label:"City Panoramic"           },
+  { id:"5-DJI_0138-HDR_eroxlw",  label:"Coastal Aerial"           },
+  { id:"DJI_0726_c1ezfe",        label:"Urban Infrastructure"     },
+  { id:"B8BF74C3-98E2-4C69-8958-D92124D1FE27_mlcue4", label:"Historic District Night" },
+  { id:"dji_fly_20230107_145206_631_1673132863018_photo_m5emzx", label:"Port Panoramic" },
 ];
 const VIDEOS = [
   { id:"clip_joey_updated_bbfclp", label:"Cinematic Reel"      },
