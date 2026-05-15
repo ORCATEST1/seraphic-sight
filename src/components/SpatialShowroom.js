@@ -1156,6 +1156,14 @@ export default function SpatialShowroom() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[started]);
 
+  // Exit pointer lock whenever a modal, orb menu, or lead-capture form opens
+  // so the user can click buttons freely. Re-lock happens on next canvas click.
+  useEffect(()=>{
+    if(modal || orbMenu || leadCapture){
+      if(document.pointerLockElement) document.exitPointerLock();
+    }
+  },[modal, orbMenu, leadCapture]);
+
   return (
     <div style={{width:"100vw",height:"100vh",overflow:"hidden",background:"#060C18"}}>
       {!started && <Onboarding onStart={()=>setStarted(true)} onEnter={startBgMusic} isMobile={isMobile}/>}
