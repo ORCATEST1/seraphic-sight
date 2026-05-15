@@ -1,4 +1,4 @@
-// PortfolioSection.js â Seraphic Sight v2
+// PortfolioSection.js — Seraphic Sight v2
 // High-tech portfolio: large interactive deliverable bubbles, Cloudinary media,
 // video autoplay on hover, fullscreen lightbox, full mobile optimization.
 
@@ -6,7 +6,7 @@ import React, {
   useState, useRef, useEffect, useCallback, useMemo,
 } from "react";
 
-/* âââ Cloudinary helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── Cloudinary helpers ──────────────────────────────────────────────────── */
 const CLD    = "https://res.cloudinary.com/dpc1noikx";
 const img    = (id, w = 900, h = 600) =>
   `${CLD}/image/upload/w_${w},h_${h},c_fill,f_auto,q_auto/${id}`;
@@ -15,7 +15,7 @@ const vThumb = (id, w = 900, h = 540) =>
 const vSrc   = (id) =>
   `${CLD}/video/upload/f_mp4,q_auto:good,vc_h264/${id}`;
 
-/* âââ Assets ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── Assets ──────────────────────────────────────────────────────────────── */
 const PHOTOS = [
   { id: "DJI_0915_w53hst",   tags: ["Real Estate"] },
   { id: "DJI_0891_tgrszt",   tags: ["Real Estate"] },
@@ -53,7 +53,7 @@ const PHOTOS = [
   { id: "DJI_0002_xzpfp5",   tags: ["Commercial"] },
   { id: "map-snapshot_q3dk25", tags: ["Construction", "Land"] },
   { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: ["Land"] },
-  // ââ 25 more coming â paste public IDs here once uploaded to Cloudinary ââ
+  // ── 25 more coming — paste public IDs here once uploaded to Cloudinary ──
   // { id: "YOUR_ID_HERE", tags: ["Real Estate"] },
 ];
 
@@ -72,29 +72,29 @@ const VIDEOS = [
   { id: "Copy_of_DJI_0325_kmx2a4", tags: ["Drone Clips", "Real Estate"] },
   { id: "Copy_of_Aerial_20_qa6xjx", tags: ["Cinematic"] },
   { id: "V5_1_.00_01_30_08.Still005_nfgpnn", tags: ["Cinematic", "Walkthrough"] },
-  // ââ 720p loop renders â add IDs here once rendered and uploaded ââ
+  // ── 720p loop renders — add IDs here once rendered and uploaded ──
   // { id: "YOUR_LOOP_ID", tags: ["Cinematic"] },
 ];
 
-/* âââ Deliverable bubble config âââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── Deliverable bubble config ───────────────────────────────────────────── */
 const PHOTO_BUBBLES = [
-  { label: "All",          icon: "â¦",  color: "#00d4ff" },
-  { label: "Real Estate",  icon: "ð ", color: "#a78bfa" },
-  { label: "Commercial",   icon: "ð¢", color: "#34d399" },
-  { label: "Construction", icon: "ð", color: "#fb923c" },
-  { label: "Land",         icon: "ð¿", color: "#fbbf24" },
+  { label: "All",          icon: "✦",  color: "#00d4ff" },
+  { label: "Real Estate",  icon: "🏠", color: "#a78bfa" },
+  { label: "Commercial",   icon: "🏢", color: "#34d399" },
+  { label: "Construction", icon: "🏗", color: "#fb923c" },
+  { label: "Land",         icon: "🌿", color: "#fbbf24" },
 ];
 
 const VIDEO_BUBBLES = [
-  { label: "All",          icon: "â¦",  color: "#00d4ff" },
-  { label: "Cinematic",    icon: "ð¬", color: "#f472b6" },
-  { label: "Walkthrough",  icon: "ðª", color: "#a78bfa" },
-  { label: "Drone Clips",  icon: "ð", color: "#34d399" },
+  { label: "All",          icon: "✦",  color: "#00d4ff" },
+  { label: "Cinematic",    icon: "🎬", color: "#f472b6" },
+  { label: "Walkthrough",  icon: "🚪", color: "#a78bfa" },
+  { label: "Drone Clips",  icon: "🚁", color: "#34d399" },
 ];
 
-/* âââ CSS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── CSS ─────────────────────────────────────────────────────────────────── */
 const PORTFOLIO_CSS = `
-  /* ââ Wrap ââ */
+  /* ── Wrap ── */
   .ps-wrap {
     position: relative;
     background: #070b14;
@@ -103,7 +103,7 @@ const PORTFOLIO_CSS = `
     padding: 0 0 100px;
   }
 
-  /* ââ Animated grid background ââ */
+  /* ── Animated grid background ── */
   .ps-bg {
     position: absolute;
     inset: 0;
@@ -121,7 +121,7 @@ const PORTFOLIO_CSS = `
     background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 70%);
   }
 
-  /* ââ Background video banner ââ */
+  /* ── Background video banner ── */
   .ps-hero-banner {
     position: relative;
     width: 100%;
@@ -185,14 +185,14 @@ const PORTFOLIO_CSS = `
   }
   .ps-hero-h1 span { color: #00d4ff; }
 
-  /* ââ Content area ââ */
+  /* ── Content area ── */
   .ps-content {
     position: relative;
     z-index: 2;
     padding: 0 clamp(14px, 4vw, 64px);
   }
 
-  /* ââ Category tabs ââ */
+  /* ── Category tabs ── */
   .ps-tabs {
     display: flex;
     gap: 0;
@@ -246,7 +246,7 @@ const PORTFOLIO_CSS = `
     font-weight: 700;
   }
 
-  /* ââ Deliverable bubbles ââ */
+  /* ── Deliverable bubbles ── */
   .ps-bubbles-wrap {
     margin: 44px 0 0;
   }
@@ -334,7 +334,7 @@ const PORTFOLIO_CSS = `
     color: #00d4ff;
   }
 
-  /* ââ Divider ââ */
+  /* ── Divider ── */
   .ps-divider {
     display: flex;
     align-items: center;
@@ -367,7 +367,7 @@ const PORTFOLIO_CSS = `
     white-space: nowrap;
   }
 
-  /* ââ Masonry grid ââ */
+  /* ── Masonry grid ── */
   .ps-grid {
     columns: 3;
     column-gap: 12px;
@@ -375,7 +375,7 @@ const PORTFOLIO_CSS = `
   @media (max-width: 1100px) { .ps-grid { columns: 2; } }
   @media (max-width: 580px)  { .ps-grid { columns: 1; } }
 
-  /* ââ Card ââ */
+  /* ── Card ── */
   .ps-card {
     position: relative;
     break-inside: avoid;
@@ -417,7 +417,7 @@ const PORTFOLIO_CSS = `
     object-fit: cover;
   }
 
-  /* ââ Card overlay ââ */
+  /* ── Card overlay ── */
   .ps-card-overlay {
     position: absolute;
     inset: 0;
@@ -475,7 +475,7 @@ const PORTFOLIO_CSS = `
     line-height: 1.3;
   }
 
-  /* ââ Play badge ââ */
+  /* ── Play badge ── */
   .ps-play-badge {
     position: absolute;
     top: 10px; right: 10px;
@@ -496,7 +496,7 @@ const PORTFOLIO_CSS = `
   }
   .ps-play-badge svg { margin-left: 2px; }
 
-  /* ââ Lightbox ââ */
+  /* ── Lightbox ── */
   .ps-lb-overlay {
     position: fixed;
     inset: 0;
@@ -646,7 +646,7 @@ const PORTFOLIO_CSS = `
   .ps-lb-thumb:hover { opacity: 0.7; }
   .ps-lb-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-  /* ââ Empty state ââ */
+  /* ── Empty state ── */
   .ps-empty {
     text-align: center;
     padding: 100px 20px;
@@ -656,7 +656,7 @@ const PORTFOLIO_CSS = `
     font-family: 'Courier New', monospace;
   }
 
-  /* ââ Scan line decoration ââ */
+  /* ── Scan line decoration ── */
   .ps-scanline {
     position: absolute;
     left: 0; right: 0;
@@ -674,7 +674,7 @@ const PORTFOLIO_CSS = `
   }
 `;
 
-/* âââ Lightbox ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── Lightbox ────────────────────────────────────────────────────────────── */
 function Lightbox({ items, startIdx, onClose }) {
   const [idx, setIdx] = useState(startIdx);
   const videoRef      = useRef(null);
@@ -727,17 +727,17 @@ function Lightbox({ items, startIdx, onClose }) {
 
   return (
     <div className="ps-lb-overlay" onClick={onClose}>
-      <button className="ps-lb-close" onClick={onClose} aria-label="Close">â</button>
+      <button className="ps-lb-close" onClick={onClose} aria-label="Close">✕</button>
       <button
         className="ps-lb-arrow prev"
         onClick={e => { e.stopPropagation(); prev(); }}
         aria-label="Previous"
-      >â¹</button>
+      >‹</button>
       <button
         className="ps-lb-arrow next"
         onClick={e => { e.stopPropagation(); next(); }}
         aria-label="Next"
-      >âº</button>
+      >›</button>
 
       <div className="ps-lb-media" onClick={e => e.stopPropagation()}>
         {isVideo ? (
@@ -776,7 +776,7 @@ function Lightbox({ items, startIdx, onClose }) {
   );
 }
 
-/* âââ Video card ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── Video card ──────────────────────────────────────────────────────────── */
 function VideoCard({ item, onClick }) {
   const vidRef   = useRef(null);
   const [hov, setHov] = useState(false);
@@ -834,7 +834,7 @@ function VideoCard({ item, onClick }) {
   );
 }
 
-/* âââ Photo card ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── Photo card ──────────────────────────────────────────────────────────── */
 function PhotoCard({ item, onClick }) {
   return (
     <div
@@ -860,7 +860,7 @@ function PhotoCard({ item, onClick }) {
   );
 }
 
-/* âââ Deliverable bubble ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── Deliverable bubble ──────────────────────────────────────────────────── */
 function Bubble({ config, count, active, onClick }) {
   return (
     <button
@@ -888,7 +888,7 @@ function Bubble({ config, count, active, onClick }) {
   );
 }
 
-/* âââ Main component ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ─── Main component ──────────────────────────────────────────────────────── */
 export default function PortfolioSection() {
   const [cat,    setCat]    = useState("photo"); // "photo" | "video"
   const [filter, setFilter] = useState("All");
@@ -932,24 +932,24 @@ export default function PortfolioSection() {
     [rawItems, filter],
   );
 
-  /* switch category â reset filter */
+  /* switch category → reset filter */
   const switchCat = (c) => { setCat(c); setFilter("All"); };
 
   /* lightbox */
   const openLb  = useCallback((items, idx) => setLbState({ items, idx }), []);
   const closeLb = useCallback(() => setLbState(null), []);
 
-  const divLabel = `${filtered.length} ${isPhoto ? "photos" : "videos"} Â· ${filter}`;
+  const divLabel = `${filtered.length} ${isPhoto ? "photos" : "videos"} · ${filter}`;
 
   return (
     <div className="ps-wrap">
       <div className="ps-bg" aria-hidden="true" />
       <div className="ps-scanline" aria-hidden="true" />
 
-      {/* ââ Hero video banner ââ */}
+      {/* ── Hero video banner ── */}
       <div className="ps-hero-banner">
         {/*
-          Background loop â once your 720p renders are uploaded to Cloudinary,
+          Background loop — once your 720p renders are uploaded to Cloudinary,
           swap "Copy_of_DJI_0939_pcc1dl" for your rendered video's public ID.
         */}
         <video
@@ -963,7 +963,7 @@ export default function PortfolioSection() {
           <source src={vSrc("Copy_of_DJI_0939_pcc1dl")} type="video/mp4" />
         </video>
         <div className="ps-hero-title-wrap">
-          <div className="ps-hero-eyebrow">Seraphic Sight Â· Portfolio</div>
+          <div className="ps-hero-eyebrow">Seraphic Sight · Portfolio</div>
           <h1 className="ps-hero-h1">
             Aerial <span>Precision</span>,<br />
             Cinematic <span>Vision</span>
@@ -971,7 +971,7 @@ export default function PortfolioSection() {
         </div>
       </div>
 
-      {/* ââ Main content ââ */}
+      {/* ── Main content ── */}
       <div className="ps-content">
 
         {/* Category tabs */}
