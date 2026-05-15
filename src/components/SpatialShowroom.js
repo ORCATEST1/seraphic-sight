@@ -21,14 +21,10 @@ const cVid = (id) =>
 
 const PHOTOS = [
   { id:"DJI_0915_w53hst",   label:"Aerial Overview"       },
-  { id:"DJI_0891_tgrszt",   label:"Property Perspective"  },
-  { id:"DJI_0876_imzqgc",   label:"Residential Aerial"    },
   { id:"DJI_0802_cdwyvj",   label:"Commercial Site"       },
   { id:"DJI_0730_enavrk",   label:"Mixed-Use Development" },
   { id:"DJI_0327_it5brs",   label:"Construction Progress" },
   { id:"sola-florance-construction-aerial_oapibr", label:"Sola Florance Site" },
-  { id:"DJI_0322_khfwqi",   label:"Site Documentation"    },
-  { id:"Aerial_27_qw5yqr",  label:"Commercial Aerial"     },
   { id:"DJI_0872_vddljb",   label:"Listing Photography"   },
   { id:"DJI_0944_gho2t4",        label:"Downtown at Golden Hour"  },
   { id:"DJI_0147-Pano-2_ewomdl", label:"City Panoramic"           },
