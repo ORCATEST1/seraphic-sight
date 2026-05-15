@@ -276,28 +276,7 @@ function HUD({ zone, showHelp, setShowHelp, isMobile }) {
 }
 
 // ── AUDIO BUTTON ─────────────────────────────────────────────────────────────
-function AudioBtn({ audioRef }) {
-  const [playing, setPlaying] = useState(false);
-  const toggle = () => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (playing) { a.pause(); setPlaying(false); }
-    else { a.play().then(()=>setPlaying(true)).catch(()=>{}); }
-  };
-  return (
-    <button onClick={toggle} style={{
-      position:"fixed", bottom:16, left:"50%", transform:"translateX(-50%)",
-      zIndex:300, background:"rgba(4,10,26,0.92)",
-      border:`1px solid ${playing?"rgba(0,200,160,0.5)":"rgba(0,100,200,0.35)"}`,
-      color: playing?"#00EED8":"rgba(120,180,255,0.7)",
-      fontFamily:"monospace", fontSize:9, letterSpacing:"0.18em",
-      padding:"7px 18px", borderRadius:3, cursor:"pointer",
-      backdropFilter:"blur(8px)", transition:"border 0.2s, color 0.2s"
-    }}>
-      {playing ? "❙❙ PAUSE OVERVIEW" : "▶ PLAY OVERVIEW"}
-    </button>
-  );
-}
+// AudioBtn removed — music autoplays on gallery enter
 
 // ── MODAL ─────────────────────────────────────────────────────────────────────
 function PanelModal({ item, onClose }) {
@@ -366,7 +345,7 @@ function PanelModal({ item, onClose }) {
 }
 
 // ── ONBOARDING ───────────────────────────────────────────────────────────────
-function Onboarding({ onStart, isMobile }) {
+function Onboarding({ onStart, onEnter, isMobile }) {
   const [phase,setPhase]=useState("hello");
   const [prog,setProg]=useState(0);
   const [fading,setFading]=useState(false);
@@ -411,7 +390,7 @@ function Onboarding({ onStart, isMobile }) {
         <div style={{fontSize:11,letterSpacing:"0.55em",color:"rgba(0,160,255,0.38)",marginTop:6,textTransform:"lowercase"}}>showroom</div>
       </div>
       <div style={{height:1,width:120,background:"linear-gradient(90deg,transparent,rgba(0,180,255,0.3),transparent)",margin:"22px 0 28px"}}/>
-      <button onClick={()=>setPhase("loading")} style={{
+      <button onClick={()=>{ onEnter(); setPhase("loading"); }} style={{
         background:"linear-gradient(135deg,#0044BB,#009990)",border:"none",color:"#fff",
         cursor:"pointer",borderRadius:6,padding:"13px 54px",fontFamily:"monospace",
         fontSize:13,letterSpacing:"0.22em",boxShadow:"0 0 28px rgba(0,90,200,0.38)"}}>
@@ -498,15 +477,18 @@ export default function SpatialShowroom() {
   const sprintingRef=useRef(false);
   const jumpTriggerRef=useRef(false);
 
-  // Audio setup
+  // Audio — create on mount so it's ready to play on first user gesture
   useEffect(()=>{
-    if(!started) return;
     const audio=new Audio("/audio/seraphic-sight-overview.mp3");
-    audio.volume=0.7;
+    audio.volume=0.42;
     audio.loop=true;
     audioRef.current=audio;
     return()=>{ audio.pause(); audio.src=""; audioRef.current=null; };
-  },[started]);
+  },[]);
+
+  const startBgMusic=()=>{
+    if(audioRef.current) audioRef.current.play().catch(()=>{});
+  };
 
   useEffect(()=>{
     if(!started) return;
@@ -1096,4 +1078,15 @@ export default function SpatialShowroom() {
 
   return (
     <div style={{width:"100vw",height:"100vh",overflow:"hidden",background:"#060C18"}}>
-      {!started && <Onboarding onStart={()=>setSt
+      {!started && <Onboarding onStart={()=>setStarted(true)} onEnter={startBgMusic} isMobile={isMobile}/>}
+      <div ref={mountRef} style={{width:"100%",height:"100%",display:started?"block":"none"}}/>
+      {started && (
+        <>
+          {!isMobile && <Minimap px={pos[0]} pz={pos[1]}/>}
+          <HUD zone={zone} showHelp={showHelp} setShowHelp={setShowHelp} isMobile={isMobile}/>
+          <PanelModal item={modal} onClose={()=>setModal(null)}/>
+          {isMobile ? (
+            <MobileControls joystickRef={joystickRef} sprintingRef={sprintingRef} jumpRef={jumpTriggerRef}/>
+          ) : (
+            <div style={{position:"fixed",bottom:44,left:"50%",transform:"translateX(-50%)",
+              fontFamily:"mono
