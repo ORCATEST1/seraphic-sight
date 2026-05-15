@@ -1,15 +1,13 @@
-// SpatialShowroom.js v11
-// Changes from v10:
-//   - Services wall: premium 2-column gallery installation panel layout
-//   - CTA z-fighting fix: offset z, renderOrder, depthWrite:false
-//   - Larger gallery media: PHOTO_W=2.85/H=1.65, VIDEO_W=3.65/H=2.05
-//   - Sprint (Shift key): BASE_SPEED=0.092, SPRINT_MULT=1.75
-//   - Jump (Space): yVel / GRAVITY / JUMP_FORCE physics, remove hard y=1.65
-//   - Mobile controls: virtual joystick (move), right-drag (look), Jump/Sprint buttons
-//   - Mobile performance: pixelRatio≤1.5, 2500 pts cloud, lazy video, fewer lights
-//   - Help text: Shift=Sprint, Space=Jump
-//   - Room texture pass: premium floor, procedural walls+seams, baseboards, gallery
-//     backing panels, ceiling trim, architectural wall seams
+// SpatialShowroom.js v12
+// Changes from v11:
+//   1. Services wall fix: transparent:false, depthWrite:true, correct z-order (panel in front of backing)
+//   2. Overview audio: play/pause floating button, user-triggered, /audio/seraphic-sight-overview.mp3
+//   3. Parcel exhibit interactive: bndTube clickable → CTA modal about boundary overlays
+//   4. Parcel scan ring: animated rising/fading ring + proximity glow boost
+//   5. Drone marker: ConeGeometry mesh moves along flight curve, oriented toward next point
+//   6. Richer orb: cyan/blue/violet/teal rings + animated tint on desktop, emissive on mobile
+//   7. Proximity reactions: all 3 centerpieces respond to camera distance
+//   8. Room clean: no new large objects, centerpieces polished only
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -41,7 +39,6 @@ const VIDEOS = [
   { id:"Copy_of_DJI_0719_rlyiv1",  label:"Drone Flight"        },
 ];
 
-// Room constants
 const GW=18, GD=40, GH=4.8;
 const EW=6,  ED=8;
 const LX=-9.0, RX=9.0;
@@ -55,28 +52,22 @@ const EYE_HEIGHT  = 1.65;
 function makeFloorTex() {
   const c=document.createElement("canvas"); c.width=1024; c.height=1024;
   const ctx=c.getContext("2d");
-  // Base dark polished graphite
   ctx.fillStyle="#0A1018"; ctx.fillRect(0,0,1024,1024);
-  // Subtle noise overlay for material feel
   for(let i=0;i<18000;i++){
-    const x=Math.random()*1024, y=Math.random()*1024;
-    const v=Math.random()*18+2;
+    const x=Math.random()*1024, y=Math.random()*1024, v=Math.random()*18+2;
     ctx.fillStyle=`rgba(${v+10},${v+18},${v+32},${0.04+Math.random()*0.06})`;
     ctx.fillRect(x,y,1,1);
   }
-  // Primary grid lines — very subtle
   ctx.strokeStyle="rgba(30,55,100,0.18)"; ctx.lineWidth=1;
   for(let i=0;i<=1024;i+=64){
     ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,1024);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(1024,i);ctx.stroke();
   }
-  // Major division lines — slightly more visible
   ctx.strokeStyle="rgba(0,80,160,0.28)"; ctx.lineWidth=1.5;
   for(let i=0;i<=1024;i+=256){
     ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,1024);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(1024,i);ctx.stroke();
   }
-  // Accent crosshair markers at intersections
   ctx.strokeStyle="rgba(0,180,160,0.38)"; ctx.lineWidth=1.5;
   for(let x=0;x<=1024;x+=256) for(let y=0;y<=1024;y+=256){
     ctx.beginPath();ctx.moveTo(x-10,y);ctx.lineTo(x+10,y);ctx.stroke();
@@ -88,21 +79,16 @@ function makeFloorTex() {
 function makeWallTex() {
   const c=document.createElement("canvas"); c.width=512; c.height=1024;
   const ctx=c.getContext("2d");
-  // Dark navy/graphite base
   ctx.fillStyle="#111E2E"; ctx.fillRect(0,0,512,1024);
-  // Soft noise for material texture
   for(let i=0;i<8000;i++){
-    const x=Math.random()*512, y=Math.random()*1024;
-    const v=Math.random()*12;
+    const x=Math.random()*512, y=Math.random()*1024, v=Math.random()*12;
     ctx.fillStyle=`rgba(${v+8},${v+16},${v+28},${0.06+Math.random()*0.08})`;
     ctx.fillRect(x,y,1+Math.random()*2,1);
   }
-  // Vertical panel seams — faint
   ctx.strokeStyle="rgba(0,50,100,0.22)"; ctx.lineWidth=1;
   for(let x=128;x<512;x+=128){
     ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,1024);ctx.stroke();
   }
-  // Subtle horizontal gradient to add depth
   const grad=ctx.createLinearGradient(0,0,0,1024);
   grad.addColorStop(0,"rgba(0,30,60,0.12)");
   grad.addColorStop(0.5,"rgba(0,0,0,0)");
@@ -114,94 +100,65 @@ function makeWallTex() {
 function makeServicesTex() {
   const c=document.createElement("canvas"); c.width=900; c.height=560;
   const ctx=c.getContext("2d");
-
-  // Background with subtle gradient
   ctx.fillStyle="#050C18"; ctx.fillRect(0,0,900,560);
   const bgGrad=ctx.createLinearGradient(0,0,900,560);
   bgGrad.addColorStop(0,"rgba(0,30,80,0.35)");
   bgGrad.addColorStop(1,"rgba(0,10,30,0.15)");
   ctx.fillStyle=bgGrad; ctx.fillRect(0,0,900,560);
-
-  // Subtle noise texture
   for(let i=0;i<3000;i++){
     const x=Math.random()*900,y=Math.random()*560,v=Math.random()*10+2;
     ctx.fillStyle=`rgba(${v},${v+8},${v+20},0.07)`; ctx.fillRect(x,y,1,1);
   }
-
-  // Top accent line
   const topLine=ctx.createLinearGradient(0,0,900,0);
   topLine.addColorStop(0,"rgba(0,80,200,0)");
   topLine.addColorStop(0.35,"rgba(0,120,255,0.8)");
   topLine.addColorStop(0.65,"rgba(0,200,180,0.8)");
   topLine.addColorStop(1,"rgba(0,80,200,0)");
   ctx.fillStyle=topLine; ctx.fillRect(0,0,900,1.5);
-
-  // Header panel
   ctx.fillStyle="rgba(0,30,70,0.5)"; ctx.fillRect(0,0,900,88);
-
-  // Title
   ctx.fillStyle="#FFFFFF"; ctx.font="bold 34px Arial"; ctx.textAlign="center";
   ctx.fillText("SERAPHIC SIGHT",450,40);
   ctx.fillStyle="rgba(80,180,255,0.75)"; ctx.font="11px Arial";
-  ctx.letterSpacing="0.25em";
   ctx.fillText("DRONE SERVICES",450,62);
-  ctx.letterSpacing="0";
-
-  // Divider below header
   ctx.fillStyle="rgba(255,255,255,0.07)"; ctx.fillRect(32,88,836,1);
 
-  // ── TWO-COLUMN SERVICE GRID ───────────────────────────────────────────
-  const LEFT_SERVICES = [
-    ["Aerial Photography",        "High-res stills from FAA licensed pilots"],
-    ["Aerial Video Production",   "Cinematic 4K footage for listings & marketing"],
-    ["Real Estate & Land",        "MLS-ready assets in 3-4 business days"],
-    ["Construction Progress",     "Sequential site documentation for project records"],
+  const LEFT_SERVICES=[
+    ["Aerial Photography",       "High-res stills from FAA licensed pilots"],
+    ["Aerial Video Production",  "Cinematic 4K footage for listings & marketing"],
+    ["Real Estate & Land",       "MLS-ready assets in 3-4 business days"],
+    ["Construction Progress",    "Sequential site documentation for project records"],
   ];
-  const RIGHT_SERVICES = [
-    ["Site Context Docs",         "Surrounding area, access routes & context"],
-    ["Parcel Boundary Overlays",  "GPS-accurate boundary visualization on imagery"],
-    ["Drone Mapping Support",     "Visual reference for planning & permitting"],
+  const RIGHT_SERVICES=[
+    ["Site Context Docs",        "Surrounding area, access routes & context"],
+    ["Parcel Boundary Overlays", "GPS-accurate boundary visualization on imagery"],
+    ["Drone Mapping Support",    "Visual reference for planning & permitting"],
   ];
-
-  function drawService(ctx, title, sub, x, y, accentColor){
-    // Accent bar
-    ctx.fillStyle=accentColor; ctx.fillRect(x, y-16, 2, 34);
-    // Title
-    ctx.fillStyle="#D8ECFF"; ctx.font="bold 17px Arial"; ctx.textAlign="left";
-    ctx.fillText(title, x+11, y);
-    // Subtitle
-    ctx.fillStyle="rgba(130,170,220,0.55)"; ctx.font="12px Arial";
-    ctx.fillText(sub, x+11, y+16);
+  function drawSvc(ctx,title,sub,x,y,accent){
+    ctx.fillStyle=accent; ctx.fillRect(x,y-16,2,34);
+    ctx.fillStyle="#D8ECFF"; ctx.font="bold 17px Arial"; ctx.textAlign="left"; ctx.fillText(title,x+11,y);
+    ctx.fillStyle="rgba(130,170,220,0.55)"; ctx.font="12px Arial"; ctx.fillText(sub,x+11,y+16);
   }
-
-  const COL1_X=46, COL2_X=478;
-  const ROW_START_Y=132, ROW_STEP=106;
-
-  LEFT_SERVICES.forEach(([title,sub],i)=>{
-    drawService(ctx, title, sub, COL1_X, ROW_START_Y+i*ROW_STEP, "rgba(0,120,255,0.8)");
+  const COL1_X=46, COL2_X=478, ROW_START_Y=132, ROW_STEP=106;
+  LEFT_SERVICES.forEach(([t,s],i)=>{
+    drawSvc(ctx,t,s,COL1_X,ROW_START_Y+i*ROW_STEP,"rgba(0,120,255,0.8)");
     if(i<LEFT_SERVICES.length-1){
       ctx.fillStyle="rgba(255,255,255,0.04)";
-      ctx.fillRect(COL1_X+13, ROW_START_Y+i*ROW_STEP+30, 358, 1);
+      ctx.fillRect(COL1_X+13,ROW_START_Y+i*ROW_STEP+30,358,1);
     }
   });
-  RIGHT_SERVICES.forEach(([title,sub],i)=>{
-    drawService(ctx, title, sub, COL2_X, ROW_START_Y+i*ROW_STEP, "rgba(0,200,160,0.8)");
+  RIGHT_SERVICES.forEach(([t,s],i)=>{
+    drawSvc(ctx,t,s,COL2_X,ROW_START_Y+i*ROW_STEP,"rgba(0,200,160,0.8)");
     if(i<RIGHT_SERVICES.length-1){
       ctx.fillStyle="rgba(255,255,255,0.04)";
-      ctx.fillRect(COL2_X+13, ROW_START_Y+i*ROW_STEP+30, 358, 1);
+      ctx.fillRect(COL2_X+13,ROW_START_Y+i*ROW_STEP+30,358,1);
     }
   });
-
-  // Center column divider
   ctx.fillStyle="rgba(0,80,180,0.18)"; ctx.fillRect(445,96,1,440);
-
-  // Bottom accent line
   const btmLine=ctx.createLinearGradient(0,0,900,0);
   btmLine.addColorStop(0,"rgba(0,80,200,0)");
   btmLine.addColorStop(0.5,"rgba(0,160,255,0.6)");
   btmLine.addColorStop(1,"rgba(0,80,200,0)");
   ctx.fillStyle=btmLine; ctx.fillRect(0,558,900,2);
-
   return c;
 }
 
@@ -224,7 +181,7 @@ function makeParcelLabelTex() {
   ctx.fillStyle="rgba(0,20,50,0.75)"; ctx.fillRect(0,0,280,44);
   ctx.strokeStyle="rgba(0,200,180,0.5)"; ctx.lineWidth=1; ctx.strokeRect(0.5,0.5,279,43);
   ctx.fillStyle="#00EED8"; ctx.font="bold 16px Arial"; ctx.textAlign="center"; ctx.fillText("PARCEL BOUNDARY PREVIEW",140,18);
-  ctx.fillStyle="rgba(160,220,255,0.6)"; ctx.font="12px Arial"; ctx.fillText("Boundary Mapping · Drone Survey",140,34);
+  ctx.fillStyle="rgba(160,220,255,0.6)"; ctx.font="12px Arial"; ctx.fillText("Boundary Mapping · Drone Survey — Click to learn more",140,34);
   return c;
 }
 
@@ -318,7 +275,31 @@ function HUD({ zone, showHelp, setShowHelp, isMobile }) {
   );
 }
 
-// ── MODAL ────────────────────────────────────────────────────────────────────
+// ── AUDIO BUTTON ─────────────────────────────────────────────────────────────
+function AudioBtn({ audioRef }) {
+  const [playing, setPlaying] = useState(false);
+  const toggle = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (playing) { a.pause(); setPlaying(false); }
+    else { a.play().then(()=>setPlaying(true)).catch(()=>{}); }
+  };
+  return (
+    <button onClick={toggle} style={{
+      position:"fixed", bottom:16, left:"50%", transform:"translateX(-50%)",
+      zIndex:300, background:"rgba(4,10,26,0.92)",
+      border:`1px solid ${playing?"rgba(0,200,160,0.5)":"rgba(0,100,200,0.35)"}`,
+      color: playing?"#00EED8":"rgba(120,180,255,0.7)",
+      fontFamily:"monospace", fontSize:9, letterSpacing:"0.18em",
+      padding:"7px 18px", borderRadius:3, cursor:"pointer",
+      backdropFilter:"blur(8px)", transition:"border 0.2s, color 0.2s"
+    }}>
+      {playing ? "❙❙ PAUSE OVERVIEW" : "▶ PLAY OVERVIEW"}
+    </button>
+  );
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
 function PanelModal({ item, onClose }) {
   const [copied, setCopied] = useState(false);
   if (!item) return null;
@@ -333,9 +314,9 @@ function PanelModal({ item, onClose }) {
         display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div onClick={e=>e.stopPropagation()} style={{background:"rgba(5,9,22,0.99)",
           border:"1px solid rgba(0,100,255,0.2)",borderRadius:10,padding:"36px 48px",
-          display:"flex",flexDirection:"column",alignItems:"center",gap:16,minWidth:320}}>
+          display:"flex",flexDirection:"column",alignItems:"center",gap:16,minWidth:320,maxWidth:480}}>
           <div style={{color:"#D0E8FF",fontFamily:"monospace",fontSize:20,letterSpacing:"0.08em",fontWeight:700}}>{item.title}</div>
-          <div style={{color:"rgba(140,175,230,0.7)",fontFamily:"monospace",fontSize:12,textAlign:"center",whiteSpace:"pre-line"}}>{item.body}</div>
+          <div style={{color:"rgba(140,175,230,0.7)",fontFamily:"monospace",fontSize:12,textAlign:"center",whiteSpace:"pre-line",lineHeight:1.7}}>{item.body}</div>
           {isMailto ? (
             <>
               <div style={{color:"#A0C8FF",fontFamily:"monospace",fontSize:13,letterSpacing:"0.04em"}}>{email}</div>
@@ -437,118 +418,76 @@ function Onboarding({ onStart, isMobile }) {
   );
 }
 
-// ── MOBILE CONTROLS UI ───────────────────────────────────────────────────────
+// ── MOBILE CONTROLS ───────────────────────────────────────────────────────────
 function MobileControls({ joystickRef, sprintingRef, jumpRef }) {
-  const joystickAreaRef = useRef(null);
-  const stickRef = useRef(null);
-
+  const joystickAreaRef=useRef(null), stickRef=useRef(null);
   useEffect(()=>{
-    const joystickArea = joystickAreaRef.current;
-    if(!joystickArea) return;
-    let activeTouchId=null, baseX=0, baseY=0;
-
-    const onTouchStart=(e)=>{
-      if(activeTouchId!==null) return;
-      const t=e.changedTouches[0];
-      activeTouchId=t.identifier;
-      baseX=t.clientX; baseY=t.clientY;
-      joystickRef.current={x:0,y:0};
-    };
-    const onTouchMove=(e)=>{
+    const el=joystickAreaRef.current; if(!el) return;
+    let id=null, bx=0, by=0;
+    const onTS=(e)=>{ if(id!==null) return; const t=e.changedTouches[0]; id=t.identifier; bx=t.clientX; by=t.clientY; joystickRef.current={x:0,y:0}; };
+    const onTM=(e)=>{
       for(let i=0;i<e.changedTouches.length;i++){
-        const t=e.changedTouches[i];
-        if(t.identifier!==activeTouchId) continue;
-        const dx=t.clientX-baseX, dy=t.clientY-baseY;
-        const mag=Math.sqrt(dx*dx+dy*dy);
-        const maxR=42;
-        const nx=mag>maxR?dx/mag:dx/maxR;
-        const ny=mag>maxR?dy/mag:dy/maxR;
+        const t=e.changedTouches[i]; if(t.identifier!==id) continue;
+        const dx=t.clientX-bx, dy=t.clientY-by, mag=Math.sqrt(dx*dx+dy*dy), maxR=42;
+        const nx=mag>maxR?dx/mag:dx/maxR, ny=mag>maxR?dy/mag:dy/maxR;
         joystickRef.current={x:nx,y:ny};
-        if(stickRef.current){
-          stickRef.current.style.transform=`translate(${nx*maxR}px,${ny*maxR}px)`;
-        }
+        if(stickRef.current) stickRef.current.style.transform=`translate(${nx*maxR}px,${ny*maxR}px)`;
       }
     };
-    const onTouchEnd=(e)=>{
+    const onTE=(e)=>{
       for(let i=0;i<e.changedTouches.length;i++){
-        if(e.changedTouches[i].identifier===activeTouchId){
-          activeTouchId=null;
-          joystickRef.current={x:0,y:0};
+        if(e.changedTouches[i].identifier===id){
+          id=null; joystickRef.current={x:0,y:0};
           if(stickRef.current) stickRef.current.style.transform="translate(0,0)";
         }
       }
     };
-    joystickArea.addEventListener("touchstart",onTouchStart,{passive:true});
-    joystickArea.addEventListener("touchmove",onTouchMove,{passive:true});
-    joystickArea.addEventListener("touchend",onTouchEnd,{passive:true});
-    return()=>{
-      joystickArea.removeEventListener("touchstart",onTouchStart);
-      joystickArea.removeEventListener("touchmove",onTouchMove);
-      joystickArea.removeEventListener("touchend",onTouchEnd);
-    };
+    el.addEventListener("touchstart",onTS,{passive:true});
+    el.addEventListener("touchmove",onTM,{passive:true});
+    el.addEventListener("touchend",onTE,{passive:true});
+    return()=>{ el.removeEventListener("touchstart",onTS); el.removeEventListener("touchmove",onTM); el.removeEventListener("touchend",onTE); };
   },[joystickRef]);
-
-  const btnStyle=(color)=>({
-    width:56,height:56,borderRadius:"50%",border:`2px solid ${color}`,
-    background:`${color}22`,color:color,fontFamily:"monospace",
-    fontSize:10,fontWeight:"bold",letterSpacing:"0.06em",
-    display:"flex",alignItems:"center",justifyContent:"center",
-    userSelect:"none",WebkitUserSelect:"none",cursor:"pointer",
-    touchAction:"none",
-  });
-
+  const btnStyle=(color)=>({width:56,height:56,borderRadius:"50%",border:`2px solid ${color}`,background:`${color}22`,color,fontFamily:"monospace",fontSize:10,fontWeight:"bold",letterSpacing:"0.06em",display:"flex",alignItems:"center",justifyContent:"center",userSelect:"none",WebkitUserSelect:"none",cursor:"pointer",touchAction:"none"});
   return (
     <>
-      {/* Left joystick */}
-      <div ref={joystickAreaRef} style={{
-        position:"fixed",bottom:40,left:32,zIndex:400,
-        width:100,height:100,borderRadius:"50%",
-        background:"rgba(0,80,180,0.12)",border:"2px solid rgba(0,120,255,0.25)",
-        display:"flex",alignItems:"center",justifyContent:"center",
-        touchAction:"none",userSelect:"none"
-      }}>
-        <div ref={stickRef} style={{
-          width:38,height:38,borderRadius:"50%",
-          background:"rgba(0,140,255,0.45)",border:"2px solid rgba(0,180,255,0.65)",
-          transition:"none",pointerEvents:"none"
-        }}/>
+      <div ref={joystickAreaRef} style={{position:"fixed",bottom:40,left:32,zIndex:400,width:100,height:100,borderRadius:"50%",background:"rgba(0,80,180,0.12)",border:"2px solid rgba(0,120,255,0.25)",display:"flex",alignItems:"center",justifyContent:"center",touchAction:"none",userSelect:"none"}}>
+        <div ref={stickRef} style={{width:38,height:38,borderRadius:"50%",background:"rgba(0,140,255,0.45)",border:"2px solid rgba(0,180,255,0.65)",pointerEvents:"none"}}/>
       </div>
-
-      {/* Right side buttons */}
-      <div style={{position:"fixed",bottom:40,right:32,zIndex:400,
-        display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
-        <div
-          style={btnStyle("#00CCAA")}
-          onTouchStart={()=>{sprintingRef.current=true;}}
-          onTouchEnd={()=>{sprintingRef.current=false;}}
-        >SPRINT</div>
-        <div
-          style={btnStyle("#4499FF")}
-          onTouchStart={()=>{jumpRef.current=true;}}
-          onTouchEnd={()=>{jumpRef.current=false;}}
-        >JUMP</div>
+      <div style={{position:"fixed",bottom:40,right:32,zIndex:400,display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
+        <div style={btnStyle("#00CCAA")} onTouchStart={()=>{sprintingRef.current=true;}} onTouchEnd={()=>{sprintingRef.current=false;}}>SPRINT</div>
+        <div style={btnStyle("#4499FF")} onTouchStart={()=>{jumpRef.current=true;}} onTouchEnd={()=>{jumpRef.current=false;}}>JUMP</div>
       </div>
     </>
   );
 }
 
-// ── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 export default function SpatialShowroom() {
   const mountRef=useRef(null);
+  const audioRef=useRef(null);
   const [started,setStarted]=useState(false);
   const [pos,setPos]=useState([0,-5]);
   const [zone,setZone]=useState("ENTRY HALL");
   const [modal,setModal]=useState(null);
   const [showHelp,setShowHelp]=useState(false);
 
-  // Mobile detection
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const isMobile = typeof window!=="undefined" &&
     (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
 
-  // Mobile control refs (persist across renders without re-render cost)
-  const joystickRef = useRef({x:0,y:0});
-  const sprintingRef = useRef(false);
-  const jumpTriggerRef = useRef(false);
+  const joystickRef=useRef({x:0,y:0});
+  const sprintingRef=useRef(false);
+  const jumpTriggerRef=useRef(false);
+
+  // Audio setup
+  useEffect(()=>{
+    if(!started) return;
+    const audio=new Audio("/audio/seraphic-sight-overview.mp3");
+    audio.volume=0.7;
+    audio.loop=true;
+    audioRef.current=audio;
+    return()=>{ audio.pause(); audio.src=""; audioRef.current=null; };
+  },[started]);
 
   useEffect(()=>{
     if(!started) return;
@@ -573,160 +512,107 @@ export default function SpatialShowroom() {
     const floorTex=new THREE.CanvasTexture(makeFloorTex());
     floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;
     floorTex.repeat.set(5,14);
-
     const wallTex=new THREE.CanvasTexture(makeWallTex());
     wallTex.wrapS=wallTex.wrapT=THREE.RepeatWrapping;
-    wallTex.repeat.set(1,1);
+
+    // Services texture — fix: set colorSpace + needsUpdate
+    const servicesTex=new THREE.CanvasTexture(makeServicesTex());
+    servicesTex.colorSpace=THREE.SRGBColorSpace;
+    servicesTex.needsUpdate=true;
 
     // ── MATERIAL HELPERS ────────────────────────────────────────────────
     const bsic=(col,opts={})=>new THREE.MeshBasicMaterial({color:col,...opts});
     const emit=(col,em,ei=2)=>new THREE.MeshStandardMaterial({
       color:col,emissive:new THREE.Color(em),emissiveIntensity:ei,roughness:0.25,metalness:0.3});
-    const wallMat=()=>new THREE.MeshStandardMaterial({
-      map:wallTex, roughness:0.75, metalness:0.06,
-      color:new THREE.Color(0x18293E)});
+    const wallMat=()=>new THREE.MeshStandardMaterial({map:wallTex,roughness:0.75,metalness:0.06,color:new THREE.Color(0x18293E)});
 
-    function box(px,py,pz,w,h,d,mat){
-      const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
-      m.position.set(px,py,pz); scene.add(m); return m;
-    }
-    function hPlane(px,py,pz,w,d,mat){
-      const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);
-      m.rotation.x=-Math.PI/2; m.position.set(px,py,pz); scene.add(m); return m;
-    }
-    function vPlane(px,py,pz,w,h,mat,ry=0){
-      const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);
-      m.position.set(px,py,pz); m.rotation.y=ry; scene.add(m); return m;
-    }
+    function box(px,py,pz,w,h,d,mat){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(px,py,pz); scene.add(m); return m; }
+    function hPlane(px,py,pz,w,d,mat){ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat); m.rotation.x=-Math.PI/2; m.position.set(px,py,pz); scene.add(m); return m; }
+    function vPlane(px,py,pz,w,h,mat,ry=0){ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat); m.position.set(px,py,pz); m.rotation.y=ry; scene.add(m); return m; }
 
     const wallC=0x18293E;
 
     // ── FLOORS ──────────────────────────────────────────────────────────
-    hPlane(0,0,GD/2, GW,GD,
-      new THREE.MeshStandardMaterial({map:floorTex, roughness:0.48, metalness:0.16, color:0xffffff}));
-    hPlane(0,0,-ED/2, EW,ED,
-      new THREE.MeshStandardMaterial({map:floorTex, roughness:0.5, metalness:0.14, color:0x7799AA}));
+    hPlane(0,0,GD/2, GW,GD, new THREE.MeshStandardMaterial({map:floorTex,roughness:0.48,metalness:0.16,color:0xffffff}));
+    hPlane(0,0,-ED/2, EW,ED, new THREE.MeshStandardMaterial({map:floorTex,roughness:0.5,metalness:0.14,color:0x7799AA}));
 
     // ── CEILING ─────────────────────────────────────────────────────────
-    // Ceiling with subtle panel seam texture
     const ceilTex=(()=>{
       const cv=document.createElement("canvas"); cv.width=512; cv.height=256;
       const cx=cv.getContext("2d");
       cx.fillStyle="#0B1622"; cx.fillRect(0,0,512,256);
       cx.strokeStyle="rgba(0,40,90,0.25)"; cx.lineWidth=1;
-      for(let x=128;x<512;x+=128){
-        cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,256);cx.stroke();
-      }
-      cx.strokeStyle="rgba(0,40,90,0.15)"; cx.lineWidth=1;
-      for(let y=64;y<256;y+=64){
-        cx.beginPath();cx.moveTo(0,y);cx.lineTo(512,y);cx.stroke();
-      }
+      for(let x=128;x<512;x+=128){ cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,256);cx.stroke(); }
+      cx.strokeStyle="rgba(0,40,90,0.15)";
+      for(let y=64;y<256;y+=64){ cx.beginPath();cx.moveTo(0,y);cx.lineTo(512,y);cx.stroke(); }
       return new THREE.CanvasTexture(cv);
     })();
-    ceilTex.wrapS=ceilTex.wrapT=THREE.RepeatWrapping;
-    ceilTex.repeat.set(3,6);
-    box(0,GH,GD/2,  GW,0.18,GD,
-      new THREE.MeshStandardMaterial({map:ceilTex, roughness:0.9, metalness:0.04, color:0xCCDDEE}));
+    ceilTex.wrapS=ceilTex.wrapT=THREE.RepeatWrapping; ceilTex.repeat.set(3,6);
+    box(0,GH,GD/2, GW,0.18,GD, new THREE.MeshStandardMaterial({map:ceilTex,roughness:0.9,metalness:0.04,color:0xCCDDEE}));
     box(0,GH,-ED/2, EW,0.18,ED, bsic(0x0C1A2C));
 
-    // ── OUTER WALLS (with procedural texture) ───────────────────────────
-    const wL=wallMat(), wR=wallMat(), wBk=wallMat();
-    wL.map=wR.map=wBk.map=wallTex;
-    box(LX,  GH/2,GD/2,  0.12,GH,GD, wL);
-    box(RX,  GH/2,GD/2,  0.12,GH,GD, wR);
-    box(0,   GH/2,GD+0.06, GW,GH,0.12, bsic(wallC));
-    box(0,   GH/2,-ED-0.06, EW,GH,0.12, bsic(wallC));
+    // ── OUTER WALLS ──────────────────────────────────────────────────────
+    const wL=wallMat(), wR=wallMat(); wL.map=wR.map=wallTex;
+    box(LX, GH/2,GD/2, 0.12,GH,GD, wL);
+    box(RX, GH/2,GD/2, 0.12,GH,GD, wR);
+    box(0, GH/2,GD+0.06, GW,GH,0.12, bsic(wallC));
+    box(0, GH/2,-ED-0.06, EW,GH,0.12, bsic(wallC));
     box(-EW/2-0.06, GH/2,-ED/2, 0.12,GH,ED, bsic(wallC));
     box( EW/2+0.06, GH/2,-ED/2, 0.12,GH,ED, bsic(wallC));
     const sw=Math.abs(LX)-EW/2;
     box(-(Math.abs(LX)+EW/2)/2, GH/2, 0, sw,GH,0.12, bsic(wallC));
     box( (Math.abs(LX)+EW/2)/2, GH/2, 0, sw,GH,0.12, bsic(wallC));
 
-    // ── ARCHITECTURAL WALL SEAM LINES ────────────────────────────────────
-    // Thin vertical cyan/blue-gray lines every ~6 units along room depth
-    const seamMat=new THREE.MeshBasicMaterial({
-      color:0x1A4A7A, transparent:true, opacity:0.28});
-    for(let sz=5; sz<=35; sz+=6){
-      // Left wall seam
-      const sl=new THREE.Mesh(new THREE.BoxGeometry(0.015,GH,0.01), seamMat.clone());
-      sl.position.set(LX+0.07, GH/2, sz); scene.add(sl);
-      // Right wall seam
-      const sr=new THREE.Mesh(new THREE.BoxGeometry(0.015,GH,0.01), seamMat.clone());
-      sr.position.set(RX-0.07, GH/2, sz); scene.add(sr);
+    // ── WALL SEAMS ───────────────────────────────────────────────────────
+    const seamMat=new THREE.MeshBasicMaterial({color:0x1A4A7A,transparent:true,opacity:0.28});
+    for(let sz=5;sz<=35;sz+=6){
+      const sl=new THREE.Mesh(new THREE.BoxGeometry(0.015,GH,0.01),seamMat.clone()); sl.position.set(LX+0.07,GH/2,sz); scene.add(sl);
+      const sr=new THREE.Mesh(new THREE.BoxGeometry(0.015,GH,0.01),seamMat.clone()); sr.position.set(RX-0.07,GH/2,sz); scene.add(sr);
     }
 
-    // ── FLOOR-WALL GLOW & BASEBOARDS ─────────────────────────────────────
-    const warmGlow=emit(0xFFFFFF,0xFFEEDD,2.2);
-    const ceilGlow=emit(0x99AAEE,0x334488,1.8);
-    // Baseboards — low-profile dark strip at floor-wall junction
-    const baseboardMat=new THREE.MeshStandardMaterial({color:0x08111E,roughness:0.85,metalness:0.1});
-    box(LX+0.09,0.07,GD/2, 0.06,0.14,GD, baseboardMat.clone());
-    box(RX-0.09,0.07,GD/2, 0.06,0.14,GD, baseboardMat.clone());
-    // Floor-wall warm glow strip above baseboard
+    // ── BASEBOARDS & GLOW ───────────────────────────────────────────────
+    const warmGlow=emit(0xFFFFFF,0xFFEEDD,2.2), ceilGlow=emit(0x99AAEE,0x334488,1.8);
+    const bbMat=new THREE.MeshStandardMaterial({color:0x08111E,roughness:0.85,metalness:0.1});
+    box(LX+0.09,0.07,GD/2, 0.06,0.14,GD, bbMat.clone());
+    box(RX-0.09,0.07,GD/2, 0.06,0.14,GD, bbMat.clone());
     box(LX+0.07,0.04,GD/2, 0.04,0.07,GD, warmGlow.clone());
     box(RX-0.07,0.04,GD/2, 0.04,0.07,GD, warmGlow.clone());
-    // Ceiling trim — thin light channel at ceiling-wall junction
     box(LX+0.07,GH-0.05,GD/2, 0.03,0.05,GD, ceilGlow.clone());
     box(RX-0.07,GH-0.05,GD/2, 0.03,0.05,GD, ceilGlow.clone());
-    // Entry arch glow
     const archMat=emit(0x88AAFF,0x2244AA,2.5);
     box(-EW/2+0.07,GH/2,0.06, 0.05,GH,0.05, archMat.clone());
     box( EW/2-0.07,GH/2,0.06, 0.05,GH,0.05, archMat.clone());
     box(0,GH-0.04,0.06, EW,0.04,0.05, archMat.clone());
 
     // ── GALLERY BACKING PANELS ───────────────────────────────────────────
-    // Long dark translucent panels behind each row of gallery media
-    const backingMat=new THREE.MeshBasicMaterial({
-      color:0x020810, transparent:true, opacity:0.72});
-    // Photo gallery backing (left wall)
-    const photoBacking=new THREE.Mesh(
-      new THREE.PlaneGeometry(0.04, GH*0.65),
-      backingMat.clone());
-    photoBacking.position.set(LX+0.05, GH*0.42, GD/2-2);
-    photoBacking.rotation.y=Math.PI/2; scene.add(photoBacking);
-    // Thin accent line above photo row
-    const photoAccentTop=new THREE.Mesh(
-      new THREE.BoxGeometry(0.012, 0.018, 34),
-      new THREE.MeshStandardMaterial({color:0x2255FF,emissive:new THREE.Color(0x0033BB),emissiveIntensity:2.8}));
-    photoAccentTop.position.set(LX+0.05, GH*0.72, GD/2-2); scene.add(photoAccentTop);
-    // Thin accent line below photo row
-    const photoAccentBot=new THREE.Mesh(
-      new THREE.BoxGeometry(0.012, 0.018, 34),
-      new THREE.MeshStandardMaterial({color:0x1133AA,emissive:new THREE.Color(0x0022AA),emissiveIntensity:2.2}));
-    photoAccentBot.position.set(LX+0.05, GH*0.14, GD/2-2); scene.add(photoAccentBot);
-    // Video gallery backing (right wall)
-    const videoBacking=new THREE.Mesh(
-      new THREE.PlaneGeometry(0.04, GH*0.65),
-      backingMat.clone());
-    videoBacking.position.set(RX-0.05, GH*0.42, GD/2-2);
-    videoBacking.rotation.y=-Math.PI/2; scene.add(videoBacking);
-    const videoAccentTop=new THREE.Mesh(
-      new THREE.BoxGeometry(0.012, 0.018, 34),
-      new THREE.MeshStandardMaterial({color:0x00CCAA,emissive:new THREE.Color(0x009977),emissiveIntensity:2.8}));
-    videoAccentTop.position.set(RX-0.05, GH*0.72, GD/2-2); scene.add(videoAccentTop);
-    const videoAccentBot=new THREE.Mesh(
-      new THREE.BoxGeometry(0.012, 0.018, 34),
-      new THREE.MeshStandardMaterial({color:0x008866,emissive:new THREE.Color(0x006644),emissiveIntensity:2.2}));
-    videoAccentBot.position.set(RX-0.05, GH*0.14, GD/2-2); scene.add(videoAccentBot);
+    const bkgMat=new THREE.MeshBasicMaterial({color:0x020810,transparent:true,opacity:0.72});
+    const pBk=new THREE.Mesh(new THREE.PlaneGeometry(0.04,GH*0.65),bkgMat.clone()); pBk.position.set(LX+0.05,GH*0.42,GD/2-2); pBk.rotation.y=Math.PI/2; scene.add(pBk);
+    const vBk=new THREE.Mesh(new THREE.PlaneGeometry(0.04,GH*0.65),bkgMat.clone()); vBk.position.set(RX-0.05,GH*0.42,GD/2-2); vBk.rotation.y=-Math.PI/2; scene.add(vBk);
+    [LX+0.05,LX+0.05].forEach((x,i)=>{
+      const y=i===0?GH*0.72:GH*0.14, col=i===0?0x2255FF:0x1133AA, em=i===0?0x0033BB:0x0022AA;
+      const m=new THREE.Mesh(new THREE.BoxGeometry(0.012,0.018,34),new THREE.MeshStandardMaterial({color:col,emissive:new THREE.Color(em),emissiveIntensity:i===0?2.8:2.2}));
+      m.position.set(LX+0.05,y,GD/2-2); scene.add(m);
+    });
+    [RX-0.05,RX-0.05].forEach((x,i)=>{
+      const y=i===0?GH*0.72:GH*0.14, col=i===0?0x00CCAA:0x008866, em=i===0?0x009977:0x006644;
+      const m=new THREE.Mesh(new THREE.BoxGeometry(0.012,0.018,34),new THREE.MeshStandardMaterial({color:col,emissive:new THREE.Color(em),emissiveIntensity:i===0?2.8:2.2}));
+      m.position.set(RX-0.05,y,GD/2-2); scene.add(m);
+    });
 
     // ── CEILING LIGHTS ───────────────────────────────────────────────────
     scene.add(new THREE.AmbientLight(0xCCDDFF, isMobile?0.55:0.3));
-
     if(!isMobile){
       [4,10,16,22,28,34,38].forEach(z=>{
         box(-3.5,GH-0.08,z, 4.5,0.05,0.07, emit(0xFFFFEE,0xFFEECC,2.2));
         box( 3.5,GH-0.08,z, 4.5,0.05,0.07, emit(0xFFFFEE,0xFFEECC,2.2));
         const pl=new THREE.PointLight(0xFFEEDD,3.2,20); pl.position.set(0,GH-0.3,z); scene.add(pl);
       });
-      [-6,-2].forEach(z=>{
-        const pl=new THREE.PointLight(0xFFEEDD,2.8,10); pl.position.set(0,GH-0.4,z); scene.add(pl);
-      });
+      [-6,-2].forEach(z=>{ const pl=new THREE.PointLight(0xFFEEDD,2.8,10); pl.position.set(0,GH-0.4,z); scene.add(pl); });
       [5,14,23,32].forEach(z=>{
         const l=new THREE.PointLight(0xFFEEDD,1.6,8); l.position.set(LX+1.5,0.2,z); scene.add(l);
         const r=new THREE.PointLight(0xFFEEDD,1.6,8); r.position.set(RX-1.5,0.2,z); scene.add(r);
       });
     } else {
-      // Fewer lights on mobile for performance
       [8,24,38].forEach(z=>{
         box(-3.5,GH-0.08,z, 4.5,0.05,0.07, emit(0xFFFFEE,0xFFEECC,2.2));
         box( 3.5,GH-0.08,z, 4.5,0.05,0.07, emit(0xFFFFEE,0xFFEECC,2.2));
@@ -735,76 +621,59 @@ export default function SpatialShowroom() {
     }
 
     // ── SECTION SIGNS ────────────────────────────────────────────────────
-    function signTex(text,accent){
-      const cv=document.createElement("canvas"); cv.width=512; cv.height=72;
-      const cx=cv.getContext("2d"); cx.clearRect(0,0,512,72);
-      cx.fillStyle=accent; cx.font="bold 44px Arial"; cx.textAlign="center"; cx.fillText(text,256,54);
-      return new THREE.CanvasTexture(cv);
-    }
-    vPlane(LX+0.08,GH-0.5,4, 5,0.65,
-      new THREE.MeshBasicMaterial({color:0xffffff,map:signTex("PHOTO GALLERY","#4499FF"),transparent:true,side:THREE.DoubleSide}),
-      Math.PI/2);
-    vPlane(RX-0.08,GH-0.5,4, 5,0.65,
-      new THREE.MeshBasicMaterial({color:0xffffff,map:signTex("VIDEO GALLERY","#00CCAA"),transparent:true,side:THREE.DoubleSide}),
-      -Math.PI/2);
+    function signTex(text,accent){ const cv=document.createElement("canvas"); cv.width=512; cv.height=72; const cx=cv.getContext("2d"); cx.clearRect(0,0,512,72); cx.fillStyle=accent; cx.font="bold 44px Arial"; cx.textAlign="center"; cx.fillText(text,256,54); return new THREE.CanvasTexture(cv); }
+    vPlane(LX+0.08,GH-0.5,4, 5,0.65, new THREE.MeshBasicMaterial({color:0xffffff,map:signTex("PHOTO GALLERY","#4499FF"),transparent:true,side:THREE.DoubleSide}), Math.PI/2);
+    vPlane(RX-0.08,GH-0.5,4, 5,0.65, new THREE.MeshBasicMaterial({color:0xffffff,map:signTex("VIDEO GALLERY","#00CCAA"),transparent:true,side:THREE.DoubleSide}), -Math.PI/2);
 
-    // ── SERVICES WALL ─────────────────────────────────────────────────────
-    // Smaller premium panel with more internal padding; 2-column layout
-    const servicesTex=new THREE.CanvasTexture(makeServicesTex());
-    // Dark backing panel
+    // ── SERVICES WALL — FIXED ────────────────────────────────────────────
+    // Panel faces -z (Math.PI). Viewer comes from z < GD.
+    // Lower z = in front (closer to viewer). Higher z = behind (closer to wall at GD+0.06).
+    // So: backing near wall at GD-0.08, content panel in front at GD-0.20.
     const svcBacking=new THREE.Mesh(
-      new THREE.PlaneGeometry(9.6, 4.2),
-      new THREE.MeshBasicMaterial({color:0x030810, transparent:true, opacity:0.82,
-        side:THREE.DoubleSide}));
-    svcBacking.position.set(0,GH/2-0.15,GD-0.18);
+      new THREE.PlaneGeometry(9.8, 4.4),
+      new THREE.MeshBasicMaterial({color:0x020810,transparent:true,opacity:0.90,side:THREE.DoubleSide,depthWrite:false}));
+    svcBacking.position.set(0,GH/2-0.15,GD-0.08);
     svcBacking.rotation.y=Math.PI;
-    svcBacking.renderOrder=8; scene.add(svcBacking);
-    // Thin accent line above
-    const svcAccentTop=new THREE.Mesh(
-      new THREE.BoxGeometry(9.6, 0.018, 0.012),
-      new THREE.MeshStandardMaterial({color:0x0060FF,emissive:new THREE.Color(0x0040CC),emissiveIntensity:3.0}));
-    svcAccentTop.position.set(0,(GH/2-0.15)+2.1+0.02,GD-0.16); scene.add(svcAccentTop);
-    // Thin accent line below
-    const svcAccentBot=new THREE.Mesh(
-      new THREE.BoxGeometry(9.6, 0.018, 0.012),
-      new THREE.MeshStandardMaterial({color:0x00CCAA,emissive:new THREE.Color(0x009977),emissiveIntensity:2.5}));
-    svcAccentBot.position.set(0,(GH/2-0.15)-2.1-0.02,GD-0.16); scene.add(svcAccentBot);
-    // Front panel content
+    svcBacking.renderOrder=7; scene.add(svcBacking);
+
+    // Front content — no transparent, full depthWrite, in front of backing
     const svcPanel=new THREE.Mesh(
       new THREE.PlaneGeometry(9.2, 4.0),
-      new THREE.MeshBasicMaterial({color:0xffffff, map:servicesTex,
-        transparent:true, side:THREE.DoubleSide, depthWrite:false}));
-    svcPanel.position.set(0,GH/2-0.15,GD-0.13);
+      new THREE.MeshBasicMaterial({
+        color:0xffffff, map:servicesTex,
+        transparent:false, side:THREE.DoubleSide,
+        depthWrite:true, depthTest:true}));
+    svcPanel.position.set(0,GH/2-0.15,GD-0.20);
     svcPanel.rotation.y=Math.PI;
     svcPanel.renderOrder=9; scene.add(svcPanel);
 
-    // ── CTA PANELS — z-fighting fix ────────────────────────────────────
+    // Accent lines
+    const svcY=GH/2-0.15;
+    const svcAccentTop=new THREE.Mesh(new THREE.BoxGeometry(9.6,0.018,0.012),
+      new THREE.MeshStandardMaterial({color:0x0060FF,emissive:new THREE.Color(0x0040CC),emissiveIntensity:3.0}));
+    svcAccentTop.position.set(0,svcY+2.12,GD-0.18); scene.add(svcAccentTop);
+    const svcAccentBot=new THREE.Mesh(new THREE.BoxGeometry(9.6,0.018,0.012),
+      new THREE.MeshStandardMaterial({color:0x00CCAA,emissive:new THREE.Color(0x009977),emissiveIntensity:2.5}));
+    svcAccentBot.position.set(0,svcY-2.12,GD-0.18); scene.add(svcAccentBot);
+
+    // ── CTA PANELS ───────────────────────────────────────────────────────
     const hotspots=[];
     function addCTA(px,py,pz,text,ry,ctaData){
       const tex=new THREE.CanvasTexture(makeCTATex(text,ctaData.accent||"#0066EE"));
-      // Front plane — slightly closer to viewer than wall
       const front=new THREE.Mesh(new THREE.PlaneGeometry(2.8,0.62),
-        new THREE.MeshBasicMaterial({
-          color:0xffffff, map:tex, transparent:true,
-          side:THREE.DoubleSide, depthWrite:false}));
-      front.position.set(px,py,pz-0.03); front.rotation.y=ry;
-      front.renderOrder=10; scene.add(front);
-      // Backing — slightly further back
+        new THREE.MeshBasicMaterial({color:0xffffff,map:tex,transparent:true,side:THREE.DoubleSide,depthWrite:false}));
+      front.position.set(px,py,pz-0.03); front.rotation.y=ry; front.renderOrder=10; scene.add(front);
       const back=new THREE.Mesh(new THREE.PlaneGeometry(2.85,0.67),
-        new THREE.MeshBasicMaterial({
-          color:0x001030, transparent:true, opacity:0.65,
-          depthWrite:false}));
-      back.position.set(px,py,pz-0.06); back.rotation.y=ry;
-      back.renderOrder=9; scene.add(back);
+        new THREE.MeshBasicMaterial({color:0x001030,transparent:true,opacity:0.65,depthWrite:false}));
+      back.position.set(px,py,pz-0.06); back.rotation.y=ry; back.renderOrder=9; scene.add(back);
       front.userData={cta:true,...ctaData}; hotspots.push(front);
     }
-    // The CTAs face -z (Math.PI), so "closer to viewer" is lower z for back wall
-    addCTA(-6.2, 1.6, GD-0.15, "GET A QUOTE", Math.PI,
+    addCTA(-6.2,1.6,GD-0.15,"GET A QUOTE",Math.PI,
       {title:"Get a Quote",body:"FAA Part 107 certified drone services\nSouthern & Central California",action:"CONTACT US",href:"/contact",accent:"#0066EE"});
-    addCTA( 6.2, 1.6, GD-0.15, "VIEW PORTFOLIO", Math.PI,
+    addCTA( 6.2,1.6,GD-0.15,"VIEW PORTFOLIO",Math.PI,
       {title:"Full Portfolio",body:"Browse the complete aerial photography\nand video portfolio",action:"OPEN PORTFOLIO",href:"/portfolio",accent:"#009977"});
 
-    // ── CENTERPIECE 1: HOLOGRAPHIC PARCEL EXHIBIT (z=10) ─────────────
+    // ── CENTERPIECE 1: PARCEL EXHIBIT ────────────────────────────────────
     const [PX,PY,PZ]=PARCEL_POS;
     const parcelGroup=new THREE.Group();
     parcelGroup.position.set(PX,PY,PZ);
@@ -813,19 +682,29 @@ export default function SpatialShowroom() {
 
     const ped=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.75,0.12,32),bsic(0x0E1E30));
     ped.position.set(PX,0.06,PZ); scene.add(ped);
-    const flRing=new THREE.Mesh(new THREE.TorusGeometry(1.1,0.022,6,64), emit(0x00CCBB,0x009988,2.2));
+    const flRing=new THREE.Mesh(new THREE.TorusGeometry(1.1,0.022,6,64),emit(0x00CCBB,0x009988,2.2));
     flRing.rotation.x=Math.PI/2; flRing.position.set(PX,0.02,PZ); scene.add(flRing);
 
     const pts2d=[[-1.0,-0.7],[1.3,-0.85],[1.6,0.7],[0.2,1.2],[-1.2,0.9]];
     const pts3d=pts2d.map(([x,z])=>new THREE.Vector3(x,0.02,z));
-
-    const closedPts=[...pts3d, pts3d[0]];
-    const bndCurve=new THREE.CatmullRomCurve3(closedPts, true);
+    const closedPts=[...pts3d,pts3d[0]];
+    const bndCurve=new THREE.CatmullRomCurve3(closedPts,true);
     const bndMat=new THREE.MeshStandardMaterial({
-      color:0x00ffee, emissive:new THREE.Color(0x00ddcc),
-      emissiveIntensity:3.5, transparent:true, opacity:0.95});
-    const bndTube=new THREE.Mesh(new THREE.TubeGeometry(bndCurve,120,0.025,8,true), bndMat);
+      color:0x00ffee,emissive:new THREE.Color(0x00ddcc),
+      emissiveIntensity:3.5,transparent:true,opacity:0.95});
+    const bndTube=new THREE.Mesh(new THREE.TubeGeometry(bndCurve,120,0.025,8,true),bndMat);
     parcelGroup.add(bndTube);
+
+    // Make parcel boundary clickable — #3
+    bndTube.userData={
+      cta:true,
+      title:"Parcel Boundary Preview",
+      body:"Aerial boundary overlays help buyers, agents, and developers\nunderstand site limits, access, frontage, and usable land\nat a glance. GPS-accurate and delivered on imagery.",
+      action:"VIEW EXAMPLE",
+      href:"/portfolio",
+      accent:"#00CCAA"
+    };
+    hotspots.push(bndTube);
 
     const shape=new THREE.Shape(pts2d.map(([x,z])=>new THREE.Vector2(x,z)));
     const fillMesh=new THREE.Mesh(new THREE.ShapeGeometry(shape),
@@ -834,20 +713,17 @@ export default function SpatialShowroom() {
 
     const cornerPins=[];
     pts3d.forEach(pt=>{
-      const pin=new THREE.Mesh(new THREE.SphereGeometry(0.07,8,8), emit(0x00FFCC,0x00EEAA,3.0));
+      const pin=new THREE.Mesh(new THREE.SphereGeometry(0.07,8,8),emit(0x00FFCC,0x00EEAA,3.0));
       pin.position.copy(pt); parcelGroup.add(pin); cornerPins.push(pin);
-      const dl=new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([pt, new THREE.Vector3(pt.x,-PY,pt.z)]),
-        new THREE.LineBasicMaterial({color:0x0088BB,transparent:true,opacity:0.45}));
-      parcelGroup.add(dl);
+      parcelGroup.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([pt,new THREE.Vector3(pt.x,-PY,pt.z)]),
+        new THREE.LineBasicMaterial({color:0x0088BB,transparent:true,opacity:0.45})));
     });
 
     for(let g=-0.9;g<=0.9;g+=0.25){
-      const row=new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(-1.4,0.01,g), new THREE.Vector3(1.7,0.01,g)]),
-        new THREE.LineBasicMaterial({color:0x005577,transparent:true,opacity:0.5}));
-      parcelGroup.add(row);
+      parcelGroup.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-1.4,0.01,g),new THREE.Vector3(1.7,0.01,g)]),
+        new THREE.LineBasicMaterial({color:0x005577,transparent:true,opacity:0.5})));
     }
 
     const plabelTex=new THREE.CanvasTexture(makeParcelLabelTex());
@@ -857,53 +733,91 @@ export default function SpatialShowroom() {
 
     const parcelLight=new THREE.PointLight(0x00DDCC,1.4,9); parcelLight.position.set(PX,2,PZ); scene.add(parcelLight);
 
-    // ── CENTERPIECE 2: DRONE FLIGHT PATH RIBBON ───────────────────────
-    const [FZ_START, , FZ_END]=FLIGHT_Z;
-    const flightPts=[
-      new THREE.Vector3(-2.2, 3.5, FZ_START),
-      new THREE.Vector3(-1.0, 3.7, FZ_START+2),
-      new THREE.Vector3( 0.8, 3.8, FZ_START+4),
-      new THREE.Vector3( 1.8, 3.6, FZ_START+6),
-      new THREE.Vector3( 0.4, 3.75, FZ_START+8),
-      new THREE.Vector3(-1.2, 3.65, FZ_START+10),
-      new THREE.Vector3( 0.0, 3.7, FZ_END),
-    ];
-    const flightCurve=new THREE.CatmullRomCurve3(flightPts, false);
-    const flightTubeMat=new THREE.MeshStandardMaterial({
-      color:0x00DDFF, emissive:new THREE.Color(0x0099CC),
-      emissiveIntensity:2.5, transparent:true, opacity:0.65});
-    const flightTube=new THREE.Mesh(new THREE.TubeGeometry(flightCurve,80,0.014,6,false), flightTubeMat);
-    scene.add(flightTube);
+    // Scan ring — #4: rising/fading animation
+    const scanRingGeo=new THREE.RingGeometry(0.08,1.55,48);
+    const scanRingMat=new THREE.MeshBasicMaterial({
+      color:0x00FFDD,transparent:true,opacity:0.35,side:THREE.DoubleSide,depthWrite:false});
+    const scanRing=new THREE.Mesh(scanRingGeo,scanRingMat);
+    scanRing.rotation.x=-Math.PI/2;
+    parcelGroup.add(scanRing);
+    let scanY=-1.1;
 
-    [0, 0.17, 0.33, 0.5, 0.67, 0.83, 1].forEach(u=>{
-      const wp=new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8), emit(0x00FFEE,0x00CCDD,3.2));
+    // ── CENTERPIECE 2: DRONE FLIGHT PATH ─────────────────────────────────
+    const [FZ_START,,FZ_END]=FLIGHT_Z;
+    const flightPts=[
+      new THREE.Vector3(-2.2,3.5,FZ_START),
+      new THREE.Vector3(-1.0,3.7,FZ_START+2),
+      new THREE.Vector3( 0.8,3.8,FZ_START+4),
+      new THREE.Vector3( 1.8,3.6,FZ_START+6),
+      new THREE.Vector3( 0.4,3.75,FZ_START+8),
+      new THREE.Vector3(-1.2,3.65,FZ_START+10),
+      new THREE.Vector3( 0.0,3.7,FZ_END),
+    ];
+    const flightCurve=new THREE.CatmullRomCurve3(flightPts,false);
+    const flightTubeMat=new THREE.MeshStandardMaterial({
+      color:0x00DDFF,emissive:new THREE.Color(0x0099CC),
+      emissiveIntensity:2.5,transparent:true,opacity:0.65});
+    scene.add(new THREE.Mesh(new THREE.TubeGeometry(flightCurve,80,0.014,6,false),flightTubeMat));
+
+    [0,0.17,0.33,0.5,0.67,0.83,1].forEach(u=>{
+      const wp=new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8),emit(0x00FFEE,0x00CCDD,3.2));
       wp.position.copy(flightCurve.getPointAt(u)); scene.add(wp);
     });
 
-    const pulseMesh=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8), emit(0xFFFFFF,0x00DDFF,5.0));
+    // Pulse sphere (kept for trail effect)
+    const pulseMesh=new THREE.Mesh(new THREE.SphereGeometry(0.06,8,8),emit(0xFFFFFF,0x00DDFF,4.5));
     scene.add(pulseMesh);
+
+    // Drone marker — #5: ConeGeometry moving along curve
+    const droneMesh=new THREE.Mesh(
+      new THREE.ConeGeometry(0.07,0.22,4),
+      new THREE.MeshStandardMaterial({color:0x00FFEE,emissive:new THREE.Color(0x00CCBB),emissiveIntensity:3.2,roughness:0.3,metalness:0.5}));
+    scene.add(droneMesh);
+    // Small trail light under drone
+    const droneTrail=new THREE.Mesh(
+      new THREE.SphereGeometry(0.04,6,6),
+      new THREE.MeshBasicMaterial({color:0x00FFEE,transparent:true,opacity:0.45}));
+    scene.add(droneTrail);
+
     let flightU=0;
+    const flightLight=new THREE.PointLight(0x00CCFF,1.2,12); scene.add(flightLight);
 
-    const flightLight=new THREE.PointLight(0x00CCFF,1.0,10); scene.add(flightLight);
-
-    // ── CENTERPIECE 3: POINT CLOUD ORB ──────────────────────────────────
+    // ── CENTERPIECE 3: POINT CLOUD ORB ───────────────────────────────────
     const [CX,CY,CZ]=CLOUD_POS;
-    const N_PTS = isMobile ? 2500 : 6500;
-    const cPos=new Float32Array(N_PTS*3), cCol=new Float32Array(N_PTS*3);
+    const N_PTS=isMobile?2500:6500;
+    const cPos=new Float32Array(N_PTS*3), cColBase=new Float32Array(N_PTS*3);
     let _s=11; const rnd=()=>{_s=(_s*9301+49297)%233280;return _s/233280;};
     for(let i=0;i<N_PTS;i++){
       const th=rnd()*Math.PI*2, ph=Math.acos(2*rnd()-1), r=1.35*(0.88+0.12*rnd());
       cPos[i*3]=r*Math.sin(ph)*Math.cos(th);
       cPos[i*3+1]=r*Math.cos(ph);
       cPos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
-      const t2=(cPos[i*3+1]+1.35)/(2.7);
-      cCol[i*3]  =t2<0.45?0:(t2-0.45)*0.5;
-      cCol[i*3+1]=t2<0.4?0.1+t2*0.4:0.26+(t2-0.4)*0.74;
-      cCol[i*3+2]=t2<0.5?0.5+t2*0.5:1.0;
+      // Richer gradient: bottom=violet→mid=cyan→top=teal
+      const t2=(cPos[i*3+1]+1.35)/2.7;
+      if(t2<0.33){
+        // violet band
+        cColBase[i*3  ]=0.3+t2*0.4;
+        cColBase[i*3+1]=0.0+t2*0.3;
+        cColBase[i*3+2]=0.7+t2*0.2;
+      } else if(t2<0.66){
+        // cyan band
+        const f=(t2-0.33)/0.33;
+        cColBase[i*3  ]=0.42-f*0.3;
+        cColBase[i*3+1]=0.3+f*0.5;
+        cColBase[i*3+2]=0.9;
+      } else {
+        // teal band
+        const f=(t2-0.66)/0.34;
+        cColBase[i*3  ]=0.12-f*0.08;
+        cColBase[i*3+1]=0.8+f*0.2;
+        cColBase[i*3+2]=0.9-f*0.3;
+      }
     }
     const cloudGeo=new THREE.BufferGeometry();
     cloudGeo.setAttribute("position",new THREE.BufferAttribute(cPos,3));
-    cloudGeo.setAttribute("color",   new THREE.BufferAttribute(cCol,3));
+    // Live color buffer for desktop animation
+    const cColLive=new Float32Array(cColBase);
+    cloudGeo.setAttribute("color",new THREE.BufferAttribute(cColLive,3));
     const cloudMesh=new THREE.Points(cloudGeo,new THREE.PointsMaterial({
       vertexColors:true,size:0.05,sizeAttenuation:true,transparent:true,opacity:0.9,depthWrite:false}));
     cloudMesh.position.set(CX,CY,CZ); scene.add(cloudMesh);
@@ -913,114 +827,70 @@ export default function SpatialShowroom() {
       new THREE.MeshBasicMaterial({color:0x0055BB,wireframe:true,transparent:true,opacity:0.16}));
     icoMesh.position.set(CX,CY,CZ); scene.add(icoMesh);
 
-    const ringMat=(col,em,ei=2.2)=>new THREE.MeshStandardMaterial({
+    // Rings — richer palette: cyan / teal / violet — #6
+    const rmk=(col,em,ei=2.4)=>new THREE.MeshStandardMaterial({
       color:col,emissive:new THREE.Color(em),emissiveIntensity:ei,
-      roughness:0.2,metalness:0.2,transparent:true,opacity:0.65});
+      roughness:0.15,metalness:0.25,transparent:true,opacity:0.7});
     const OR=1.55;
-    const ring1=new THREE.Mesh(new THREE.TorusGeometry(OR,0.012,6,90),ringMat(0x00AAFF,0x0066CC));
+    const ring1=new THREE.Mesh(new THREE.TorusGeometry(OR,0.013,6,90),rmk(0x00CCFF,0x0088CC));
     ring1.position.set(CX,CY,CZ); ring1.rotation.x=Math.PI/2; scene.add(ring1);
-    const ring2=new THREE.Mesh(new THREE.TorusGeometry(OR*0.88,0.009,6,80),ringMat(0x00EEDD,0x008877));
+    const ring2=new THREE.Mesh(new THREE.TorusGeometry(OR*0.88,0.010,6,80),rmk(0x00FFCC,0x009988));
     ring2.position.set(CX,CY,CZ); ring2.rotation.set(Math.PI/3,Math.PI/6,0); scene.add(ring2);
-    const ring3=new THREE.Mesh(new THREE.TorusGeometry(OR*0.72,0.007,6,72),ringMat(0x8899FF,0x3344AA,1.8));
+    const ring3=new THREE.Mesh(new THREE.TorusGeometry(OR*0.72,0.008,6,72),rmk(0xBB88FF,0x7733CC,2.0));
     ring3.position.set(CX,CY,CZ); ring3.rotation.set(Math.PI/5,Math.PI/2.5,Math.PI/4); scene.add(ring3);
     const orbLight=new THREE.PointLight(0x0077FF,1.8,14); orbLight.position.set(CX,CY,CZ); scene.add(orbLight);
 
     // ── GALLERY PANELS ───────────────────────────────────────────────────
     const loader=new THREE.TextureLoader(); loader.crossOrigin="anonymous";
-    const PHOTO_W=2.85, PHOTO_H=1.65;
-    const VIDEO_W=3.65, VIDEO_H=2.05;
-    const GALLERY_Y=2.45;
-
-    // Track video elements for lazy play/pause based on proximity
+    const PHOTO_W=2.85, PHOTO_H=1.65, VIDEO_W=3.65, VIDEO_H=2.05, GALLERY_Y=2.45;
     const videoEls=[];
 
-    function addPhoto(ph, y, z){
-      vPlane(LX+0.05,y,z, PHOTO_W+0.14,PHOTO_H+0.14,
-        bsic(0x14233A,{transparent:true,opacity:0.88}), Math.PI/2);
-      const tex=loader.load(cImg(ph.id,840,560));
-      tex.colorSpace=THREE.SRGBColorSpace;
-      const sc=new THREE.Mesh(new THREE.PlaneGeometry(PHOTO_W,PHOTO_H),
-        new THREE.MeshBasicMaterial({map:tex}));
+    function addPhoto(ph,y,z){
+      vPlane(LX+0.05,y,z, PHOTO_W+0.14,PHOTO_H+0.14, bsic(0x14233A,{transparent:true,opacity:0.88}), Math.PI/2);
+      const tex=loader.load(cImg(ph.id,840,560)); tex.colorSpace=THREE.SRGBColorSpace;
+      const sc=new THREE.Mesh(new THREE.PlaneGeometry(PHOTO_W,PHOTO_H),new THREE.MeshBasicMaterial({map:tex}));
       sc.position.set(LX+0.07,y,z); sc.rotation.y=Math.PI/2; scene.add(sc);
       vPlane(LX+0.08,y+PHOTO_H/2+0.04,z, PHOTO_W,0.035,
-        new THREE.MeshStandardMaterial({color:0x2255FF,emissive:new THREE.Color(0x0033CC),emissiveIntensity:3.5}),
-        Math.PI/2);
-      if(!isMobile){
-        const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4);
-        sl.position.set(LX+5,y+1.5,z); sl.target.position.set(LX+0.1,y,z);
-        scene.add(sl); scene.add(sl.target);
-      }
+        new THREE.MeshStandardMaterial({color:0x2255FF,emissive:new THREE.Color(0x0033CC),emissiveIntensity:3.5}), Math.PI/2);
+      if(!isMobile){ const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4); sl.position.set(LX+5,y+1.5,z); sl.target.position.set(LX+0.1,y,z); scene.add(sl); scene.add(sl.target); }
       sc.userData={type:"photo",...ph}; hotspots.push(sc);
     }
-
-    function addVideo(vid, y, z){
+    function addVideo(vid,y,z){
       const vGroup=new THREE.Group(); scene.add(vGroup);
       const videoEl=document.createElement("video");
-      videoEl.src=cVid(vid.id); videoEl.loop=true; videoEl.muted=true;
-      videoEl.playsInline=true; videoEl.crossOrigin="anonymous";
-      // Lazy: don't autoplay immediately on mobile
+      videoEl.src=cVid(vid.id); videoEl.loop=true; videoEl.muted=true; videoEl.playsInline=true; videoEl.crossOrigin="anonymous";
       if(!isMobile){ videoEl.autoplay=true; videoEl.play().catch(()=>{}); }
       videoEl.addEventListener("error",()=>{ vGroup.visible=false; });
-      videoEls.push({el:videoEl, z});
-      const vTex=new THREE.VideoTexture(videoEl);
-      vTex.colorSpace=THREE.SRGBColorSpace;
-      const bd=new THREE.Mesh(new THREE.PlaneGeometry(VIDEO_W+0.14,VIDEO_H+0.14),
-        bsic(0x0A1820,{transparent:true,opacity:0.88}));
+      videoEls.push({el:videoEl,z});
+      const vTex=new THREE.VideoTexture(videoEl); vTex.colorSpace=THREE.SRGBColorSpace;
+      const bd=new THREE.Mesh(new THREE.PlaneGeometry(VIDEO_W+0.14,VIDEO_H+0.14),bsic(0x0A1820,{transparent:true,opacity:0.88}));
       bd.position.set(RX-0.05,y,z); bd.rotation.y=-Math.PI/2; vGroup.add(bd);
-      const sc=new THREE.Mesh(new THREE.PlaneGeometry(VIDEO_W,VIDEO_H),
-        new THREE.MeshBasicMaterial({map:vTex}));
+      const sc=new THREE.Mesh(new THREE.PlaneGeometry(VIDEO_W,VIDEO_H),new THREE.MeshBasicMaterial({map:vTex}));
       sc.position.set(RX-0.07,y,z); sc.rotation.y=-Math.PI/2; vGroup.add(sc);
       const gw=new THREE.Mesh(new THREE.PlaneGeometry(VIDEO_W,0.035),
         new THREE.MeshStandardMaterial({color:0x00CCAA,emissive:new THREE.Color(0x009977),emissiveIntensity:3.5}));
       gw.position.set(RX-0.08,y+VIDEO_H/2+0.04,z); gw.rotation.y=-Math.PI/2; vGroup.add(gw);
-      if(!isMobile){
-        const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4);
-        sl.position.set(RX-5,y+1.5,z); sl.target.position.set(RX-0.1,y,z);
-        vGroup.add(sl); scene.add(sl.target);
-      }
+      if(!isMobile){ const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4); sl.position.set(RX-5,y+1.5,z); sl.target.position.set(RX-0.1,y,z); vGroup.add(sl); scene.add(sl.target); }
       sc.userData={type:"video",...vid}; hotspots.push(sc);
     }
+    function layoutOneRow(items,fn,y,s,e){ const step=items.length>1?(e-s)/(items.length-1):0; items.forEach((it,i)=>fn(it,y,s+i*step)); }
+    layoutOneRow(PHOTOS,addPhoto,GALLERY_Y,4,36);
+    layoutOneRow(VIDEOS,addVideo,GALLERY_Y,4,36);
 
-    function layoutOneRow(items, addFn, y, startZ, endZ){
-      const step=items.length>1?(endZ-startZ)/(items.length-1):0;
-      items.forEach((item,i)=>addFn(item, y, startZ+i*step));
-    }
-    layoutOneRow(PHOTOS, addPhoto, GALLERY_Y, 4, 36);
-    layoutOneRow(VIDEOS, addVideo, GALLERY_Y, 4, 36);
-
-    // ── COLLISION ─────────────────────────────────────────────────────────
+    // ── COLLISION & ZONE ─────────────────────────────────────────────────
     function constrainPos(x,z){
-      const nz=Math.max(-(ED-0.5), Math.min(GD-0.5, z));
-      let nx;
-      if(nz<0.5){
-        nx=Math.max(-(EW/2-0.35), Math.min(EW/2-0.35, x));
-      } else {
-        nx=Math.max(-(GW/2-0.35), Math.min(GW/2-0.35, x));
-      }
+      const nz=Math.max(-(ED-0.5),Math.min(GD-0.5,z));
+      const nx=nz<0.5?Math.max(-(EW/2-0.35),Math.min(EW/2-0.35,x)):Math.max(-(GW/2-0.35),Math.min(GW/2-0.35,x));
       return [nx,nz];
     }
+    const getZone=p=>{ if(p.z<0) return "ENTRY HALL"; if(p.x<-2) return "PHOTO GALLERY"; if(p.x>2) return "VIDEO GALLERY"; if(p.z>GD-6) return "SERVICES"; return "MAIN GALLERY"; };
 
-    const getZone=p=>{
-      if(p.z<0) return "ENTRY HALL";
-      if(p.x<-2) return "PHOTO GALLERY";
-      if(p.x>2)  return "VIDEO GALLERY";
-      if(p.z>GD-6) return "SERVICES";
-      return "MAIN GALLERY";
-    };
-
-    // ── CONTROLS (desktop) ───────────────────────────────────────────────
-    const keys={};
-    const euler=new THREE.Euler(0,0,0,"YXZ");
+    // ── CONTROLS ─────────────────────────────────────────────────────────
+    const keys={}, euler=new THREE.Euler(0,0,0,"YXZ");
     let locked=false;
     const onKeyDown=e=>{ keys[e.code]=true; };
     const onKeyUp=e=>{ keys[e.code]=false; };
-    const onMove=e=>{
-      if(!locked || isMobile) return;
-      euler.setFromQuaternion(camera.quaternion);
-      euler.y-=e.movementX*.0018; euler.x-=e.movementY*.0018;
-      euler.x=Math.max(-Math.PI*.32,Math.min(Math.PI*.32,euler.x));
-      camera.quaternion.setFromEuler(euler);
-    };
+    const onMove=e=>{ if(!locked||isMobile) return; euler.setFromQuaternion(camera.quaternion); euler.y-=e.movementX*.0018; euler.x-=e.movementY*.0018; euler.x=Math.max(-Math.PI*.32,Math.min(Math.PI*.32,euler.x)); camera.quaternion.setFromEuler(euler); };
     const onLock=()=>{ locked=document.pointerLockElement===renderer.domElement; };
     const raycaster=new THREE.Raycaster();
     const onClick=()=>{
@@ -1031,202 +901,170 @@ export default function SpatialShowroom() {
       if(hits.length>0) setModal(hits[0].object.userData);
     };
 
-    // ── MOBILE LOOK — right-side drag ─────────────────────────────────
-    let lookTouchId=null, lastLookX=0, lastLookY=0;
-    const onTouchStartLook=(e)=>{
-      for(let i=0;i<e.changedTouches.length;i++){
-        const t=e.changedTouches[i];
-        if(t.clientX > window.innerWidth*0.45 && lookTouchId===null){
-          lookTouchId=t.identifier; lastLookX=t.clientX; lastLookY=t.clientY;
-        }
-      }
-    };
-    const onTouchMoveLook=(e)=>{
-      if(!isMobile) return;
-      for(let i=0;i<e.changedTouches.length;i++){
-        const t=e.changedTouches[i];
-        if(t.identifier!==lookTouchId) continue;
-        const dx=t.clientX-lastLookX, dy=t.clientY-lastLookY;
-        lastLookX=t.clientX; lastLookY=t.clientY;
-        euler.setFromQuaternion(camera.quaternion);
-        euler.y-=dx*0.003; euler.x-=dy*0.003;
-        euler.x=Math.max(-Math.PI*.32,Math.min(Math.PI*.32,euler.x));
-        camera.quaternion.setFromEuler(euler);
-      }
-    };
-    const onTouchEndLook=(e)=>{
-      for(let i=0;i<e.changedTouches.length;i++){
-        if(e.changedTouches[i].identifier===lookTouchId) lookTouchId=null;
-      }
-    };
-    // Mobile tap for panels (right side, no significant drag)
-    let tapStartX=0, tapStartY=0;
-    const onTouchStartTap=(e)=>{
-      const t=e.changedTouches[0]; tapStartX=t.clientX; tapStartY=t.clientY;
-    };
-    const onTouchEndTap=(e)=>{
-      const t=e.changedTouches[0];
-      const dx=t.clientX-tapStartX, dy=t.clientY-tapStartY;
-      if(Math.sqrt(dx*dx+dy*dy)<10){
-        // Tap — raycast center of screen
-        raycaster.setFromCamera({x:0,y:0},camera);
-        const hits=raycaster.intersectObjects(hotspots,true);
-        if(hits.length>0) setModal(hits[0].object.userData);
-      }
-    };
+    let lookTouchId=null,lastLookX=0,lastLookY=0;
+    const onTSL=(e)=>{ for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i]; if(t.clientX>window.innerWidth*0.45&&lookTouchId===null){ lookTouchId=t.identifier; lastLookX=t.clientX; lastLookY=t.clientY; } } };
+    const onTML=(e)=>{ if(!isMobile) return; for(let i=0;i<e.changedTouches.length;i++){ const t=e.changedTouches[i]; if(t.identifier!==lookTouchId) continue; const dx=t.clientX-lastLookX,dy=t.clientY-lastLookY; lastLookX=t.clientX; lastLookY=t.clientY; euler.setFromQuaternion(camera.quaternion); euler.y-=dx*0.003; euler.x-=dy*0.003; euler.x=Math.max(-Math.PI*.32,Math.min(Math.PI*.32,euler.x)); camera.quaternion.setFromEuler(euler); } };
+    const onTEL=(e)=>{ for(let i=0;i<e.changedTouches.length;i++) if(e.changedTouches[i].identifier===lookTouchId) lookTouchId=null; };
+    let tapSX=0,tapSY=0;
+    const onTST=(e)=>{ const t=e.changedTouches[0]; tapSX=t.clientX; tapSY=t.clientY; };
+    const onTET=(e)=>{ const t=e.changedTouches[0]; if(Math.sqrt((t.clientX-tapSX)**2+(t.clientY-tapSY)**2)<10){ raycaster.setFromCamera({x:0,y:0},camera); const hits=raycaster.intersectObjects(hotspots,true); if(hits.length>0) setModal(hits[0].object.userData); } };
 
     if(!isMobile){
-      window.addEventListener("keydown",onKeyDown);
-      window.addEventListener("keyup",onKeyUp);
-      document.addEventListener("mousemove",onMove);
-      document.addEventListener("pointerlockchange",onLock);
+      window.addEventListener("keydown",onKeyDown); window.addEventListener("keyup",onKeyUp);
+      document.addEventListener("mousemove",onMove); document.addEventListener("pointerlockchange",onLock);
       renderer.domElement.addEventListener("click",onClick);
     } else {
-      renderer.domElement.addEventListener("touchstart",onTouchStartLook,{passive:true});
-      renderer.domElement.addEventListener("touchmove",onTouchMoveLook,{passive:true});
-      renderer.domElement.addEventListener("touchend",onTouchEndLook,{passive:true});
-      renderer.domElement.addEventListener("touchstart",onTouchStartTap,{passive:true});
-      renderer.domElement.addEventListener("touchend",onTouchEndTap,{passive:true});
+      renderer.domElement.addEventListener("touchstart",onTSL,{passive:true});
+      renderer.domElement.addEventListener("touchmove",onTML,{passive:true});
+      renderer.domElement.addEventListener("touchend",onTEL,{passive:true});
+      renderer.domElement.addEventListener("touchstart",onTST,{passive:true});
+      renderer.domElement.addEventListener("touchend",onTET,{passive:true});
     }
 
     // ── PHYSICS ──────────────────────────────────────────────────────────
-    const BASE_SPEED=0.092;
-    const SPRINT_MULT=1.75;
-    const GRAVITY=0.018;
-    const JUMP_FORCE=0.22;
-    let yVel=0;
-    let grounded=true;
-
-    // Space to jump (desktop)
-    const onJumpKey=(e)=>{
-      if(e.code==="Space" && grounded){ yVel=JUMP_FORCE; grounded=false; e.preventDefault(); }
-    };
+    const BASE_SPEED=0.092, SPRINT_MULT=1.75, GRAVITY=0.018, JUMP_FORCE=0.22;
+    let yVel=0, grounded=true;
+    const onJumpKey=(e)=>{ if(e.code==="Space"&&grounded){ yVel=JUMP_FORCE; grounded=false; e.preventDefault(); } };
     if(!isMobile) window.addEventListener("keydown",onJumpKey);
 
     const fwd=new THREE.Vector3(), rgt=new THREE.Vector3();
-    let rafId;
-    let frameCount=0;
+    const camVec=new THREE.Vector3();
+    let rafId, frameCount=0;
+
+    // Proximity target positions
+    const parcelVec=new THREE.Vector3(PX,PY,PZ);
+    const flightMidVec=new THREE.Vector3(0,3.7,(FZ_START+FZ_END)/2);
+    const orbVec=new THREE.Vector3(CX,CY,CZ);
 
     const tick=(ts)=>{
       rafId=requestAnimationFrame(tick);
       const t=ts*0.0004;
       frameCount++;
 
-      // ── ANIMATE ORB (centerpiece 3) ──────────────────────────────────
-      cloudMesh.rotation.y= t*0.65;
-      cloudMesh.rotation.x= Math.sin(t*0.28)*0.1;
-      icoMesh.rotation.y  =-t*0.45;
-      icoMesh.rotation.z  = t*0.18;
-      ring1.rotation.z    = t*0.38;
-      ring2.rotation.y    = t*0.55;
-      ring3.rotation.x    = t*0.22;
-      const floatY=Math.sin(t*1.05)*0.07;
-      [cloudMesh,icoMesh,ring1,ring2,ring3].forEach(o=>{ o.position.y=CY+floatY; });
-      orbLight.intensity=1.6+Math.sin(t*1.7)*0.3;
+      // ── PROXIMITY — #7 ───────────────────────────────────────────────
+      camVec.copy(camera.position);
+      const dParcel=camVec.distanceTo(parcelVec);
+      const dFlight=camVec.distanceTo(flightMidVec);
+      const dOrb=camVec.distanceTo(orbVec);
+      const proxParcel=Math.max(0,Math.min(1,1-(dParcel-1.5)/5.5));
+      const proxFlight=Math.max(0,Math.min(1,1-(dFlight-1.5)/5.5));
+      const proxOrb=Math.max(0,Math.min(1,1-(dOrb-1.5)/5.5));
 
-      // ── ANIMATE PARCEL (centerpiece 1) ──────────────────────────────
+      // ── ANIMATE PARCEL ─────────────────────────────────────────────
       parcelGroup.position.y=PY+Math.sin(t*0.85)*0.05;
       parcelGroup.rotation.y=t*0.1;
-      parcelLight.intensity=1.2+Math.sin(t*1.4)*0.3;
+      // Proximity boost: glow intensifies
+      parcelLight.intensity=1.2+Math.sin(t*1.4)*0.3+proxParcel*2.5;
+      bndMat.emissiveIntensity=3.5+proxParcel*3.0;
       cornerPins.forEach((pin,i)=>{
-        const s=0.75+Math.sin(t*2.8+i*1.2)*0.35;
+        const s=0.75+Math.sin(t*2.8+i*1.2)*0.35*(1+proxParcel*0.5);
         pin.scale.setScalar(s);
       });
+      // Scan ring — rising animation #4
+      scanY+=0.007+proxParcel*0.005;
+      if(scanY>1.4){ scanY=-1.1; }
+      scanRing.position.y=scanY;
+      const scanFade=Math.max(0,Math.min(1,1-Math.abs(scanY)/1.3));
+      scanRingMat.opacity=(0.28+proxParcel*0.22)*scanFade;
 
-      // ── ANIMATE FLIGHT PATH (centerpiece 2) ─────────────────────────
-      flightU=(flightU+0.0012)%1;
+      // ── ANIMATE FLIGHT PATH ─────────────────────────────────────────
+      const flightSpeed=0.0012+proxFlight*0.0018;
+      flightU=(flightU+flightSpeed)%1;
       const pp=flightCurve.getPointAt(flightU);
+      // Pulse sphere
       pulseMesh.position.copy(pp);
-      pulseMesh.scale.setScalar(0.7+Math.sin(t*5)*0.3);
+      pulseMesh.scale.setScalar(0.6+Math.sin(t*5)*0.2+proxFlight*0.3);
+      // Drone marker orientation — #5
+      const nextU=Math.min(1,flightU+0.015);
+      const pp2=flightCurve.getPointAt(nextU);
+      droneMesh.position.copy(pp);
+      droneMesh.lookAt(pp2);
+      droneMesh.rotateX(Math.PI/2); // cone tip forward
+      droneTrail.position.set(pp.x,pp.y-0.12,pp.z);
+      // Flight light
       flightLight.position.copy(pp);
-      flightLight.intensity=0.8+Math.sin(t*4)*0.4;
+      flightLight.intensity=0.9+Math.sin(t*4)*0.4+proxFlight*1.8;
+      flightTubeMat.emissiveIntensity=2.5+proxFlight*2.0;
 
-      // ── PLAYER MOVEMENT ──────────────────────────────────────────────
+      // ── ANIMATE ORB ─────────────────────────────────────────────────
+      const orbSpeedMult=1+proxOrb*0.5;
+      cloudMesh.rotation.y=t*0.65*orbSpeedMult;
+      cloudMesh.rotation.x=Math.sin(t*0.28)*0.1;
+      icoMesh.rotation.y=-t*0.45*orbSpeedMult;
+      icoMesh.rotation.z=t*0.18;
+      ring1.rotation.z=t*0.38*orbSpeedMult;
+      ring2.rotation.y=t*0.55*orbSpeedMult;
+      ring3.rotation.x=t*0.22*orbSpeedMult;
+      const floatY=Math.sin(t*1.05)*0.07;
+      [cloudMesh,icoMesh,ring1,ring2,ring3].forEach(o=>{ o.position.y=CY+floatY; });
+      orbLight.intensity=1.6+Math.sin(t*1.7)*0.3+proxOrb*2.0;
+      // Proximity ring brightness — #7
+      ring1.material.emissiveIntensity=2.4+proxOrb*2.5;
+      ring2.material.emissiveIntensity=2.4+proxOrb*2.5;
+      ring3.material.emissiveIntensity=2.0+proxOrb*2.0;
+
+      // Desktop point cloud color animation — #6
+      if(!isMobile && frameCount%3===0){
+        const hueShift=Math.sin(t*0.4)*0.12;
+        const brightBoost=0.8+proxOrb*0.2;
+        for(let i=0;i<N_PTS;i++){
+          cColLive[i*3  ]=Math.min(1,cColBase[i*3  ]*brightBoost+hueShift*0.15);
+          cColLive[i*3+1]=Math.min(1,cColBase[i*3+1]*brightBoost);
+          cColLive[i*3+2]=Math.min(1,cColBase[i*3+2]*brightBoost-hueShift*0.08);
+        }
+        cloudGeo.attributes.color.needsUpdate=true;
+      }
+      // Mobile: animate ring emissive only (already done above via proximity)
+
+      // ── PLAYER MOVEMENT ─────────────────────────────────────────────
       camera.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
       rgt.crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
       const vel=new THREE.Vector3();
-
       if(!isMobile){
-        // Desktop WASD
         if(keys["KeyW"]||keys["ArrowUp"])    vel.add(fwd);
         if(keys["KeyS"]||keys["ArrowDown"])  vel.sub(fwd);
         if(keys["KeyA"]||keys["ArrowLeft"])  vel.sub(rgt);
         if(keys["KeyD"]||keys["ArrowRight"]) vel.add(rgt);
-        const sprinting=keys["ShiftLeft"]||keys["ShiftRight"];
-        if(vel.length()>0){
-          const moveSpeed=sprinting ? BASE_SPEED*SPRINT_MULT : BASE_SPEED;
-          vel.normalize().multiplyScalar(moveSpeed);
-        }
+        if(vel.length()>0) vel.normalize().multiplyScalar((keys["ShiftLeft"]||keys["ShiftRight"])?BASE_SPEED*SPRINT_MULT:BASE_SPEED);
       } else {
-        // Mobile joystick
         const jx=joystickRef.current.x, jy=joystickRef.current.y;
         if(Math.abs(jx)>0.08||Math.abs(jy)>0.08){
-          vel.add(fwd.clone().multiplyScalar(-jy));
-          vel.add(rgt.clone().multiplyScalar(jx));
-          const sprinting=sprintingRef.current;
-          const moveSpeed=sprinting ? BASE_SPEED*SPRINT_MULT : BASE_SPEED;
-          vel.normalize().multiplyScalar(moveSpeed);
+          vel.add(fwd.clone().multiplyScalar(-jy)).add(rgt.clone().multiplyScalar(jx));
+          vel.normalize().multiplyScalar(sprintingRef.current?BASE_SPEED*SPRINT_MULT:BASE_SPEED);
         }
-        // Mobile jump trigger
-        if(jumpTriggerRef.current && grounded){
-          yVel=JUMP_FORCE; grounded=false;
-          jumpTriggerRef.current=false;
-        }
+        if(jumpTriggerRef.current&&grounded){ yVel=JUMP_FORCE; grounded=false; jumpTriggerRef.current=false; }
       }
-
-      if(vel.length()>0){
-        const [nx,nz]=constrainPos(camera.position.x+vel.x, camera.position.z+vel.z);
-        camera.position.x=nx;
-        camera.position.z=nz;
-      }
+      if(vel.length()>0){ const [nx,nz]=constrainPos(camera.position.x+vel.x,camera.position.z+vel.z); camera.position.x=nx; camera.position.z=nz; }
 
       // ── JUMP PHYSICS ─────────────────────────────────────────────────
-      yVel-=GRAVITY;
-      camera.position.y+=yVel;
-      if(camera.position.y<=EYE_HEIGHT){
-        camera.position.y=EYE_HEIGHT;
-        yVel=0;
-        grounded=true;
-      }
+      yVel-=GRAVITY; camera.position.y+=yVel;
+      if(camera.position.y<=EYE_HEIGHT){ camera.position.y=EYE_HEIGHT; yVel=0; grounded=true; }
 
       // ── LAZY VIDEO (mobile) ──────────────────────────────────────────
-      if(isMobile && frameCount%30===0){
+      if(isMobile&&frameCount%30===0){
         const camZ=camera.position.z;
-        videoEls.forEach(({el,z})=>{
-          const dist=Math.abs(z-camZ);
-          if(dist<12 && el.paused) el.play().catch(()=>{});
-          else if(dist>=12 && !el.paused) el.pause();
-        });
+        videoEls.forEach(({el,z})=>{ const d=Math.abs(z-camZ); if(d<12&&el.paused) el.play().catch(()=>{}); else if(d>=12&&!el.paused) el.pause(); });
       }
 
-      setPos([Math.round(camera.position.x*10)/10, Math.round(camera.position.z*10)/10]);
+      setPos([Math.round(camera.position.x*10)/10,Math.round(camera.position.z*10)/10]);
       setZone(getZone(camera.position));
       renderer.render(scene,camera);
     };
     tick(0);
 
-    const onResize=()=>{
-      camera.aspect=window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth,window.innerHeight);
-    };
+    const onResize=()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); };
     window.addEventListener("resize",onResize);
 
     return()=>{
       cancelAnimationFrame(rafId);
       if(!isMobile){
-        window.removeEventListener("keydown",onKeyDown);
-        window.removeEventListener("keyup",onKeyUp);
+        window.removeEventListener("keydown",onKeyDown); window.removeEventListener("keyup",onKeyUp);
         window.removeEventListener("keydown",onJumpKey);
-        document.removeEventListener("mousemove",onMove);
-        document.removeEventListener("pointerlockchange",onLock);
+        document.removeEventListener("mousemove",onMove); document.removeEventListener("pointerlockchange",onLock);
         renderer.domElement.removeEventListener("click",onClick);
       } else {
-        renderer.domElement.removeEventListener("touchstart",onTouchStartLook);
-        renderer.domElement.removeEventListener("touchmove",onTouchMoveLook);
-        renderer.domElement.removeEventListener("touchend",onTouchEndLook);
-        renderer.domElement.removeEventListener("touchstart",onTouchStartTap);
-        renderer.domElement.removeEventListener("touchend",onTouchEndTap);
+        renderer.domElement.removeEventListener("touchstart",onTSL); renderer.domElement.removeEventListener("touchmove",onTML); renderer.domElement.removeEventListener("touchend",onTEL);
+        renderer.domElement.removeEventListener("touchstart",onTST); renderer.domElement.removeEventListener("touchend",onTET);
       }
       window.removeEventListener("resize",onResize);
       if(document.pointerLockElement) document.exitPointerLock();
@@ -1234,6 +1072,7 @@ export default function SpatialShowroom() {
       renderer.dispose();
       if(el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   },[started]);
 
   return (
@@ -1245,17 +1084,14 @@ export default function SpatialShowroom() {
           {!isMobile && <Minimap px={pos[0]} pz={pos[1]}/>}
           <HUD zone={zone} showHelp={showHelp} setShowHelp={setShowHelp} isMobile={isMobile}/>
           <PanelModal item={modal} onClose={()=>setModal(null)}/>
+          <AudioBtn audioRef={audioRef}/>
           {isMobile ? (
-            <MobileControls
-              joystickRef={joystickRef}
-              sprintingRef={sprintingRef}
-              jumpRef={jumpTriggerRef}
-            />
+            <MobileControls joystickRef={joystickRef} sprintingRef={sprintingRef} jumpRef={jumpTriggerRef}/>
           ) : (
             <div style={{position:"fixed",bottom:44,left:"50%",transform:"translateX(-50%)",
               fontFamily:"monospace",fontSize:10,letterSpacing:"0.2em",
               color:"rgba(0,170,255,0.3)",textTransform:"uppercase",pointerEvents:"none",zIndex:200}}>
-              Click canvas &middot; WASD to move &middot; Shift sprint &middot; Space jump &middot; ESC release
+              Click canvas &middot; WASD move &middot; Shift sprint &middot; Space jump &middot; ESC release
             </div>
           )}
         </>
