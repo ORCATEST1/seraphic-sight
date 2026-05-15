@@ -1176,4 +1176,17 @@ export default function SpatialShowroom() {
               sprintingRef={sprintingRef}
               jumpRef={jumpTriggerRef}
               missionActive={missionState.active}
-              onStartMission={()=>handleHotRef.current({type:"drone-missi
+              onStartMission={()=>handleHotRef.current({type:"drone-mission"})}
+            />
+          ) : (
+            <div style={{position:"fixed",bottom:44,left:"50%",transform:"translateX(-50%)",
+              fontFamily:"monospace",fontSize:10,letterSpacing:"0.2em",
+              color:"rgba(0,170,255,0.3)",textTransform:"uppercase",pointerEvents:"none",zIndex:200}}>
+              Click canvas &middot; WASD move &middot; Shift sprint &middot; Space jump &middot; [E] interact &middot; ESC release
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
