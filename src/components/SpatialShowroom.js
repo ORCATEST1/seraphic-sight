@@ -430,7 +430,7 @@ export default function SpatialShowroom() {
       m.userData={cta:true,...ctaData}; hotspots.push(m);
     }
     addCTA(-3, 1.3, GD-0.15, "GET A QUOTE", Math.PI,
-      {title:"Get a Quote",body:"FAA Part 107 certified drone services\nSouthern & Central California",action:"EMAIL US",href:"mailto:joseph@seraphicsight.com",accent:"#0066EE"});
+      {title:"Get a Quote",body:"FAA Part 107 certified drone services\nSouthern & Central California",action:"CONTACT US",href:"/contact",accent:"#0066EE"});
     addCTA( 3, 1.3, GD-0.15, "VIEW FULL PORTFOLIO", Math.PI,
       {title:"Full Portfolio",body:"Browse the complete aerial photography\nand video portfolio",action:"OPEN PORTFOLIO",href:"/portfolio",accent:"#009977"});
 
