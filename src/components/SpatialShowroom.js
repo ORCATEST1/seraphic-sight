@@ -328,31 +328,47 @@ function OrbMenu({ open, onClose, onSelect }) {
 function LeadCapture({ data, onClose }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
   const [err, setErr] = useState("");
   const overlay = {position:"fixed",inset:0,zIndex:600,background:"rgba(1,3,8,0.96)",backdropFilter:"blur(18px)",display:"flex",alignItems:"center",justifyContent:"center"};
   const card = {background:"rgba(4,9,22,0.99)",border:"1px solid rgba(0,200,160,0.25)",borderRadius:10,padding:"36px 44px",display:"flex",flexDirection:"column",alignItems:"center",gap:14,minWidth:320,maxWidth:460};
   const inp = {background:"rgba(255,255,255,0.05)",border:"1px solid rgba(0,120,200,0.3)",borderRadius:4,padding:"9px 14px",fontFamily:"monospace",fontSize:12,color:"#C0D8FF",width:"100%",outline:"none",letterSpacing:"0.06em"};
-  const btn = {background:"linear-gradient(135deg,#0055CC,#00AAA0)",border:"none",color:"#fff",cursor:"pointer",borderRadius:6,padding:"12px 36px",fontFamily:"monospace",fontSize:13,letterSpacing:"0.18em",touchAction:"manipulation"};
+  const btn = {background:"linear-gradient(135deg,#0055CC,#00AAA0)",border:"none",color:"#fff",cursor:"pointer",borderRadius:6,padding:"12px 36px",fontFamily:"monospace",fontSize:13,letterSpacing:"0.18em",touchAction:"manipulation",opacity:loading?0.6:1};
   const close = {background:"none",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(140,170,220,0.45)",cursor:"pointer",borderRadius:3,padding:"4px 14px",fontFamily:"monospace",fontSize:10};
 
-  const submit = () => {
+  const submit = async () => {
     if(!name.trim()){ setErr("Please enter your name."); return; }
     if(!email.includes("@")){ setErr("Please enter a valid email."); return; }
-    // Frontend submission — connect Supabase/Firebase for server-side validation
-    console.log("[Mission Reward Claim]", { name, email, score:data.score, time:data.time, sessionId:data.sessionId, wpOrder:data.wpOrder, collisions:data.collisions });
-    setSubmitted(true);
+    setLoading(true); setErr("");
+    try {
+      const res = await fetch("/api/claim-reward", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ name, email, score:data.score, time:Math.round(data.time), sessionId:data.sessionId, wpOrder:data.wpOrder, collisions:data.collisions })
+      });
+      const json = await res.json();
+      if(res.ok){ setPromoCode(json.promoCode); }
+      else { setErr("Something went wrong — please try again."); }
+    } catch(e) {
+      setErr("Network error — please try again.");
+    }
+    setLoading(false);
   };
 
-  if(submitted) return (
+  if(promoCode) return (
     <div style={overlay}>
       <div style={card}>
         <div style={{color:"#00FFCC",fontSize:20,letterSpacing:"0.08em"}}>REWARD UNLOCKED</div>
         <div style={{color:"#D0E8FF",fontSize:13,textAlign:"center",lineHeight:1.7}}>
-          Thanks, {name}. A free parcel overlay consultation has been added to your next quote.
-          We will follow up at {email}.
+          Check your inbox at <strong style={{color:"#00ccff"}}>{email}</strong> — your promo code is on its way from Joseph@SeraphicSight.com.
         </div>
-        <div style={{color:"rgba(0,200,255,0.55)",fontSize:11,letterSpacing:"0.1em"}}>Final score: {data.score} pts &nbsp;&middot;&nbsp; Time: {Math.round(data.time)}s</div>
+        <div style={{background:"rgba(0,150,255,0.08)",border:"1px solid rgba(0,200,255,0.25)",borderRadius:6,padding:"16px 28px",textAlign:"center",width:"100%"}}>
+          <div style={{color:"#aaa",fontSize:10,letterSpacing:"2px",marginBottom:6}}>YOUR PROMO CODE</div>
+          <div style={{color:"#00ccff",fontSize:24,fontFamily:"monospace",fontWeight:700,letterSpacing:"4px"}}>{promoCode}</div>
+          <div style={{color:"#555",fontSize:10,marginTop:6}}>Mention this when requesting your quote</div>
+        </div>
+        <div style={{color:"rgba(0,200,255,0.55)",fontSize:11,letterSpacing:"0.1em"}}>Score: {data.score} pts &nbsp;&middot;&nbsp; Time: {Math.round(data.time)}s</div>
         <button style={btn} onClick={onClose}>RETURN TO SHOWROOM</button>
       </div>
     </div>
@@ -367,10 +383,10 @@ function LeadCapture({ data, onClose }) {
           Mission complete: unlock a free parcel overlay with your quote.
           Enter your details to claim your reward.
         </div>
-        <input style={inp} placeholder="Your name" value={name} onChange={e=>setName(e.target.value)}/>
-        <input style={inp} placeholder="Email address" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
+        <input style={inp} placeholder="Your name" value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.stopPropagation()}/>
+        <input style={inp} placeholder="Email address" type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.stopPropagation()}/>
         {err && <div style={{color:"#FF7777",fontSize:11}}>{err}</div>}
-        <button style={btn} onClick={submit}>CLAIM REWARD</button>
+        <button style={btn} onClick={submit} disabled={loading}>{loading ? "SENDING..." : "CLAIM REWARD"}</button>
         <button style={close} onClick={onClose}>Skip for now</button>
       </div>
     </div>
