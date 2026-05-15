@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
     body: JSON.stringify({
       from: "showroom@seraphicsight.com",
-      to:   "Joseph@SeraphicSight.com",
+      to:   "joseph@seraphicsight.com",
       subject: `New Drone Mission Lead — ${name}`,
       html: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
