@@ -894,6 +894,8 @@ export default function SpatialShowroom() {
     const keys={}, euler=new THREE.Euler(0,0,0,"YXZ");
     let locked=false;
     const onKeyDown=e=>{
+      const ta=document.activeElement?.tagName;
+      if(ta==="INPUT"||ta==="TEXTAREA") return; // don't capture keys while form is focused
       keys[e.code]=true;
       // [E] to interact with nearest centerpiece — no need to click in pointer-lock mode
       if(e.code==="KeyE" && nearTargetRef.current){
@@ -949,7 +951,7 @@ export default function SpatialShowroom() {
     // ── PHYSICS ───────────────────────────────────────────────────────────
     const BASE_SPEED=0.092, SPRINT_MULT=1.75, GRAVITY=0.018, JUMP_FORCE=0.22;
     let yVel=0, grounded=true;
-    const onJumpKey=(e)=>{ if(e.code==="Space"&&grounded){ yVel=JUMP_FORCE; grounded=false; e.preventDefault(); } };
+    const onJumpKey=(e)=>{ if(e.code==="Space"){ const t=document.activeElement?.tagName; if(t==="INPUT"||t==="TEXTAREA") return; if(grounded){ yVel=JUMP_FORCE; grounded=false; e.preventDefault(); } } };
     if(!isMobile) window.addEventListener("keydown",onJumpKey);
 
     const fwd=new THREE.Vector3(), rgt=new THREE.Vector3(), camVec=new THREE.Vector3();
