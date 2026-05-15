@@ -1,5 +1,6 @@
-// SpatialShowroom.js v6
-// Compact gallery (18w × 36d), flush panels, warm floor-wall glow, visible floor texture
+// SpatialShowroom.js v7
+// - Tags removed from panels
+// - Floating decorative point-cloud sphere centerpiece
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -10,66 +11,56 @@ const cImg = (id, w=1200, h=750) =>
 const cVid = (id) =>
   `${CLD}/video/upload/f_mp4,q_auto:good,vc_h264,w_960/${id}`;
 
+// No tags — just labels
 const PHOTOS = [
-  { id:"DJI_0915_w53hst",   label:"Aerial Overview",       tag:"Real Estate"  },
-  { id:"DJI_0891_tgrszt",   label:"Property Perspective",  tag:"Real Estate"  },
-  { id:"DJI_0876_imzqgc",   label:"Residential Aerial",    tag:"Real Estate"  },
-  { id:"DJI_0802_cdwyvj",   label:"Commercial Site",       tag:"Commercial"   },
-  { id:"DJI_0730_enavrk",   label:"Mixed-Use Dev",         tag:"Commercial"   },
-  { id:"DJI_0327_it5brs",   label:"Construction Progress", tag:"Construction" },
-  { id:"sola-florance-construction-aerial_oapibr", label:"Sola Florance", tag:"Construction" },
-  { id:"DJI_0322_khfwqi",   label:"Site Documentation",    tag:"Construction" },
-  { id:"Aerial_27_qw5yqr",  label:"Commercial Aerial",     tag:"Commercial"   },
-  { id:"DJI_0872_vddljb",   label:"Listing Photography",   tag:"Real Estate"  },
+  { id:"DJI_0915_w53hst",   label:"Aerial Overview"       },
+  { id:"DJI_0891_tgrszt",   label:"Property Perspective"  },
+  { id:"DJI_0876_imzqgc",   label:"Residential Aerial"    },
+  { id:"DJI_0802_cdwyvj",   label:"Commercial Site"       },
+  { id:"DJI_0730_enavrk",   label:"Mixed-Use Dev"         },
+  { id:"DJI_0327_it5brs",   label:"Construction Progress" },
+  { id:"sola-florance-construction-aerial_oapibr", label:"Sola Florance" },
+  { id:"DJI_0322_khfwqi",   label:"Site Documentation"    },
+  { id:"Aerial_27_qw5yqr",  label:"Commercial Aerial"     },
+  { id:"DJI_0872_vddljb",   label:"Listing Photography"   },
 ];
-
 const VIDEOS = [
-  { id:"clip_joey_updated_bbfclp", label:"Cinematic Reel",       tag:"Cinematic"   },
-  { id:"joe_4_pjcua7",             label:"Property Showcase",    tag:"Real Estate" },
-  { id:"clip1_nscwwy",             label:"Interior Walkthrough", tag:"Walkthrough" },
-  { id:"part_1_rzf7yo",            label:"Aerial Cinematic",     tag:"Cinematic"   },
-  { id:"Copy_of_V1_2_eshjoq",      label:"Listing Video",        tag:"Real Estate" },
-  { id:"Copy_of_DJI_0719_rlyiv1",  label:"Drone Flight",         tag:"Drone"       },
+  { id:"clip_joey_updated_bbfclp", label:"Cinematic Reel"      },
+  { id:"joe_4_pjcua7",             label:"Property Showcase"   },
+  { id:"clip1_nscwwy",             label:"Aerial Walkthrough"  },
+  { id:"part_1_rzf7yo",            label:"Aerial Cinematic"    },
+  { id:"Copy_of_V1_2_eshjoq",      label:"Listing Video"       },
+  { id:"Copy_of_DJI_0719_rlyiv1",  label:"Drone Flight"        },
 ];
 
 // ── Canvas textures ──────────────────────────────────────────────────────────
 function makeFloorTex() {
   const c = document.createElement("canvas"); c.width=1024; c.height=1024;
   const ctx = c.getContext("2d");
-  // Base — dark navy
   ctx.fillStyle="#0B1624"; ctx.fillRect(0,0,1024,1024);
-  // Fine grid lines
   ctx.strokeStyle="rgba(40,90,160,0.35)"; ctx.lineWidth=1;
   for(let i=0;i<=1024;i+=64){
     ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,1024);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(1024,i);ctx.stroke();
   }
-  // Teal crosshairs at 256-intervals
   ctx.strokeStyle="rgba(0,200,180,0.55)"; ctx.lineWidth=1.5;
   for(let x=0;x<=1024;x+=256) for(let y=0;y<=1024;y+=256){
     ctx.beginPath();ctx.moveTo(x-14,y);ctx.lineTo(x+14,y);ctx.stroke();
     ctx.beginPath();ctx.moveTo(x,y-14);ctx.lineTo(x,y+14);ctx.stroke();
   }
-  // Subtle vignette center glow
-  const grad=ctx.createRadialGradient(512,512,100,512,512,512);
-  grad.addColorStop(0,"rgba(20,60,120,0.15)");
-  grad.addColorStop(1,"rgba(0,0,0,0)");
-  ctx.fillStyle=grad; ctx.fillRect(0,0,1024,1024);
   return c;
 }
-function makeLabelTex(title, sub, accent) {
-  const c=document.createElement("canvas"); c.width=512; c.height=96;
-  const ctx=c.getContext("2d"); ctx.clearRect(0,0,512,96);
-  ctx.fillStyle=accent+"22"; ctx.fillRect(0,0,512,96);
-  ctx.fillStyle=accent; ctx.fillRect(0,0,4,96);
-  ctx.fillStyle="#FFFFFF"; ctx.font="bold 34px Arial"; ctx.textAlign="left"; ctx.fillText(title,16,44);
-  ctx.fillStyle="rgba(180,210,255,0.7)"; ctx.font="20px Arial"; ctx.fillText(sub,16,74);
+function makeLabelTex(title) {
+  const c=document.createElement("canvas"); c.width=512; c.height=72;
+  const ctx=c.getContext("2d"); ctx.clearRect(0,0,512,72);
+  ctx.fillStyle="rgba(8,16,36,0.75)"; ctx.fillRect(0,0,512,72);
+  ctx.fillStyle="rgba(60,120,255,0.9)"; ctx.fillRect(0,0,4,72);
+  ctx.fillStyle="#FFFFFF"; ctx.font="bold 32px Arial"; ctx.textAlign="left"; ctx.fillText(title,14,46);
   return c;
 }
 function makeSectionTex(title, accent) {
   const c=document.createElement("canvas"); c.width=512; c.height=80;
   const ctx=c.getContext("2d"); ctx.clearRect(0,0,512,80);
-  ctx.fillStyle="rgba(4,8,18,0.0)"; ctx.fillRect(0,0,512,80);
   ctx.fillStyle=accent; ctx.font="bold 52px Arial"; ctx.textAlign="center"; ctx.fillText(title,256,60);
   return c;
 }
@@ -83,16 +74,12 @@ function Minimap({ px, pz }) {
     ctx.clearRect(0,0,110,110);
     ctx.fillStyle="rgba(4,8,18,0.92)"; ctx.fillRect(0,0,110,110);
     ctx.strokeStyle="rgba(0,100,200,0.35)"; ctx.lineWidth=1; ctx.strokeRect(0,0,110,110);
-    // Scale: x=-11..11 (22u) → 0..110, z=-8..38 (46u) → 0..110
     const tx=(x)=>((x+11)/22)*110;
     const tz=(z)=>((z+8)/46)*110;
-    // Gallery floor
     ctx.fillStyle="rgba(0,50,120,0.3)";
     ctx.fillRect(tx(-9),tz(0),tx(9)-tx(-9),tz(36)-tz(0));
-    // Entry
     ctx.fillStyle="rgba(0,40,100,0.4)";
     ctx.fillRect(tx(-3),tz(-8),tx(3)-tx(-3),tz(0)-tz(-8));
-    // Player dot
     const pdx=tx(px), pdz=tz(pz);
     ctx.fillStyle="#00D4FF"; ctx.beginPath(); ctx.arc(pdx,pdz,3.5,0,Math.PI*2); ctx.fill();
     ctx.strokeStyle="#FFF"; ctx.lineWidth=0.8; ctx.beginPath(); ctx.arc(pdx,pdz,3.5,0,Math.PI*2); ctx.stroke();
@@ -117,7 +104,6 @@ function HUD({ zone, showHelp, setShowHelp }) {
         border:"1px solid rgba(0,140,255,0.25)",borderRadius:3,backdropFilter:"blur(8px)"}}>
         1F &nbsp;&middot;&nbsp; {zone}
       </div>
-      {/* Crosshair */}
       <svg style={{position:"fixed",top:"50%",left:"50%",transform:"translate(-50%,-50%)",
         zIndex:200,pointerEvents:"none",opacity:0.65}} width={24} height={24}>
         <line x1={12} y1={2}  x2={12} y2={9}  stroke="#00D4FF" strokeWidth={1.5}/>
@@ -125,7 +111,6 @@ function HUD({ zone, showHelp, setShowHelp }) {
         <line x1={2}  y1={12} x2={9}  y2={12} stroke="#00D4FF" strokeWidth={1.5}/>
         <line x1={15} y1={12} x2={22} y2={12} stroke="#00D4FF" strokeWidth={1.5}/>
       </svg>
-      {/* Side buttons */}
       {[{l:"SHARE",i:"↗",top:110},{l:"INFO",i:"i",top:158}].map(b=>(
         <button key={b.l} onClick={b.l==="INFO"?()=>setShowHelp(h=>!h):null} style={{
           position:"fixed",right:0,zIndex:300,top:b.top,
@@ -165,7 +150,7 @@ function PanelModal({ item, onClose }) {
           : <video src={cVid(item.id)} autoPlay muted loop playsInline controls
               style={{maxWidth:"100%",maxHeight:"72vh",borderRadius:6}}/>}
         <div style={{marginTop:14,color:"#D8E8FF",fontFamily:"monospace",fontSize:13,letterSpacing:"0.06em"}}>
-          {item.label} <span style={{color:"rgba(0,150,255,0.7)"}}>· {item.tag}</span>
+          {item.label}
         </div>
         <button onClick={onClose} style={{marginTop:12,background:"rgba(255,255,255,0.04)",
           border:"1px solid rgba(255,255,255,0.12)",color:"rgba(180,210,255,0.7)",
@@ -241,7 +226,6 @@ export default function SpatialShowroom() {
     if(!started) return;
     const el=mountRef.current; if(!el) return;
 
-    // ── Renderer ─────────────────────────────────────────────────
     const renderer=new THREE.WebGLRenderer({antialias:true});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
     renderer.setSize(window.innerWidth,window.innerHeight);
@@ -251,18 +235,16 @@ export default function SpatialShowroom() {
 
     const scene=new THREE.Scene();
     scene.background=new THREE.Color(0x060E1C);
-    scene.fog=new THREE.Fog(0x060E1C,30,80);
+    scene.fog=new THREE.Fog(0x060E1C,32,85);
 
     const camera=new THREE.PerspectiveCamera(72,window.innerWidth/window.innerHeight,0.1,100);
     camera.position.set(0,1.65,-6);
     camera.lookAt(0,1.65,0);
 
-    // ── Floor texture ─────────────────────────────────────────────
     const floorTex=new THREE.CanvasTexture(makeFloorTex());
     floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping;
     floorTex.repeat.set(4,10);
 
-    // ── Geometry helpers ──────────────────────────────────────────
     const basic=(color,opts={})=>new THREE.MeshBasicMaterial({color,...opts});
     const emissive=(color,em,ei=1.5)=>new THREE.MeshStandardMaterial({
       color,emissive:new THREE.Color(em),emissiveIntensity:ei,roughness:0.2,metalness:0.3});
@@ -271,133 +253,175 @@ export default function SpatialShowroom() {
       const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
       m.position.set(px,py,pz); scene.add(m); return m;
     }
-    function plane(px,py,pz,w,d,mat,rotX=-Math.PI/2){
+    function plane(px,py,pz,w,d,mat,rx=-Math.PI/2){
       const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);
-      m.rotation.x=rotX; m.position.set(px,py,pz); scene.add(m); return m;
+      m.rotation.x=rx; m.position.set(px,py,pz); scene.add(m); return m;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // LAYOUT
-    // Entry corridor: x=-3..3, z=-8..0
-    // Gallery:        x=-9..9, z=0..36
-    // Photos: LEFT wall x=-9   (facing +x)
-    // Videos: RIGHT wall x=+9  (facing -x)
-    // ─────────────────────────────────────────────────────────────
-    const GW=18, GD=36, GH=4.8;           // gallery width, depth, height
-    const EW=6,  ED=8;                    // entry width, depth
-    const LX=-9.0, RX=9.0;               // left/right wall x
+    // Layout constants
+    const GW=18, GD=36, GH=4.8;
+    const EW=6,  ED=8;
+    const LX=-9.0, RX=9.0;
+    const wallC=0x1C2F4A;
 
-    // FLOOR
+    // Floors
     plane(0,0,GD/2, GW,GD, new THREE.MeshBasicMaterial({map:floorTex}));
     plane(0,0,-ED/2, EW,ED, new THREE.MeshBasicMaterial({map:floorTex,color:0x8AAABB}));
 
-    // CEILING
-    box(0,GH,GD/2,    GW,0.2,GD, basic(0x0E1C30));  // gallery ceiling
-    box(0,GH,-ED/2,   EW,0.2,ED, basic(0x0E1C30));  // entry ceiling
+    // Ceilings
+    box(0,GH,GD/2,   GW,0.2,GD,  basic(0x0E1C30));
+    box(0,GH,-ED/2,  EW,0.2,ED,  basic(0x0E1C30));
 
-    // WALLS — all MeshBasicMaterial, solid visible color
-    const wallC=0x1C2F4A;
-    // LEFT gallery wall (panels mounted here)
-    box(LX, GH/2, GD/2,  0.12, GH, GD, basic(wallC));
-    // RIGHT gallery wall
-    box(RX, GH/2, GD/2,  0.12, GH, GD, basic(wallC));
-    // FAR end wall
-    box(0,  GH/2, GD+0.06, GW, GH, 0.12, basic(wallC));
-    // ENTRY back wall
-    box(0,  GH/2, -ED-0.06, EW, GH, 0.12, basic(wallC));
-    // ENTRY side walls
-    box(-EW/2-0.06, GH/2, -ED/2, 0.12, GH, ED, basic(wallC));
-    box( EW/2+0.06, GH/2, -ED/2, 0.12, GH, ED, basic(wallC));
-    // CONNECTOR walls: entry-to-gallery shoulder walls at z=0
-    // Left shoulder (from entry left wall to gallery left wall)
-    box(-(LX+EW/2)/2, GH/2, 0, Math.abs(LX)-EW/2, GH, 0.12, basic(wallC));
-    // Right shoulder
-    box( (LX+EW/2)/2, GH/2, 0, Math.abs(LX)-EW/2, GH, 0.12, basic(wallC));
+    // Walls
+    box(LX, GH/2, GD/2,  0.12,GH,GD, basic(wallC));
+    box(RX, GH/2, GD/2,  0.12,GH,GD, basic(wallC));
+    box(0,  GH/2, GD+0.06,  GW,GH,0.12, basic(wallC));
+    box(0,  GH/2, -ED-0.06, EW,GH,0.12, basic(wallC));
+    box(-EW/2-0.06, GH/2, -ED/2, 0.12,GH,ED, basic(wallC));
+    box( EW/2+0.06, GH/2, -ED/2, 0.12,GH,ED, basic(wallC));
+    // Shoulder walls connecting entry to gallery
+    const shoulderW=Math.abs(LX)-EW/2;
+    box(-(Math.abs(LX)+EW/2)/2, GH/2, 0, shoulderW,GH,0.12, basic(wallC));
+    box( (Math.abs(LX)+EW/2)/2, GH/2, 0, shoulderW,GH,0.12, basic(wallC));
 
-    // ── FLOOR-WALL GLOW STRIP ────────────────────────────────────
-    // Warm amber strip right at base of left + right walls (like reference)
-    const glowMat=emissive(0xFFAA55,0xFF8822,3.0);
-    box(LX+0.07, 0.04, GD/2, 0.04, 0.08, GD, glowMat.clone()); // left wall base
-    box(RX-0.07, 0.04, GD/2, 0.04, 0.08, GD, glowMat.clone()); // right wall base
-    // Subtler blue glow on ceiling edge
-    const ceilGlowMat=emissive(0x1155EE,0x0033AA,2.0);
-    box(LX+0.07, GH-0.06, GD/2, 0.04, 0.06, GD, ceilGlowMat.clone());
-    box(RX-0.07, GH-0.06, GD/2, 0.04, 0.06, GD, ceilGlowMat.clone());
-    // Entry arch glow
-    const archMat=emissive(0x0077EE,0x0044BB,2.5);
-    box(-EW/2+0.07, GH/2, 0.06, 0.06, GH, 0.06, archMat.clone());
-    box( EW/2-0.07, GH/2, 0.06, 0.06, GH, 0.06, archMat.clone());
-    box(0, GH-0.04, 0.06, EW, 0.06, 0.06, archMat.clone());
+    // ── FLOOR-WALL GLOW STRIPS (warm amber, like reference) ───────
+    const glowAmber=emissive(0xFF9933,0xFF7700,3.5);
+    const glowBlue=emissive(0x1144DD,0x0022AA,2.2);
+    box(LX+0.07, 0.04, GD/2, 0.05,0.09,GD, glowAmber.clone());
+    box(RX-0.07, 0.04, GD/2, 0.05,0.09,GD, glowAmber.clone());
+    box(LX+0.07, GH-0.05, GD/2, 0.04,0.06,GD, glowBlue.clone());
+    box(RX-0.07, GH-0.05, GD/2, 0.04,0.06,GD, glowBlue.clone());
+    // Entry arch pillars
+    const archMat=emissive(0x0066EE,0x0044BB,2.8);
+    box(-EW/2+0.07,GH/2,0.06, 0.06,GH,0.06, archMat.clone());
+    box( EW/2-0.07,GH/2,0.06, 0.06,GH,0.06, archMat.clone());
+    box(0,GH-0.04,0.06, EW,0.06,0.06, archMat.clone());
 
-    // ── CEILING LIGHT FIXTURES ────────────────────────────────────
-    // Ceiling light strips and point lights
+    // ── CEILING LIGHTS ────────────────────────────────────────────
     [4,10,16,22,28,34].forEach(z=>{
-      // Two strips across width
       box(-4,GH-0.09,z, 5,0.06,0.08, emissive(0xFFFFEE,0xFFDDAA,2.5));
       box( 4,GH-0.09,z, 5,0.06,0.08, emissive(0xFFFFEE,0xFFDDAA,2.5));
-      // Point light
       const pl=new THREE.PointLight(0xFFEEDD,3.5,22);
       pl.position.set(0,GH-0.3,z); scene.add(pl);
     });
-    // Entry lights
     [-6,-2].forEach(z=>{
       const pl=new THREE.PointLight(0xFFEEDD,3.0,10);
       pl.position.set(0,GH-0.4,z); scene.add(pl);
     });
     // Floor-level warm fill from glow strips
     [4,12,20,28].forEach(z=>{
-      const pl=new THREE.PointLight(0xFF9944,1.8,8);
-      pl.position.set(LX+1,0.2,z); scene.add(pl);
-      const pr=new THREE.PointLight(0xFF9944,1.8,8);
-      pr.position.set(RX-1,0.2,z); scene.add(pr);
+      const pl=new THREE.PointLight(0xFF8822,2.0,9);
+      pl.position.set(LX+1,0.25,z); scene.add(pl);
+      const pr=new THREE.PointLight(0xFF8822,2.0,9);
+      pr.position.set(RX-1,0.25,z); scene.add(pr);
     });
-    // Ambient fill
     scene.add(new THREE.AmbientLight(0xCCDDFF,0.35));
 
     // ── SECTION SIGNS ─────────────────────────────────────────────
-    const signMat=(text,accent)=>{
-      const tex=new THREE.CanvasTexture(makeSectionTex(text,accent));
-      return new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide});
-    };
-    // Photo sign on left wall, near entrance
-    {
-      const m=new THREE.Mesh(new THREE.PlaneGeometry(5,0.7),signMat("PHOTO GALLERY","#4499FF"));
-      m.position.set(LX+0.1, GH-0.6, 2); m.rotation.y=Math.PI/2; scene.add(m);
+    [
+      {text:"PHOTO GALLERY", x:LX+0.1, ry:Math.PI/2,  accent:"#4499FF"},
+      {text:"VIDEO GALLERY", x:RX-0.1, ry:-Math.PI/2, accent:"#00CCAA"},
+    ].forEach(s=>{
+      const tex=new THREE.CanvasTexture(makeSectionTex(s.text,s.accent));
+      const m=new THREE.Mesh(new THREE.PlaneGeometry(5,0.7),
+        new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));
+      m.position.set(s.x,GH-0.55,2); m.rotation.y=s.ry; scene.add(m);
+    });
+
+    // ── FLOATING CENTERPIECE CLOUD ────────────────────────────────
+    // Seraphic Sight branded LiDAR-style point cloud orb
+    // Positioned at gallery midpoint, floating at eye level
+    const CLOUD_Z = GD/2;   // center of gallery depth
+    const CLOUD_Y = 2.5;    // floating height
+    const CLOUD_R = 1.4;    // radius
+    const N_CLOUD = 6000;
+
+    const cloudPos = new Float32Array(N_CLOUD * 3);
+    const cloudCol = new Float32Array(N_CLOUD * 3);
+
+    // Seed RNG
+    let _s=7; const rnd=()=>{_s=(_s*9301+49297)%233280;return _s/233280;};
+
+    for(let i=0;i<N_CLOUD;i++){
+      // Spherical coordinates with some terrain-like distortion
+      const theta = rnd()*Math.PI*2;
+      const phi   = Math.acos(2*rnd()-1);
+      const r     = CLOUD_R*(0.85 + 0.15*rnd());
+      const x = r*Math.sin(phi)*Math.cos(theta);
+      const y = r*Math.cos(phi) + Math.sin(theta*3)*0.15;
+      const z = r*Math.sin(phi)*Math.sin(theta);
+      cloudPos[i*3]=x; cloudPos[i*3+1]=y; cloudPos[i*3+2]=z;
+      // Color: blend from deep blue (bottom) to cyan (mid) to white (top)
+      const t=(y+CLOUD_R)/(2*CLOUD_R); // 0=bottom, 1=top
+      const cl=t<0.4
+        ? [0, 0.1+t*0.5, 0.4+t*0.8]                 // deep blue → cyan
+        : [0.1+(t-0.4)*0.6, 0.3+(t-0.4)*0.7, 1.0];  // cyan → white
+      cloudCol[i*3]=cl[0]; cloudCol[i*3+1]=cl[1]; cloudCol[i*3+2]=cl[2];
     }
-    {
-      const m=new THREE.Mesh(new THREE.PlaneGeometry(5,0.7),signMat("VIDEO GALLERY","#00CCAA"));
-      m.position.set(RX-0.1, GH-0.6, 2); m.rotation.y=-Math.PI/2; scene.add(m);
-    }
+
+    const cloudGeo=new THREE.BufferGeometry();
+    cloudGeo.setAttribute("position",new THREE.BufferAttribute(cloudPos,3));
+    cloudGeo.setAttribute("color",   new THREE.BufferAttribute(cloudCol,3));
+    const cloudMat=new THREE.PointsMaterial({
+      vertexColors:true, size:0.055, sizeAttenuation:true,
+      transparent:true, opacity:0.92, depthWrite:false
+    });
+    const cloud=new THREE.Points(cloudGeo,cloudMat);
+    cloud.position.set(0,CLOUD_Y,CLOUD_Z);
+    scene.add(cloud);
+
+    // Inner wireframe icosahedron for structure
+    const icoGeo=new THREE.IcosahedronGeometry(CLOUD_R*0.65,1);
+    const icoMat=new THREE.MeshBasicMaterial({
+      color:0x0066CC, wireframe:true, transparent:true, opacity:0.18
+    });
+    const ico=new THREE.Mesh(icoGeo,icoMat);
+    ico.position.set(0,CLOUD_Y,CLOUD_Z);
+    scene.add(ico);
+
+    // Outer ring glow lines (equatorial)
+    const ringGeo=new THREE.TorusGeometry(CLOUD_R*0.95,0.012,6,80);
+    const ringMat=new THREE.MeshStandardMaterial({
+      color:0x00AAFF, emissive:new THREE.Color(0x0077CC), emissiveIntensity:2.5,
+      roughness:0.2,metalness:0.3,transparent:true,opacity:0.7
+    });
+    const ring1=new THREE.Mesh(ringGeo,ringMat);
+    ring1.position.set(0,CLOUD_Y,CLOUD_Z); ring1.rotation.x=Math.PI/2;
+    scene.add(ring1);
+    // Tilted second ring
+    const ring2=new THREE.Mesh(ringGeo.clone(),ringMat.clone());
+    ring2.position.set(0,CLOUD_Y,CLOUD_Z); ring2.rotation.set(Math.PI/4,Math.PI/5,0);
+    scene.add(ring2);
+
+    // Soft glow light from centerpiece
+    const cloudLight=new THREE.PointLight(0x0077FF,2.0,12);
+    cloudLight.position.set(0,CLOUD_Y,CLOUD_Z);
+    scene.add(cloudLight);
 
     // ── PANELS ────────────────────────────────────────────────────
     const hotspots=[];
     const loader=new THREE.TextureLoader(); loader.crossOrigin="anonymous";
-    // Panel dimensions: 16:10 ratio, fits 2 rows on 4.8m wall
-    const PW=3.6, PH=2.1;
-    const ZGAP=4.2;
-    const YU=3.2, YL=1.1;
+    const PW=3.6, PH=2.1, ZGAP=4.2, YU=3.2, YL=1.1;
 
-    // Helper: add photo panel on left wall
-    function addPhotoPanel(ph,y,z){
+    function addPhoto(ph,y,z){
       const tex=loader.load(cImg(ph.id,840,560));
       tex.colorSpace=THREE.SRGBColorSpace;
-      // Screen flush to wall
       const sc=new THREE.Mesh(new THREE.PlaneGeometry(PW,PH),
         new THREE.MeshBasicMaterial({map:tex}));
       sc.position.set(LX+0.07,y,z); sc.rotation.y=Math.PI/2; scene.add(sc);
-      // Thin border
-      const border=new THREE.Mesh(new THREE.PlaneGeometry(PW+0.12,PH+0.12),
-        new THREE.MeshBasicMaterial({color:0x1A3060,transparent:true,opacity:0.9}));
-      border.position.set(LX+0.05,y,z); border.rotation.y=Math.PI/2; scene.add(border);
-      // Top glow bar
-      const glow=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.04),
-        new THREE.MeshStandardMaterial({color:0x3366FF,emissive:new THREE.Color(0x1144DD),emissiveIntensity:3}));
-      glow.position.set(LX+0.08,y+PH/2+0.04,z); glow.rotation.y=Math.PI/2; scene.add(glow);
-      // Label below
-      const lt=new THREE.CanvasTexture(makeLabelTex(ph.label,ph.tag,"#4488FF"));
-      const lb=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.55),
+      // Border
+      const bd=new THREE.Mesh(new THREE.PlaneGeometry(PW+0.14,PH+0.14),
+        new THREE.MeshBasicMaterial({color:0x162440,transparent:true,opacity:0.9}));
+      bd.position.set(LX+0.05,y,z); bd.rotation.y=Math.PI/2; scene.add(bd);
+      // Top glow
+      const gw=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.04),
+        new THREE.MeshStandardMaterial({color:0x3366FF,emissive:new THREE.Color(0x1144DD),emissiveIntensity:3.5}));
+      gw.position.set(LX+0.08,y+PH/2+0.05,z); gw.rotation.y=Math.PI/2; scene.add(gw);
+      // Label
+      const lt=new THREE.CanvasTexture(makeLabelTex(ph.label));
+      const lb=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.5),
         new THREE.MeshBasicMaterial({map:lt,transparent:true}));
-      lb.position.set(LX+0.08,y-PH/2-0.36,z); lb.rotation.y=Math.PI/2; scene.add(lb);
+      lb.position.set(LX+0.08,y-PH/2-0.32,z); lb.rotation.y=Math.PI/2; scene.add(lb);
       // Spotlight
       const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4);
       sl.position.set(LX+5,y+1.5,z); sl.target.position.set(LX+0.1,y,z);
@@ -405,8 +429,7 @@ export default function SpatialShowroom() {
       sc.userData={type:"photo",...ph}; hotspots.push(sc);
     }
 
-    // Helper: add video panel on right wall
-    function addVideoPanel(vid,y,z){
+    function addVideo(vid,y,z){
       const videoEl=document.createElement("video");
       videoEl.src=cVid(vid.id); videoEl.loop=true; videoEl.muted=true;
       videoEl.playsInline=true; videoEl.crossOrigin="anonymous"; videoEl.autoplay=true;
@@ -416,30 +439,29 @@ export default function SpatialShowroom() {
       const sc=new THREE.Mesh(new THREE.PlaneGeometry(PW,PH),
         new THREE.MeshBasicMaterial({map:vTex}));
       sc.position.set(RX-0.07,y,z); sc.rotation.y=-Math.PI/2; scene.add(sc);
-      const border=new THREE.Mesh(new THREE.PlaneGeometry(PW+0.12,PH+0.12),
-        new THREE.MeshBasicMaterial({color:0x0A2020,transparent:true,opacity:0.9}));
-      border.position.set(RX-0.05,y,z); border.rotation.y=-Math.PI/2; scene.add(border);
-      const glow=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.04),
-        new THREE.MeshStandardMaterial({color:0x00CCAA,emissive:new THREE.Color(0x00AA88),emissiveIntensity:3}));
-      glow.position.set(RX-0.08,y+PH/2+0.04,z); glow.rotation.y=-Math.PI/2; scene.add(glow);
-      const lt=new THREE.CanvasTexture(makeLabelTex(vid.label,vid.tag,"#00BBAA"));
-      const lb=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.55),
+      const bd=new THREE.Mesh(new THREE.PlaneGeometry(PW+0.14,PH+0.14),
+        new THREE.MeshBasicMaterial({color:0x0A1E1E,transparent:true,opacity:0.9}));
+      bd.position.set(RX-0.05,y,z); bd.rotation.y=-Math.PI/2; scene.add(bd);
+      const gw=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.04),
+        new THREE.MeshStandardMaterial({color:0x00CCAA,emissive:new THREE.Color(0x00AA88),emissiveIntensity:3.5}));
+      gw.position.set(RX-0.08,y+PH/2+0.05,z); gw.rotation.y=-Math.PI/2; scene.add(gw);
+      const lt=new THREE.CanvasTexture(makeLabelTex(vid.label));
+      const lb=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.5),
         new THREE.MeshBasicMaterial({map:lt,transparent:true}));
-      lb.position.set(RX-0.08,y-PH/2-0.36,z); lb.rotation.y=-Math.PI/2; scene.add(lb);
+      lb.position.set(RX-0.08,y-PH/2-0.32,z); lb.rotation.y=-Math.PI/2; scene.add(lb);
       const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4);
       sl.position.set(RX-5,y+1.5,z); sl.target.position.set(RX-0.1,y,z);
       scene.add(sl); scene.add(sl.target);
       sc.userData={type:"video",...vid}; hotspots.push(sc);
     }
 
-    // Place panels: 2 rows (upper/lower), columns along Z
     PHOTOS.forEach((ph,i)=>{
       const col=i%2, row=Math.floor(i/2);
-      addPhotoPanel(ph, col===0?YU:YL, 1.5+row*ZGAP);
+      addPhoto(ph, col===0?YU:YL, 1.5+row*ZGAP);
     });
     VIDEOS.forEach((vid,i)=>{
       const col=i%2, row=Math.floor(i/2);
-      addVideoPanel(vid, col===0?YU:YL, 1.5+row*ZGAP);
+      addVideo(vid, col===0?YU:YL, 1.5+row*ZGAP);
     });
 
     // ── CONTROLS ──────────────────────────────────────────────────
@@ -469,7 +491,7 @@ export default function SpatialShowroom() {
     document.addEventListener("pointerlockchange",onLock);
     renderer.domElement.addEventListener("click",onClick);
 
-    const fwd=new THREE.Vector3(),right=new THREE.Vector3();
+    const fwd=new THREE.Vector3(), right=new THREE.Vector3();
     const SPEED=0.09;
     const getZone=p=>{
       if(p.z<0) return "ENTRY HALL";
@@ -480,8 +502,26 @@ export default function SpatialShowroom() {
     };
 
     let rafId;
-    const tick=()=>{
+    const tick=(ts)=>{
       rafId=requestAnimationFrame(tick);
+      // Animate centerpiece
+      const t=ts*0.0004;
+      cloud.rotation.y = t*0.7;
+      cloud.rotation.x = Math.sin(t*0.3)*0.12;
+      ico.rotation.y  = -t*0.5;
+      ico.rotation.z  =  t*0.2;
+      ring1.rotation.z = t*0.4;
+      ring2.rotation.y = t*0.6;
+      // Subtle float
+      const floatY=Math.sin(t*1.1)*0.08;
+      cloud.position.y=CLOUD_Y+floatY;
+      ico.position.y  =CLOUD_Y+floatY;
+      ring1.position.y=CLOUD_Y+floatY;
+      ring2.position.y=CLOUD_Y+floatY;
+      cloudLight.position.y=CLOUD_Y+floatY;
+      // Pulse light intensity
+      cloudLight.intensity=1.8+Math.sin(t*1.8)*0.4;
+      // Movement
       camera.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
       right.crossVectors(fwd,new THREE.Vector3(0,1,0)).normalize();
       const vel=new THREE.Vector3();
@@ -499,7 +539,7 @@ export default function SpatialShowroom() {
       setZone(getZone(camera.position));
       renderer.render(scene,camera);
     };
-    tick();
+    tick(0);
 
     const onResize=()=>{
       camera.aspect=window.innerWidth/window.innerHeight;
