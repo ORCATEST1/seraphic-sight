@@ -369,32 +369,48 @@ function PanelModal({ item, onClose }) {
 function Onboarding({ onStart, isMobile }) {
   const [phase,setPhase]=useState("hello");
   const [prog,setProg]=useState(0);
+  const [fading,setFading]=useState(false);
   useEffect(()=>{
-    if(phase==="hello"){const t=setTimeout(()=>setPhase("enter"),1800);return()=>clearTimeout(t);}
+    if(phase==="hello"){const t=setTimeout(()=>setPhase("enter"),2000);return()=>clearTimeout(t);}
     if(phase==="loading"){
       let p=0;
       const iv=setInterval(()=>{
         p+=Math.random()*16+6;
-        if(p>=100){p=100;clearInterval(iv);setTimeout(()=>onStart(),250);}
+        if(p>=100){
+          p=100;clearInterval(iv);
+          setFading(true);
+          setTimeout(()=>onStart(),750);
+        }
         setProg(Math.min(100,p));
       },65);
       return()=>clearInterval(iv);
     }
   },[phase,onStart]);
-  const base={position:"fixed",inset:0,zIndex:999,display:"flex",flexDirection:"column",
+  const base={
+    position:"fixed",inset:0,zIndex:999,display:"flex",flexDirection:"column",
     alignItems:"center",justifyContent:"center",
     background:"radial-gradient(ellipse 110% 100% at 50% 0%,#060E20 0%,#010306 78%)",
-    fontFamily:"monospace"};
+    fontFamily:"monospace",
+    opacity: fading ? 0 : 1,
+    transition:"opacity 0.75s ease",
+    pointerEvents: fading ? "none" : "auto"
+  };
   if(phase==="hello") return (
     <div style={base}>
-      <div style={{fontSize:42,letterSpacing:"0.4em",color:"#00C8FF",animation:"pls 1.6s ease-in-out infinite"}}>SERAPHIC</div>
-      <div style={{fontSize:12,letterSpacing:"0.55em",color:"rgba(0,160,255,0.42)",marginTop:6}}>SIGHT &middot; SHOWROOM</div>
-      <style>{`@keyframes pls{0%,100%{opacity:0.6}50%{opacity:1}}`}</style>
+      <style>{`@keyframes pls{0%,100%{opacity:0.55}50%{opacity:1}} @keyframes riseIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      <div style={{animation:"riseIn 1.1s ease forwards",textAlign:"center"}}>
+        <div style={{fontSize:44,letterSpacing:"0.18em",color:"#00C8FF",fontWeight:300,animation:"pls 2s ease-in-out infinite",textTransform:"uppercase"}}>Seraphic Sight</div>
+        <div style={{fontSize:13,letterSpacing:"0.55em",color:"rgba(0,180,255,0.45)",marginTop:10,textTransform:"lowercase"}}>showroom</div>
+      </div>
     </div>
   );
   if(phase==="enter") return (
     <div style={base}>
-      <div style={{fontSize:10,letterSpacing:"0.42em",color:"rgba(0,185,255,0.5)",marginBottom:38,textTransform:"uppercase"}}>Virtual Portfolio Gallery</div>
+      <div style={{marginBottom:10,textAlign:"center"}}>
+        <div style={{fontSize:28,letterSpacing:"0.18em",color:"rgba(0,190,255,0.75)",fontWeight:300,textTransform:"uppercase"}}>Seraphic Sight</div>
+        <div style={{fontSize:11,letterSpacing:"0.55em",color:"rgba(0,160,255,0.38)",marginTop:6,textTransform:"lowercase"}}>showroom</div>
+      </div>
+      <div style={{height:1,width:120,background:"linear-gradient(90deg,transparent,rgba(0,180,255,0.3),transparent)",margin:"22px 0 28px"}}/>
       <button onClick={()=>setPhase("loading")} style={{
         background:"linear-gradient(135deg,#0044BB,#009990)",border:"none",color:"#fff",
         cursor:"pointer",borderRadius:6,padding:"13px 54px",fontFamily:"monospace",
@@ -408,7 +424,10 @@ function Onboarding({ onStart, isMobile }) {
   );
   return (
     <div style={base}>
-      <div style={{fontSize:10,letterSpacing:"0.4em",color:"rgba(0,185,255,0.55)",marginBottom:16,textTransform:"uppercase"}}>Initializing Gallery</div>
+      <div style={{marginBottom:22,textAlign:"center"}}>
+        <div style={{fontSize:28,letterSpacing:"0.18em",color:"rgba(0,190,255,0.6)",fontWeight:300,textTransform:"uppercase"}}>Seraphic Sight</div>
+        <div style={{fontSize:11,letterSpacing:"0.55em",color:"rgba(0,160,255,0.3)",marginTop:6,textTransform:"lowercase"}}>showroom</div>
+      </div>
       <div style={{width:240,height:1,background:"rgba(255,255,255,0.06)"}}>
         <div style={{height:"100%",background:"linear-gradient(90deg,#0044BB,#00BFA6)",
           width:`${prog}%`,transition:"width 0.06s linear",boxShadow:"0 0 6px rgba(0,130,190,0.7)"}}/>
@@ -1077,25 +1096,4 @@ export default function SpatialShowroom() {
 
   return (
     <div style={{width:"100vw",height:"100vh",overflow:"hidden",background:"#060C18"}}>
-      {!started && <Onboarding onStart={()=>setStarted(true)} isMobile={isMobile}/>}
-      <div ref={mountRef} style={{width:"100%",height:"100%",display:started?"block":"none"}}/>
-      {started && (
-        <>
-          {!isMobile && <Minimap px={pos[0]} pz={pos[1]}/>}
-          <HUD zone={zone} showHelp={showHelp} setShowHelp={setShowHelp} isMobile={isMobile}/>
-          <PanelModal item={modal} onClose={()=>setModal(null)}/>
-          <AudioBtn audioRef={audioRef}/>
-          {isMobile ? (
-            <MobileControls joystickRef={joystickRef} sprintingRef={sprintingRef} jumpRef={jumpTriggerRef}/>
-          ) : (
-            <div style={{position:"fixed",bottom:44,left:"50%",transform:"translateX(-50%)",
-              fontFamily:"monospace",fontSize:10,letterSpacing:"0.2em",
-              color:"rgba(0,170,255,0.3)",textTransform:"uppercase",pointerEvents:"none",zIndex:200}}>
-              Click canvas &middot; WASD move &middot; Shift sprint &middot; Space jump &middot; ESC release
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
+      {!started && <Onboarding onStart={()=>setSt
