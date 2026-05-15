@@ -1,6 +1,6 @@
-// SpatialShowroom.js v8 — full overhaul
-// Fixes: collision, panel Y, video error, glow color
-// Adds: services wall, CTA panels, orbital rings, holographic parcel exhibit
+// SpatialShowroom.js v9 — targeted patches
+// Fixes: black textures, label bars, 6th video, gallery spacing,
+//        parcel position/scale/pedestal, collision threshold
 
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
@@ -29,14 +29,15 @@ const VIDEOS = [
   { id:"clip1_nscwwy",             label:"Aerial Walkthrough"  },
   { id:"part_1_rzf7yo",            label:"Aerial Cinematic"    },
   { id:"Copy_of_V1_2_eshjoq",      label:"Listing Video"       },
+  { id:"Copy_of_DJI_0719_rlyiv1",  label:"Drone Flight"        },
 ];
 
 // ── Room constants (single source of truth) ──────────────────────────────────
 const GW=18, GD=40, GH=4.8;   // gallery: 18 wide, 40 deep, 4.8 tall
 const EW=6,  ED=8;             // entry corridor
 const LX=-9.0, RX=9.0;        // wall inner faces
-const CLOUD_POS = [0, 2.5, 23]; // centerpiece (past panels, before services)
-const PARCEL_POS= [5.5, 2.1, 30];// parcel exhibit position
+const CLOUD_POS = [0, 2.5, 24]; // centerpiece — deeper, past all panels
+const PARCEL_POS= [0, 1.25, 8.5]; // parcel exhibit — entry/mapping exhibit near front
 
 // ── Canvas texture generators ────────────────────────────────────────────────
 function makeFloorTex() {
@@ -408,19 +409,19 @@ export default function SpatialShowroom() {
       ctx.fillStyle=accent; ctx.font="bold 44px Arial"; ctx.textAlign="center"; ctx.fillText(text,256,54);
       return new THREE.CanvasTexture(c);
     }
-    vPlane(LX+0.08,GH-0.5,2, 5,0.65, bsic(0,{map:signTex("PHOTO GALLERY","#4499FF"),transparent:true}), Math.PI/2);
-    vPlane(RX-0.08,GH-0.5,2, 5,0.65, bsic(0,{map:signTex("VIDEO GALLERY","#00CCAA"),transparent:true}),-Math.PI/2);
+    vPlane(LX+0.08,GH-0.5,2, 5,0.65, new THREE.MeshBasicMaterial({color:0xffffff,map:signTex("PHOTO GALLERY","#4499FF"),transparent:true,side:THREE.DoubleSide}), Math.PI/2);
+    vPlane(RX-0.08,GH-0.5,2, 5,0.65, new THREE.MeshBasicMaterial({color:0xffffff,map:signTex("VIDEO GALLERY","#00CCAA"),transparent:true,side:THREE.DoubleSide}),-Math.PI/2);
 
     // ── SERVICES WALL ─────────────────────────────────────────────
     const servicesTex=new THREE.CanvasTexture(makeServicesTex());
-    vPlane(0,GH/2-0.1,GD-0.1, 10,4.5, bsic(0,{map:servicesTex}), Math.PI);
+    vPlane(0,GH/2-0.1,GD-0.1, 10,4.5, new THREE.MeshBasicMaterial({color:0xffffff,map:servicesTex,side:THREE.DoubleSide}), Math.PI);
 
     // ── CTA PANELS ────────────────────────────────────────────────
     const hotspots=[];
     function addCTA(px,py,pz,text,ry,ctaData){
       const tex=new THREE.CanvasTexture(makeCTATex(text,ctaData.accent||"#0066EE"));
       const m=new THREE.Mesh(new THREE.PlaneGeometry(2.8,0.62),
-        bsic(0,{map:tex,transparent:true}));
+        new THREE.MeshBasicMaterial({color:0xffffff,map:tex,transparent:true,side:THREE.DoubleSide}));
       m.position.set(px,py,pz); m.rotation.y=ry; scene.add(m);
       // Glow backing
       const back=new THREE.Mesh(new THREE.PlaneGeometry(2.85,0.67),
@@ -479,6 +480,7 @@ export default function SpatialShowroom() {
     const [PX,PY,PZ]=PARCEL_POS;
     const parcelGroup=new THREE.Group();
     parcelGroup.position.set(PX,PY,PZ);
+    parcelGroup.scale.set(1.25,1.25,1.25);
     scene.add(parcelGroup);
 
     // Pedestal
@@ -486,7 +488,7 @@ export default function SpatialShowroom() {
       bsic(0x0E1E30));
     pedMesh.position.set(0,-PY+0.06,0); scene.add(new THREE.Mesh()); // just use group
     const ped=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.75,0.12,32),bsic(0x0E1E30));
-    ped.position.set(PX,-0.06,PZ);scene.add(ped);
+    ped.position.set(PX,0.06,PZ);scene.add(ped);
     // Floor ring under parcel
     const flRing=new THREE.Mesh(new THREE.TorusGeometry(1.1,0.02,6,64),
       emit(0x00CCBB,0x009988,2.0));
@@ -539,10 +541,10 @@ export default function SpatialShowroom() {
 
     // ── GALLERY PANELS ────────────────────────────────────────────
     const loader=new THREE.TextureLoader(); loader.crossOrigin="anonymous";
-    const PW=3.6, PH=2.1, ZGAP=4.2;
+    const PW=3.1, PH=1.75, ZGAP=4.0;
     // Fixed Y — lower row raised so bottom edge > 0
-    const YU=3.2; // top: 3.2+1.05=4.25 ✓  bottom: 3.2-1.05=2.15 ✓
-    const YL=1.8; // top: 1.8+1.05=2.85 ✓  bottom: 1.8-1.05=0.75 ✓
+    const YU=3.45; // top: 3.45+0.875=4.325 ✓  bottom: 3.45-0.875=2.575 ✓
+    const YL=1.35; // top: 1.35+0.875=2.225 ✓  bottom: 1.35-0.875=0.475 ✓
 
     function addPhoto(ph,y,z){
       // Border (sits slightly behind screen)
@@ -556,9 +558,6 @@ export default function SpatialShowroom() {
       // Top glow bar
       vPlane(LX+0.08,y+PH/2+0.04,z, PW,0.035,
         new THREE.MeshStandardMaterial({color:0x2255FF,emissive:new THREE.Color(0x0033CC),emissiveIntensity:3.5}), Math.PI/2);
-      // Label — shifted up so it sits just below panel, above floor
-      const lt=new THREE.CanvasTexture(makeLabelTex(ph.label));
-      vPlane(LX+0.08,y-PH/2-0.23,z, PW,0.44, bsic(0,{map:lt,transparent:true}), Math.PI/2);
       // Spotlight
       const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4);
       sl.position.set(LX+5,y+1.5,z); sl.target.position.set(LX+0.1,y,z);
@@ -588,11 +587,6 @@ export default function SpatialShowroom() {
       const gw=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.035),
         new THREE.MeshStandardMaterial({color:0x00CCAA,emissive:new THREE.Color(0x009977),emissiveIntensity:3.5}));
       gw.position.set(RX-0.08,y+PH/2+0.04,z); gw.rotation.y=-Math.PI/2; vGroup.add(gw);
-      // Label
-      const lt=new THREE.CanvasTexture(makeLabelTex(vid.label));
-      const lb=new THREE.Mesh(new THREE.PlaneGeometry(PW,0.44),
-        bsic(0,{map:lt,transparent:true}));
-      lb.position.set(RX-0.08,y-PH/2-0.23,z); lb.rotation.y=-Math.PI/2; vGroup.add(lb);
       // Spotlight
       const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4);
       sl.position.set(RX-5,y+1.5,z); sl.target.position.set(RX-0.1,y,z);
@@ -614,7 +608,7 @@ export default function SpatialShowroom() {
       // Gallery bounds z=0..GD, Entry z=-ED..0
       const nz=Math.max(-(ED-0.5), Math.min(GD-0.5, z));
       let nx;
-      if(nz<-0.1){
+      if(nz<0.5){
         // Inside entry corridor — walls at ±EW/2
         nx=Math.max(-(EW/2-0.35), Math.min(EW/2-0.35, x));
       } else {
@@ -746,3 +740,4 @@ export default function SpatialShowroom() {
     </div>
   );
 }
+                                                                                                                            
