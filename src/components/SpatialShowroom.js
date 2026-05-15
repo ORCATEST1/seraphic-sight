@@ -516,6 +516,7 @@ export default function SpatialShowroom() {
   const handleHotRef   = useRef(null); // RAF -> React bridge for clicks
   const missionRef     = useRef({ active:false, currentWP:0, score:0, startTime:0, collisions:0, wpOrder:[], done:false });
   const lastPromptRef  = useRef("");
+  const nearTargetRef  = useRef(null); // userData of nearest interactable centerpiece
   const sessionIdRef   = useRef(Math.random().toString(36).substr(2,9) + Date.now().toString(36));
   const missionWPRef   = useRef([]); // mission waypoint ring meshes inside 3D scene
 
@@ -892,7 +893,13 @@ export default function SpatialShowroom() {
     // ── CONTROLS ──────────────────────────────────────────────────────────
     const keys={}, euler=new THREE.Euler(0,0,0,"YXZ");
     let locked=false;
-    const onKeyDown=e=>{ keys[e.code]=true; };
+    const onKeyDown=e=>{
+      keys[e.code]=true;
+      // [E] to interact with nearest centerpiece — no need to click in pointer-lock mode
+      if(e.code==="KeyE" && nearTargetRef.current){
+        handleHotRef.current(nearTargetRef.current);
+      }
+    };
     const onKeyUp=e=>{ keys[e.code]=false; };
     const onMove=e=>{ if(!locked||isMobile) return; euler.setFromQuaternion(camera.quaternion); euler.y-=e.movementX*.0018; euler.x-=e.movementY*.0018; euler.x=Math.max(-Math.PI*.32,Math.min(Math.PI*.32,euler.x)); camera.quaternion.setFromEuler(euler); };
     const onLock=()=>{ locked=document.pointerLockElement===renderer.domElement; };
@@ -966,12 +973,13 @@ export default function SpatialShowroom() {
       const proxFlight=Math.max(0,Math.min(1,1-(dFlight-1.5)/5.5));
       const proxOrb=Math.max(0,Math.min(1,1-(dOrb-1.5)/5.5));
 
-      // Proximity prompt (item 3)
+      // Proximity prompt (item 3) — press E to interact, no pointer aim needed
       if(frameCount%20===0){
-        let np="";
-        if(proxParcel>0.5) np="Click to scan parcel";
-        else if(proxFlight>0.5) np="Click to start Drone Mission";
-        else if(proxOrb>0.5) np="Click to explore portfolio";
+        let np=""; let nt=null;
+        if(proxParcel>0.5)      { np="[E]  Scan Parcel";        nt=bndTube.userData; }
+        else if(proxFlight>0.5) { np="[E]  Start Drone Mission"; nt=flightTube.userData; }
+        else if(proxOrb>0.5)    { np="[E]  Explore Portfolio";   nt=orbHitSphere.userData; }
+        nearTargetRef.current = nt;
         if(np!==lastPromptRef.current){ lastPromptRef.current=np; setPrompt(np); }
       }
 
@@ -1168,17 +1176,4 @@ export default function SpatialShowroom() {
               sprintingRef={sprintingRef}
               jumpRef={jumpTriggerRef}
               missionActive={missionState.active}
-              onStartMission={()=>handleHotRef.current({type:"drone-mission"})}
-            />
-          ) : (
-            <div style={{position:"fixed",bottom:44,left:"50%",transform:"translateX(-50%)",
-              fontFamily:"monospace",fontSize:10,letterSpacing:"0.2em",
-              color:"rgba(0,170,255,0.3)",textTransform:"uppercase",pointerEvents:"none",zIndex:200}}>
-              Click canvas &middot; WASD move &middot; Shift sprint &middot; Space jump &middot; ESC release
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
+              onStartMission={()=>handleHotRef.current({type:"drone-missi
