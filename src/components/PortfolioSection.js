@@ -79,17 +79,17 @@ const VIDEOS = [
 /* ─── Deliverable bubble config ───────────────────────────────────────────── */
 const PHOTO_BUBBLES = [
   { label: "All",          icon: "✦",  color: "#00d4ff" },
-  { label: "Real Estate",  icon: "🏠", color: "#a78bfa" },
-  { label: "Commercial",   icon: "🏢", color: "#34d399" },
-  { label: "Construction", icon: "🏗", color: "#fb923c" },
-  { label: "Land",         icon: "🌿", color: "#fbbf24" },
+  { label: "Real Estate",  icon: "", color: "#a78bfa" },
+  { label: "Commercial",   icon: "", color: "#34d399" },
+  { label: "Construction", icon: "", color: "#fb923c" },
+  { label: "Land",         icon: "", color: "#fbbf24" },
 ];
 
 const VIDEO_BUBBLES = [
   { label: "All",          icon: "✦",  color: "#00d4ff" },
-  { label: "Cinematic",    icon: "🎬", color: "#f472b6" },
-  { label: "Walkthrough",  icon: "🚪", color: "#a78bfa" },
-  { label: "Drone Clips",  icon: "🚁", color: "#34d399" },
+  { label: "Cinematic",    icon: "", color: "#f472b6" },
+  { label: "Walkthrough",  icon: "", color: "#a78bfa" },
+  { label: "Drone Clips",  icon: "", color: "#34d399" },
 ];
 
 /* ─── CSS ─────────────────────────────────────────────────────────────────── */
