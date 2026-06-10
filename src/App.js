@@ -3,7 +3,7 @@ import { Routes, Route, Link, useLocation } from "react-router-dom";
 import {
   NAV_LINKS, STATS, PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
-  CON_CLIENTS, PORTFOLIO_ITEMS, REGIONS, HERO_VIDEO_URL,
+  CON_CLIENTS, REGIONS,
   PROP_HERO_VIDEO_URL, CON_HERO_VIDEO_URL, TRAVEL_FEE, CLIENTS,
 } from "./data/content";
 import gsap from "gsap";
@@ -11,16 +11,35 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Lenis from "lenis";
 import CinematicHero from "./components/CinematicHero";
-import PortfolioSection from "./components/PortfolioSection";
-import SpatialShowroom from "./components/SpatialShowroom";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
+
+// Code-split the heavy routes — Three.js showroom and the full portfolio
+// no longer ship in the main bundle to visitors who just want a quote.
+const PortfolioSection = React.lazy(() => import("./components/PortfolioSection"));
+const SpatialShowroom  = React.lazy(() => import("./components/SpatialShowroom"));
+
+const REDUCED_MOTION = typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ===== PER-ROUTE META (lightweight, no dependency) =====
+function usePageMeta(title, description) {
+  React.useEffect(() => {
+    document.title = title;
+    if (description) {
+      let m = document.querySelector('meta[name="description"]');
+      if (!m) { m = document.createElement("meta"); m.name = "description"; document.head.appendChild(m); }
+      m.setAttribute("content", description);
+    }
+  }, [title, description]);
+}
 
 // ===== SCROLL SCRAMBLE HOOK =====
 function useTextScramble(text, { duration = 900, delay = 0 } = {}) {
   const [display, setDisplay] = React.useState(text);
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&";
   React.useEffect(() => {
+    if (REDUCED_MOTION) { setDisplay(text); return; }
     let frame = 0;
     const totalFrames = Math.floor(duration / 28);
     let raf, delayTimer;
@@ -109,7 +128,12 @@ function Nav() {
     return () => window.removeEventListener("scroll", h);
   }, []);
 
-  React.useEffect(() => { setMenuOpen(false); window.scrollTo({ top: 0 }); }, [location]);
+  React.useEffect(() => {
+    setMenuOpen(false);
+    // Lenis owns scrolling — bypassing it caused desync on route change
+    if (window.__lenis) window.__lenis.scrollTo(0, { immediate: true });
+    else window.scrollTo({ top: 0 });
+  }, [location]);
 
   return (
     <>
@@ -252,6 +276,10 @@ function TravelFeeNote({ accent = "#0077FF" }) {
 
 // ===== HOME =====
 function Home() {
+  usePageMeta(
+    "Seraphic Sight | Drone Photography & Aerial Mapping — Southern California",
+    "FAA Part 107 certified drone services: MLS-ready aerial photography, cinematic video, 360° tours, and DroneDeploy construction documentation across Southern & Central California."
+  );
   const homeRef = React.useRef(null);
   const verticalsRef = React.useRef(null);
   const verticalsTrackRef = React.useRef(null);
@@ -311,6 +339,11 @@ function Home() {
         },
       });
     });
+
+    // Re-measure pin positions once the 3D hero and media have settled —
+    // mis-measured triggers were a source of janky pinning
+    const refreshT = setTimeout(() => ScrollTrigger.refresh(), 350);
+    return () => clearTimeout(refreshT);
   }, { scope: homeRef });
 
   return (
@@ -343,7 +376,7 @@ function Home() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
             <span style={{ color: "#FFD700", fontSize: 13, letterSpacing: 1 }}>★★★★★</span>
             <span style={{ fontSize: 13, color: "#8888A0" }}>5.0 · 26 verified reviews on</span>
-            <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#6066A0", textDecoration: "none" }}>Droners.io</a>
+            <a href="https://droners.io/accounts/seraphicsight/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#6066A0", textDecoration: "none" }}>Droners.io</a>
           </div>
           <p className="hero-subtitle" style={{ fontSize: 18, lineHeight: 1.7, color: "#8888A0", maxWidth: 600, margin: "0 auto 40px" }}>
             FAA-certified drone services for property marketing, construction monitoring, and site visualization — from APN to final deliverables.
@@ -463,7 +496,7 @@ function Home() {
             <p style={{ fontSize:11,fontWeight:700,color:"#444460",letterSpacing:2,textTransform:"uppercase",marginBottom:10 }}>Client Reviews</p>
             <h2 className="section-title" style={{ fontSize:36,fontWeight:800,color:"#fff",letterSpacing:"-0.8px",margin:0 }}>What Clients Say</h2>
           </div>
-          <a href="https://www.droners.io" target="_blank" rel="noopener noreferrer"
+          <a href="https://droners.io/accounts/seraphicsight/" target="_blank" rel="noopener noreferrer"
             style={{ display:"flex",alignItems:"center",gap:8,textDecoration:"none",padding:"10px 20px",border:"1px solid rgba(255,255,255,0.08)",borderRadius:10,background:"rgba(255,255,255,0.02)" }}>
             <span style={{ color:"#FFD700",letterSpacing:2,fontSize:13 }}>★★★★★</span>
             <span style={{ fontSize:13,color:"#8888A0" }}>5.0 · 26 reviews · Droners.io</span>
@@ -494,6 +527,31 @@ function Home() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ===== 3D SHOWROOM TEASER ===== */}
+      <section style={{ padding:"90px 24px" }}>
+        <div className="card-hover" style={{ maxWidth:1100,margin:"0 auto",position:"relative",borderRadius:20,overflow:"hidden",border:"1px solid rgba(0,191,166,0.2)",minHeight:340,display:"flex",alignItems:"center" }}>
+          <img src="https://res.cloudinary.com/dpc1noikx/image/upload/w_1600,h_700,c_fill,f_auto,q_auto/DJI_0944_gho2t4" alt="Downtown skyline at golden hour, captured by drone" loading="lazy"
+            style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.4 }}/>
+          <div style={{ position:"absolute",inset:0,background:"linear-gradient(100deg,rgba(5,8,16,0.96) 28%,rgba(5,8,16,0.6) 68%,rgba(0,119,255,0.15))" }}/>
+          <div style={{ position:"relative",zIndex:2,padding:"56px 48px",maxWidth:600 }}>
+            <div className="tag-pill" style={{ background:"rgba(0,191,166,0.1)",border:"1px solid rgba(0,191,166,0.3)",color:"#00BFA6",marginBottom:22,display:"inline-flex" }}>
+              <span style={{ width:6,height:6,borderRadius:"50%",background:"#00BFA6",animation:"pulse 2s infinite" }}/>
+              Interactive Experience
+            </div>
+            <h2 className="section-title" style={{ fontSize:36,fontWeight:800,color:"#fff",letterSpacing:"-0.9px",lineHeight:1.12,marginBottom:16 }}>
+              Step inside the<br/><span className="gradient-text">3D Showroom</span>
+            </h2>
+            <p style={{ fontSize:15,color:"#A8A8C0",lineHeight:1.75,marginBottom:32,maxWidth:480 }}>
+              Walk a virtual gallery of real aerial work — explore photo and video walls, scan a live parcel-boundary exhibit, and fly the drone mission to unlock a free parcel overlay with your quote.
+            </p>
+            <div style={{ display:"flex",gap:14,flexWrap:"wrap" }}>
+              <Link to="/showroom"><MagneticBtn className="btn-primary">&#9654; Enter Showroom</MagneticBtn></Link>
+              <Link to="/portfolio"><MagneticBtn className="btn-outline">Classic Portfolio</MagneticBtn></Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -541,6 +599,10 @@ function Home() {
 
 // ===== PROPERTY MARKETING =====
 function PropertyMarketing() {
+  usePageMeta(
+    "Real Estate Drone Photography & Video — from $249 | Seraphic Sight",
+    "MLS-ready aerial photos, cinematic listing videos, and 360° virtual tours delivered in 3–4 business days. LAANC-authorized across Southern California."
+  );
   const pageRef = React.useRef(null);
   usePageReveal(pageRef);
   return (
@@ -589,6 +651,10 @@ function PropertyMarketing() {
 
 // ===== CONSTRUCTION =====
 function Construction() {
+  usePageMeta(
+    "Construction Drone Mapping & Progress Documentation | Seraphic Sight",
+    "DroneDeploy automated workflows, orthomosaic mapping, GeoTIFF/LAS deliverables, and audit-ready progress documentation for Southern California projects."
+  );
   const pageRef = React.useRef(null);
   usePageReveal(pageRef);
   return (
@@ -606,7 +672,7 @@ function Construction() {
         <div style={{ borderRadius:16,overflow:"hidden",border:"1px solid rgba(0,191,166,0.15)" }}>
           <img src="https://res.cloudinary.com/dpc1noikx/image/upload/v1778210648/map-snapshot_q3dk25.png" alt="DroneDeploy orthomosaic map - active construction site" style={{ width:"100%",display:"block" }}/>
           <div style={{ padding:"16px 24px",background:"rgba(0,191,166,0.04)",borderTop:"1px solid rgba(0,191,166,0.1)" }}>
-            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map � live DroneDeploy flight, construction progress monitoring, Southern California.</p>
+            <p style={{ fontSize:12,color:"#6066A0",margin:0 }}>Orthomosaic site map · live DroneDeploy flight, construction progress monitoring, Southern California.</p>
           </div>
         </div>
       </section>
@@ -640,169 +706,20 @@ function Construction() {
   );
 }
 
-// ===== PORTFOLIO LIGHTBOX =====
-function PortfolioLightbox({ p, images, videoUrl, initialTab, onClose }) {
-  const [tab, setTab] = React.useState(initialTab);
-  const [idx, setIdx] = React.useState(0);
-
-  React.useEffect(() => {
-    const h = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", h);
-    document.body.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", h); document.body.style.overflow = ""; };
-  }, [onClose]);
-
-  const tabs = [
-    images.length && "Photos",
-    videoUrl && "Video",
-    p.media?.tour360 && "360° Tour",
-    p.media?.walkthrough && "Walkthrough",
-  ].filter(Boolean);
-
-  return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.97)",zIndex:1000,display:"flex",flexDirection:"column" }}>
-      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 28px",borderBottom:"1px solid rgba(255,255,255,0.07)",flexShrink:0 }}>
-        <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-          <span style={{ width:8,height:8,borderRadius:"50%",background:p.color,flexShrink:0 }}/>
-          <span style={{ color:"#fff",fontWeight:700,fontSize:17 }}>{p.title}</span>
-        </div>
-        <div style={{ display:"flex",alignItems:"center",gap:8,flexWrap:"wrap" }}>
-          {tabs.map(t=>(
-            <button key={t} onClick={()=>{setTab(t);setIdx(0);}}
-              style={{ padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:600,cursor:"pointer",
-                border:tab===t?`1px solid ${p.color}`:"1px solid rgba(255,255,255,0.12)",
-                background:tab===t?`${p.color}20`:"transparent",
-                color:tab===t?p.color:"#8888A0" }}>
-              {t}
-            </button>
-          ))}
-          <button onClick={onClose} style={{ color:"#8888A0",fontSize:22,background:"none",border:"none",cursor:"pointer",padding:"0 4px",lineHeight:1,marginLeft:8 }}>✕</button>
-        </div>
-      </div>
-      <div style={{ flex:1,overflow:"hidden",display:"flex",flexDirection:"column",padding:"28px 40px",minHeight:0 }}>
-        {tab==="Photos"&&images.length>0&&(
-          <>
-            <div style={{ flex:1,position:"relative",display:"flex",alignItems:"center",justifyContent:"center",minHeight:0 }}>
-              <img src={images[idx]} alt={`Photo ${idx+1}`} style={{ maxWidth:"100%",maxHeight:"100%",borderRadius:10,objectFit:"contain" }}/>
-              {images.length>1&&<>
-                <button onClick={()=>setIdx(i=>(i-1+images.length)%images.length)}
-                  style={{ position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:22,width:42,height:42,borderRadius:"50%",cursor:"pointer" }}>&#8249;</button>
-                <button onClick={()=>setIdx(i=>(i+1)%images.length)}
-                  style={{ position:"absolute",right:0,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:22,width:42,height:42,borderRadius:"50%",cursor:"pointer" }}>&#8250;</button>
-              </>}
-            </div>
-            {images.length>1&&(
-              <div style={{ display:"flex",gap:6,marginTop:14,overflowX:"auto",padding:"4px 0",flexShrink:0,justifyContent:"center" }}>
-                {images.map((src,i)=>(
-                  <div key={i} onClick={()=>setIdx(i)}
-                    style={{ width:60,height:40,borderRadius:5,overflow:"hidden",cursor:"pointer",flexShrink:0,
-                      border:i===idx?`2px solid ${p.color}`:"2px solid transparent",
-                      opacity:i===idx?1:0.4,transition:"opacity 0.15s" }}>
-                    <img src={src} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}/>
-                  </div>
-                ))}
-              </div>
-            )}
-            <p style={{ textAlign:"center",marginTop:10,fontSize:12,color:"#555570",flexShrink:0 }}>{idx+1} / {images.length}</p>
-          </>
-        )}
-        {tab==="Video"&&videoUrl&&(
-          <div style={{ display:"flex",alignItems:"center",justifyContent:"center",height:"100%" }}>
-            <video controls autoPlay style={{ maxWidth:"100%",maxHeight:"100%",borderRadius:10 }} src={videoUrl}/>
-          </div>
-        )}
-        {tab==="360° Tour"&&p.media?.tour360&&(
-          <div style={{ height:"100%",borderRadius:10,overflow:"hidden" }}>
-            <iframe src={p.media.tour360} title="360 Tour" style={{ width:"100%",height:"100%",border:"none" }}
-              allow="xr-spatial-tracking; gyroscope; accelerometer" allowFullScreen/>
-          </div>
-        )}
-        {tab==="Walkthrough"&&p.media?.walkthrough&&(
-          <div style={{ height:"100%",borderRadius:10,overflow:"hidden" }}>
-            <iframe src={p.media.walkthrough} title="Walkthrough" style={{ width:"100%",height:"100%",border:"none" }} allowFullScreen/>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-
-
-function PortfolioCard({ p }) {
-  const [images, setImages] = React.useState([]);
-  const [videoUrl, setVideoUrl] = React.useState(null);
-  const [fetched, setFetched] = React.useState(false);
-  const [lightboxTab, setLightboxTab] = React.useState(null);
-
-  const hasCld = !!p.cloudinaryFolder;
-
-  const fetchCloudinary = React.useCallback(async () => {
-    if (!hasCld || fetched) return;
-    setFetched(true);
-    try {
-      const [imgRes, vidRes] = await Promise.all([
-        fetch(`/api/cloudinary-images?folder=${p.cloudinaryFolder}&type=image`).then(r=>r.json()),
-        fetch(`/api/cloudinary-images?folder=${p.cloudinaryFolder}&type=video`).then(r=>r.json()),
-      ]);
-      setImages(imgRes.urls||[]);
-      setVideoUrl(vidRes.urls?.[0]||null);
-    } catch { /* silent */ }
-  }, [hasCld, fetched, p.cloudinaryFolder]);
-
-  React.useEffect(() => { if (hasCld) fetchCloudinary(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const tabs = [
-    (hasCld || images.length) && "Photos",
-    (hasCld || videoUrl) && "Video",
-    p.media?.tour360 && "360° Tour",
-    p.media?.walkthrough && "Walkthrough",
-  ].filter(Boolean);
-
-  const openLightbox = (tab) => { fetchCloudinary(); setLightboxTab(tab); };
-
-  return (
-    <>
-      <div className="card-hover" style={{ background:`linear-gradient(135deg,${p.color}08,${p.color}03)`,border:`1px solid ${p.color}18`,borderRadius:14,overflow:"hidden",display:"flex",flexDirection:"column" }}>
-        <div style={{ position:"relative",width:"100%",height:200,overflow:"hidden",background:"#0a0a12",flexShrink:0,cursor:images.length>0?"pointer":"default" }}
-          onClick={()=>images.length>0&&openLightbox("Photos")}>
-          {images.length>0
-            ? <img src={images[0]} alt={p.title} style={{ width:"100%",height:"100%",objectFit:"cover",opacity:0.9 }}/>
-            : <div style={{ width:"100%",height:"100%",background:`linear-gradient(135deg,${p.color}12,${p.color}04)` }}/>
-          }
-          {images.length>1&&<div style={{ position:"absolute",bottom:10,right:10,background:"rgba(0,0,0,0.6)",color:"#fff",fontSize:11,padding:"3px 10px",borderRadius:20,backdropFilter:"blur(4px)" }}>{images.length} photos</div>}
-        </div>
-        <div style={{ padding:28,flex:1,display:"flex",flexDirection:"column" }}>
-          <div style={{ display:"inline-flex",alignItems:"center",gap:6,marginBottom:14 }}>
-            <span style={{ width:8,height:8,borderRadius:"50%",background:p.color }}/>
-            <span style={{ fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:1.5,color:p.color }}>{p.tag}</span>
-          </div>
-          <h3 style={{ fontSize:20,fontWeight:700,color:"#fff",marginBottom:8 }}>{p.title}</h3>
-          <p style={{ fontSize:13,color:"#8888A0",flex:1,lineHeight:1.6 }}>{p.deliverables}</p>
-          {tabs.length>0&&(
-            <div style={{ display:"flex",gap:8,marginTop:20,flexWrap:"wrap" }}>
-              {tabs.map(tab=>(
-                <button key={tab} onClick={()=>openLightbox(tab)}
-                  style={{ padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:500,cursor:"pointer",
-                    border:`1px solid ${p.color}50`,background:`${p.color}10`,color:p.color }}>
-                  {tab} &#8599;
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-      {lightboxTab&&<PortfolioLightbox p={p} images={images} videoUrl={videoUrl} initialTab={lightboxTab} onClose={()=>setLightboxTab(null)}/>}
-    </>
-  );
-}
-
 // ===== PORTFOLIO =====
 function Portfolio() {
+  usePageMeta(
+    "Aerial Photography & Drone Video Portfolio | Seraphic Sight",
+    "Browse real aerial work: real estate listings, commercial sites, construction progress, and land mapping across Southern California."
+  );
   return <PortfolioSection />;
 }
 
 function ServiceArea() {
+  usePageMeta(
+    "Drone Service Area — Southern & Central California | Seraphic Sight",
+    "Drone photography and mapping coverage from San Diego to Bakersfield: LA, Orange County, Inland Empire, Coachella Valley, and the coast."
+  );
   return (
     <div>
       <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast — if your project is in our range, we'll be on site."/>
@@ -831,13 +748,18 @@ function ServiceArea() {
 }
 // ===== CONTACT =====
 function Contact() {
+  usePageMeta(
+    "Get a Drone Services Quote — 24hr Response | Seraphic Sight",
+    "Request a quote for aerial photography, drone video, or construction mapping. Send the APN or address — we respond within 24 hours."
+  );
   const location = useLocation();
   const [form, setForm] = React.useState({
     name: "", email: "", phone: "", type: "Property Marketing",
     address: "", desc: "", timeline: "", honeypot: "",
   });
   const [status, setStatus] = React.useState("idle");
-  const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const [errors, setErrors] = React.useState({});
+  const upd = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: undefined })); };
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
     const t = params.get("type");
@@ -846,7 +768,13 @@ function Contact() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async () => {
-    if (!form.name || !form.email) return;
+    // Validate with visible feedback — silently returning lost leads
+    const errs = {};
+    if (!form.name.trim()) errs.name = "Please enter your name.";
+    if (!form.email.trim()) errs.email = "Please enter your email.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = "That email doesn't look right.";
+    setErrors(errs);
+    if (Object.keys(errs).some(k => errs[k])) return;
     setStatus("sending");
     try {
       const res = await fetch("/api/contact", {
@@ -883,10 +811,10 @@ function Contact() {
             <input tabIndex="-1" autoComplete="off" value={form.honeypot} onChange={e => upd("honeypot", e.target.value)} />
           </div>
           <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div><label className="form-label">Name *</label><input className="form-input" value={form.name} onChange={e => upd("name", e.target.value)} placeholder="Your name" /></div>
+            <div><label className="form-label">Name *</label><input className="form-input" style={errors.name ? { borderColor: "rgba(255,77,77,0.6)" } : undefined} value={form.name} onChange={e => upd("name", e.target.value)} placeholder="Your name" aria-invalid={!!errors.name} />{errors.name && <p style={{ color: "#FF4D4D", fontSize: 12, marginTop: 6 }}>{errors.name}</p>}</div>
             <div><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="(000) 000-0000" /></div>
           </div>
-          <div><label className="form-label">Email *</label><input className="form-input" value={form.email} onChange={e => upd("email", e.target.value)} placeholder="you@email.com" /></div>
+          <div><label className="form-label">Email *</label><input className="form-input" type="email" style={errors.email ? { borderColor: "rgba(255,77,77,0.6)" } : undefined} value={form.email} onChange={e => upd("email", e.target.value)} placeholder="you@email.com" aria-invalid={!!errors.email} />{errors.email && <p style={{ color: "#FF4D4D", fontSize: 12, marginTop: 6 }}>{errors.email}</p>}</div>
           <div>
             <label className="form-label">Project Type</label>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -930,6 +858,10 @@ function Contact() {
 
 // ===== FAQ =====
 function FAQ() {
+  usePageMeta(
+    "Drone Services FAQ — Licensing, Pricing, Turnaround | Seraphic Sight",
+    "Answers on FAA Part 107 certification, insurance and COIs, LAANC airspace authorization, deliverable formats, turnaround times, and travel fees."
+  );
   const [open, setOpen] = React.useState(null);
   const items = [
     { q: "Are you FAA Part 107 certified?", a: "Yes. Joseph Perez holds an FAA Part 107 Remote Pilot Certificate, required for all commercial drone operations in the U.S. We are also fully insured and can provide a Certificate of Insurance (COI) upon request — standard for GCs, brokerages, and property management companies." },
@@ -970,12 +902,18 @@ function FAQ() {
 // ===== MAIN APP =====
 
 export default function App() {
+  const location = useLocation();
+  const isShowroom = location.pathname === "/showroom";
+
   React.useEffect(() => {
+    if (REDUCED_MOTION) return; // native scrolling for reduced-motion users
     const lenis = new Lenis({ duration: 1.2, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    window.__lenis = lenis; // shared with Nav scroll-to-top + showroom pause
     lenis.on("scroll", ScrollTrigger.update);
-    gsap.ticker.add(time => lenis.raf(time * 1000));
+    const raf = time => lenis.raf(time * 1000);
+    gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
-    return () => { lenis.destroy(); };
+    return () => { gsap.ticker.remove(raf); lenis.destroy(); window.__lenis = null; };
   }, []);
 
   return (
@@ -985,7 +923,10 @@ export default function App() {
         backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         backgroundRepeat:"repeat",backgroundSize:"128px 128px"
       }}/>
-      <Nav/>
+      {!isShowroom && <Nav/>}
+      <React.Suspense fallback={
+        <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"monospace",color:"rgba(0,170,255,0.6)",fontSize:12,letterSpacing:"0.2em" }}>LOADING…</div>
+      }>
       <Routes>
         <Route path="/" element={<Home/>}/>
         <Route path="/property-marketing" element={<PropertyMarketing/>}/>
@@ -996,7 +937,8 @@ export default function App() {
         <Route path="/faq" element={<FAQ/>}/>
         <Route path="/showroom" element={<SpatialShowroom/>}/>
       </Routes>
-      <Footer/>
+      </React.Suspense>
+      {!isShowroom && <Footer/>}
     </div>
   );
-        }
+}
