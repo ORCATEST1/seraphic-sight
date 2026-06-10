@@ -1,9 +1,15 @@
+import { esc, isEmail, rateLimit } from "./_utils.js";
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
+  if (!rateLimit(req, { limit: 5, windowMs: 10 * 60 * 1000 }))
+    return res.status(429).json({ error: "Too many requests — please try again later." });
 
-  const { name, email, phone, type, address, desc, timeline, honeypot } = req.body;
+  const { name, email, phone, type, address, desc, timeline, honeypot } = req.body || {};
 
   if (honeypot) return res.status(200).json({ ok: true });
+  if (!name || !isEmail(email))
+    return res.status(400).json({ error: "Name and a valid email are required." });
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -15,17 +21,17 @@ export default async function handler(req, res) {
       from: "quotes@seraphicsight.com",
       to: "Joseph@SeraphicSight.com",
       reply_to: email,
-      subject: `New Quote Request — ${type}`,
+      subject: `New Quote Request — ${esc(type)}`,
       html: `
         <h2 style="font-family:sans-serif;color:#111">New Quote Request</h2>
         <table style="font-family:sans-serif;font-size:14px;border-collapse:collapse;width:100%">
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600;width:160px">Name</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${name}</td></tr>
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Email</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${email}</td></tr>
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Phone</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${phone || "—"}</td></tr>
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Project Type</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${type}</td></tr>
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Address / APN</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${address || "—"}</td></tr>
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Timeline</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${timeline || "—"}</td></tr>
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600;vertical-align:top">Description</td><td style="padding:8px 12px">${desc || "—"}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600;width:160px">Name</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(name)}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Email</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(email)}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Phone</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(phone) || "—"}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Project Type</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(type)}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Address / APN</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(address) || "—"}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Timeline</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(timeline) || "—"}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600;vertical-align:top">Description</td><td style="padding:8px 12px">${esc(desc) || "—"}</td></tr>
         </table>
       `,
     }),
