@@ -729,6 +729,18 @@ function Lightbox({ items, startIdx, onClose }) {
     return () => { document.body.style.overflow = prev; };
   }, []);
 
+  /* shareable deep link — keep ?item= in sync with the open media */
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("item", item.id);
+    window.history.replaceState({}, "", url);
+  }, [item.id]);
+  useEffect(() => () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("item");
+    window.history.replaceState({}, "", url);
+  }, []);
+
   return (
     <div className="ps-lb-overlay" onClick={onClose}>
       <button className="ps-lb-close" onClick={onClose} aria-label="Close">✕</button>
@@ -916,6 +928,25 @@ export default function PortfolioSection() {
     bgVideoRef.current?.play().catch(() => {});
   }, []);
 
+  /* deep-linking: /portfolio?item=<cloudinary-id> opens that item directly —
+     lets you text/email a client a link straight to a relevant job */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const itemId = params.get("item");
+    if (!itemId) return;
+    const pIdx = PHOTOS.findIndex(x => x.id === itemId);
+    if (pIdx >= 0) {
+      setCat("photo"); setFilter("All");
+      setLbState({ items: PHOTOS.map(x => ({ ...x, type: "photo" })), idx: pIdx });
+      return;
+    }
+    const vIdx = VIDEOS.findIndex(x => x.id === itemId);
+    if (vIdx >= 0) {
+      setCat("video"); setFilter("All");
+      setLbState({ items: VIDEOS.map(x => ({ ...x, type: "video" })), idx: vIdx });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   /* current data */
   const isPhoto  = cat === "photo";
   const rawItems = useMemo(
@@ -999,7 +1030,7 @@ export default function PortfolioSection() {
 
         {/* Deliverable bubbles */}
         <div className="ps-bubbles-wrap">
-          <div className="ps-bubbles-label">// filter by deliverable type</div>
+          <div className="ps-bubbles-label">{"// filter by deliverable type"}</div>
           <div className="ps-bubbles" role="group" aria-label="Filter by deliverable type">
             {bubbles.map(b => (
               <Bubble
@@ -1024,7 +1055,7 @@ export default function PortfolioSection() {
 
         {/* Grid */}
         {filtered.length === 0 ? (
-          <div className="ps-empty">// No items match this filter yet.</div>
+          <div className="ps-empty">{"// No items match this filter yet."}</div>
         ) : (
           <div className="ps-grid" key={`${cat}::${filter}`}>
             {filtered.map((item, i) =>

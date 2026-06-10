@@ -11,6 +11,7 @@
 //   9. Mobile mission: joystick-compatible, Start/Exit mission buttons
 
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
 
 const CLD = "https://res.cloudinary.com/dpc1noikx";
@@ -398,6 +399,7 @@ function LeadCapture({ data, onClose }) {
 // ── PANEL MODAL ───────────────────────────────────────────────────────────────
 function PanelModal({ item, onClose }) {
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
   if(!item) return null;
   if(item.cta) {
     const isMailto = item.href && item.href.startsWith("mailto:");
@@ -416,10 +418,17 @@ function PanelModal({ item, onClose }) {
               </button>
             </>
           ) : (
-            <a href={item.href} target={isExternal?"_blank":undefined} rel={isExternal?"noopener noreferrer":undefined}
+            isExternal ? (
+            <a href={item.href} target="_blank" rel="noopener noreferrer"
               style={{background:"linear-gradient(135deg,#0055CC,#00AAA0)",border:"none",color:"#fff",cursor:"pointer",borderRadius:6,padding:"12px 36px",fontFamily:"monospace",fontSize:13,letterSpacing:"0.18em",textDecoration:"none"}}>
               {item.action}
             </a>
+            ) : (
+            <button onClick={()=>{ onClose(); navigate(item.href); }}
+              style={{background:"linear-gradient(135deg,#0055CC,#00AAA0)",border:"none",color:"#fff",cursor:"pointer",borderRadius:6,padding:"12px 36px",fontFamily:"monospace",fontSize:13,letterSpacing:"0.18em"}}>
+              {item.action}
+            </button>
+            )
           )}
           <button onClick={onClose} style={{background:"none",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(140,170,220,0.5)",cursor:"pointer",borderRadius:3,padding:"4px 14px",fontFamily:"monospace",fontSize:10}}>CLOSE</button>
         </div>
@@ -538,6 +547,8 @@ export default function SpatialShowroom() {
   const sessionIdRef   = useRef(Math.random().toString(36).substr(2,9) + Date.now().toString(36));
   const missionWPRef   = useRef([]); // mission waypoint ring meshes inside 3D scene
 
+  const navigate = useNavigate();
+  const [webglFailed,setWebglFailed]= useState(false);
   const [started,    setStarted]    = useState(false);
   const [pos,        setPos]        = useState([0,-5]);
   const [zone,       setZone]       = useState("ENTRY HALL");
@@ -554,6 +565,19 @@ export default function SpatialShowroom() {
   const joystickRef   = useRef({x:0,y:0});
   const sprintingRef  = useRef(false);
   const jumpTriggerRef= useRef(false);
+
+  // Page meta + lock page scroll while mounted (mouse wheel was scrolling
+  // the footer into view mid-exploration; Lenis paused too)
+  useEffect(()=>{
+    document.title = "3D Showroom — Interactive Drone Portfolio | Seraphic Sight";
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    if(window.__lenis && window.__lenis.stop) window.__lenis.stop();
+    return ()=>{
+      document.body.style.overflow = prevOverflow;
+      if(window.__lenis && window.__lenis.start) window.__lenis.start();
+    };
+  },[]);
 
   // Audio — create on mount, ready to play on first user gesture
   useEffect(()=>{
@@ -598,7 +622,14 @@ export default function SpatialShowroom() {
     if(!started) return;
     const el = mountRef.current; if(!el) return;
 
-    const renderer = new THREE.WebGLRenderer({antialias:!isMobile});
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({antialias:!isMobile});
+    } catch(err) {
+      console.warn("[Showroom] WebGL unavailable:", err.message);
+      setWebglFailed(true);
+      return;
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile?1.5:2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.LinearToneMapping;
@@ -876,14 +907,12 @@ export default function SpatialShowroom() {
       const sc=new THREE.Mesh(new THREE.PlaneGeometry(PHOTO_W,PHOTO_H),new THREE.MeshBasicMaterial({map:tex}));
       sc.position.set(LX+0.07,y,z); sc.rotation.y=Math.PI/2; scene.add(sc);
       vPlane(LX+0.08,y+PHOTO_H/2+0.04,z,PHOTO_W,0.035,new THREE.MeshStandardMaterial({color:0x2255FF,emissive:new THREE.Color(0x0033CC),emissiveIntensity:3.5}),Math.PI/2);
-      if(!isMobile){ const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4); sl.position.set(LX+5,y+1.5,z); sl.target.position.set(LX+0.1,y,z); scene.add(sl); scene.add(sl.target); }
       sc.userData={type:"photo",...ph}; hotspots.push(sc);
     }
     function addVideo(vid,y,z){
       const vGroup=new THREE.Group(); scene.add(vGroup);
       const videoEl=document.createElement("video");
       videoEl.src=cVid(vid.id); videoEl.loop=true; videoEl.muted=true; videoEl.playsInline=true; videoEl.crossOrigin="anonymous";
-      if(!isMobile){ videoEl.autoplay=true; videoEl.play().catch(()=>{}); }
       videoEl.addEventListener("error",()=>{ vGroup.visible=false; });
       videoEls.push({el:videoEl,z});
       const vTex=new THREE.VideoTexture(videoEl); vTex.colorSpace=THREE.SRGBColorSpace;
@@ -893,7 +922,6 @@ export default function SpatialShowroom() {
       sc.position.set(RX-0.07,y,z); sc.rotation.y=-Math.PI/2; vGroup.add(sc);
       const gw=new THREE.Mesh(new THREE.PlaneGeometry(VIDEO_W,0.035),new THREE.MeshStandardMaterial({color:0x00CCAA,emissive:new THREE.Color(0x009977),emissiveIntensity:3.5}));
       gw.position.set(RX-0.08,y+VIDEO_H/2+0.04,z); gw.rotation.y=-Math.PI/2; vGroup.add(gw);
-      if(!isMobile){ const sl=new THREE.SpotLight(0xFFFFFF,5.0,14,Math.PI/9,0.4); sl.position.set(RX-5,y+1.5,z); sl.target.position.set(RX-0.1,y,z); vGroup.add(sl); scene.add(sl.target); }
       sc.userData={type:"video",...vid}; hotspots.push(sc);
     }
     function layoutOneRow(items,fn,y,s,e){ const step=items.length>1?(e-s)/(items.length-1):0; items.forEach((it,i)=>fn(it,y,s+i*step)); }
@@ -1141,14 +1169,19 @@ export default function SpatialShowroom() {
       yVel-=GRAVITY; camera.position.y+=yVel;
       if(camera.position.y<=EYE_HEIGHT){ camera.position.y=EYE_HEIGHT; yVel=0; grounded=true; }
 
-      // Lazy video (mobile)
-      if(isMobile&&frameCount%30===0){
+      // Proximity-based video playback (ALL devices) — desktop previously
+      // decoded 6 simultaneous streams forever
+      if(frameCount%30===0){
         const camZ=camera.position.z;
-        videoEls.forEach(({el,z})=>{ const d=Math.abs(z-camZ); if(d<12&&el.paused) el.play().catch(()=>{}); else if(d>=12&&!el.paused) el.pause(); });
+        videoEls.forEach(({el,z})=>{ const d=Math.abs(z-camZ); if(d<14&&el.paused) el.play().catch(()=>{}); else if(d>=14&&!el.paused) el.pause(); });
       }
 
-      setPos([Math.round(camera.position.x*10)/10, Math.round(camera.position.z*10)/10]);
-      setZone(getZone(camera.position));
+      // Throttle React state sync — was re-rendering the whole UI tree at 60fps
+      if(frameCount%10===0){
+        const nx=Math.round(camera.position.x*10)/10, nz=Math.round(camera.position.z*10)/10;
+        setPos(p=>(p[0]===nx&&p[1]===nz)?p:[nx,nz]);
+        setZone(getZone(camera.position));
+      }
       renderer.render(scene,camera);
     };
     tick(0);
@@ -1170,6 +1203,12 @@ export default function SpatialShowroom() {
       window.removeEventListener("resize",onResize);
       if(document.pointerLockElement) document.exitPointerLock();
       videoEls.forEach(({el})=>{ el.pause(); el.src=""; });
+      // Free GPU memory — geometries, materials, canvas/video textures
+      scene.traverse(o=>{
+        if(o.geometry) o.geometry.dispose();
+        const mats=Array.isArray(o.material)?o.material:(o.material?[o.material]:[]);
+        mats.forEach(m=>{ if(m.map) m.map.dispose(); m.dispose(); });
+      });
       renderer.dispose();
       if(el.contains(renderer.domElement)) el.removeChild(renderer.domElement);
     };
@@ -1184,8 +1223,29 @@ export default function SpatialShowroom() {
     }
   },[modal, orbMenu, leadCapture]);
 
+  if(webglFailed) return (
+    <div style={{width:"100vw",height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:18,background:"#060C18",fontFamily:"monospace",textAlign:"center",padding:24}}>
+      <div style={{color:"#00C8FF",fontSize:22,letterSpacing:"0.14em"}}>SERAPHIC SIGHT SHOWROOM</div>
+      <div style={{color:"rgba(160,200,255,0.7)",fontSize:13,lineHeight:1.8,maxWidth:420}}>
+        Your browser couldn't start the 3D showroom (WebGL unavailable).
+        You can still browse the full portfolio the classic way.
+      </div>
+      <div style={{display:"flex",gap:14,flexWrap:"wrap",justifyContent:"center"}}>
+        <button onClick={()=>navigate("/portfolio")} style={{background:"linear-gradient(135deg,#0055CC,#00AAA0)",border:"none",color:"#fff",cursor:"pointer",borderRadius:6,padding:"12px 32px",fontFamily:"monospace",fontSize:12,letterSpacing:"0.16em"}}>VIEW PORTFOLIO</button>
+        <button onClick={()=>navigate("/contact")} style={{background:"none",border:"1px solid rgba(0,140,255,0.4)",color:"#7FB8FF",cursor:"pointer",borderRadius:6,padding:"12px 32px",fontFamily:"monospace",fontSize:12,letterSpacing:"0.16em"}}>GET A QUOTE</button>
+      </div>
+    </div>
+  );
+
   return (
     <div style={{width:"100vw",height:"100vh",overflow:"hidden",background:"#060C18"}}>
+      <button onClick={()=>{ if(document.pointerLockElement) document.exitPointerLock(); navigate("/"); }} style={{
+        position:"fixed",top:22,left:22,zIndex:400,
+        background:"rgba(4,8,20,0.85)",border:"1px solid rgba(0,130,255,0.3)",
+        color:"rgba(140,195,255,0.9)",cursor:"pointer",borderRadius:3,
+        padding:"6px 14px",fontFamily:"monospace",fontSize:10,letterSpacing:"0.16em",
+        backdropFilter:"blur(8px)",touchAction:"manipulation"
+      }}>&larr; EXIT SHOWROOM</button>
       {!started && <Onboarding onStart={()=>setStarted(true)} onEnter={startBgMusic} isMobile={isMobile}/>}
       <div ref={mountRef} style={{width:"100%",height:"100%",display:started?"block":"none"}}/>
       {started && (
