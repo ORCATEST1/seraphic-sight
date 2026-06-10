@@ -46,7 +46,8 @@ function rng(seed) {
 }
 function terrainH(x, z) {
   return Math.sin(x*.18)*3.5 + Math.sin(z*.22)*3 + Math.sin(x*.55+z*.40)*1.4
-       + Math.sin(x*.12+z*.15)*5 + Math.cos(x*.38+z*.32)*2;
+       + Math.sin(x*.12+z*.15)*5 + Math.cos(x*.38+z*.32)*2
+       + Math.sin(x*1.05+z*.85)*.45 + Math.cos(x*.85-z*1.15)*.3; // fine detail octave
 }
 function elevColor(t) {
   const tc = Math.max(0, Math.min(1, t));
@@ -112,7 +113,7 @@ export default function CinematicHero() {
     // ── Build point cloud (sorted by Y for reveal) ─────────────────
     const rand   = rng(42);
     const SPREAD = 90;
-    const N      = isMobile ? 45000 : 140000;
+    const N      = isMobile ? 52000 : 175000;
     const MIN_Y  = -8, MAX_Y = 15, YRANGE = MAX_Y - MIN_Y;
 
     const pts = [];
@@ -144,6 +145,32 @@ export default function CinematicHero() {
       }
     });
 
+    // Building edges: bright corner columns + roof perimeter rings — gives
+    // structures the crisp "scanned edges" look real LiDAR captures have
+    structs.forEach(st => {
+      const base = terrainH(st.x, st.z);
+      const corners = [
+        [st.x - st.w/2, st.z - st.d/2], [st.x + st.w/2, st.z - st.d/2],
+        [st.x + st.w/2, st.z + st.d/2], [st.x - st.w/2, st.z + st.d/2],
+      ];
+      // vertical corner columns
+      corners.forEach(([cx, cz]) => {
+        const nPts = isMobile ? 26 : 60;
+        for (let i = 0; i < nPts; i++) {
+          const y = base + (i / nPts) * st.h + (rand()-.5)*.06;
+          pts.push({ x: cx+(rand()-.5)*.08, y, z: cz+(rand()-.5)*.08, r:.55, g:.95, b:.92 });
+        }
+      });
+      // roof perimeter ring
+      const per = isMobile ? 60 : 150;
+      for (let i = 0; i < per; i++) {
+        const t = i / per, e = Math.floor(t*4), f = t*4 - e;
+        const [ax, az] = corners[e], [bx, bz] = corners[(e+1)%4];
+        pts.push({ x: ax+(bx-ax)*f+(rand()-.5)*.06, y: base+st.h+(rand()-.5)*.05,
+                   z: az+(bz-az)*f+(rand()-.5)*.06, r:.5, g:.92, b:.9 });
+      }
+    });
+
     // Sort by Y ascending so setDrawRange reveals bottom-to-top
     pts.sort((a, b) => a.y - b.y);
 
@@ -161,13 +188,57 @@ export default function CinematicHero() {
     geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     geo.setAttribute("color",    new THREE.BufferAttribute(col, 3));
 
-    const mat = new THREE.PointsMaterial({
+    // Custom shader: soft round points with glow falloff (PointsMaterial draws
+    // hard squares), pixel-size clamp so near points never blob, and scan-line
+    // illumination — points flare cyan as the beam passes their elevation.
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        uSize:       { value: isMobile ? 2.4 : 2.8 },
+        uPixelRatio: { value: renderer.getPixelRatio() },
+        uScanY:      { value: 18.0 },
+        uScanStrength: { value: 0.0 },
+        uFogDensity: { value: isMobile ? 0.02 : 0.014 },
+      },
+      vertexShader: `
+        uniform float uSize;
+        uniform float uPixelRatio;
+        uniform float uScanY;
+        uniform float uScanStrength;
+        uniform float uFogDensity;
+        varying vec3 vColor;
+        varying float vScan;
+        varying float vFog;
+        void main() {
+          vColor = color;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          float dist = max(0.001, -mv.z);
+          gl_PointSize = clamp(uSize * uPixelRatio * (52.0 / dist), 1.0, 6.5 * uPixelRatio);
+          // scan flare: gaussian band around the beam's elevation
+          float d = position.y - uScanY;
+          vScan = exp(-d * d * 1.4) * uScanStrength;
+          // manual exponential fog (ShaderMaterial bypasses scene.fog)
+          vFog = 1.0 - clamp(exp(-uFogDensity * uFogDensity * dist * dist), 0.0, 1.0);
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        varying float vScan;
+        varying float vFog;
+        void main() {
+          vec2 uv = gl_PointCoord - 0.5;
+          float r = length(uv);
+          if (r > 0.5) discard;
+          float core = smoothstep(0.5, 0.08, r);          // soft circular falloff
+          vec3 col = vColor + vScan * vec3(0.15, 0.95, 0.88);
+          col *= (1.0 - vFog);                            // fade into the haze
+          gl_FragColor = vec4(col, core * (0.6 + vScan * 0.4));
+        }
+      `,
       vertexColors: true,
-      size: isMobile ? 0.18 : 0.14,
-      sizeAttenuation: true,
       transparent: true,
-      opacity: 0.88,
       depthWrite: false,
+      blending: THREE.AdditiveBlending,
     });
 
     const cloud = new THREE.Points(geo, mat);
@@ -314,11 +385,15 @@ export default function CinematicHero() {
         scanLine.position.y  = buildY + 0.3;
         scanMat.opacity = 0.3;
         scanLineMat.opacity = 0.85;
+        mat.uniforms.uScanY.value = buildY + 0.3;
+        mat.uniforms.uScanStrength.value = 1.1;
       } else {
         scanPlane.position.y = state.scanY;
         scanLine.position.y  = state.scanY;
         scanMat.opacity = state.scanOpacity;
         scanLineMat.opacity = Math.min(1, state.scanOpacity * 2.5);
+        mat.uniforms.uScanY.value = state.scanY;
+        mat.uniforms.uScanStrength.value = Math.min(1.2, state.scanOpacity * 5.0);
       }
 
       // Slow ambient rotation
@@ -333,6 +408,7 @@ export default function CinematicHero() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+      mat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
     window.addEventListener("resize", onResize);
