@@ -2,44 +2,87 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-        <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.svg" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#0A0A12" />
+
+    <title>Seraphic Sight | Drone Photography & Aerial Mapping — Southern California</title>
     <meta
       name="description"
-      content="FAA Part 107 certified drone aerial photography, video, 360° virtual tours, and site documentation for Southern California real estate and construction."
+      content="FAA Part 107 certified drone services: MLS-ready aerial photography, cinematic video, 360° virtual tours, and DroneDeploy construction documentation across Southern & Central California."
     />
-        <link rel="apple-touch-icon" href="%PUBLIC_URL%/favicon.svg" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+    <link rel="canonical" href="https://seraphicsight.com/" />
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>Seraphic Sight | Aerial Drone Services – Southern California</title>
+    <!-- Open Graph (link previews in iMessage, Slack, LinkedIn, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Seraphic Sight" />
+    <meta property="og:title" content="Seraphic Sight | Drone Photography & Aerial Mapping — Southern California" />
+    <meta property="og:description" content="FAA Part 107 certified aerial photography, video, 360° tours, and construction mapping. MLS-ready deliverables in 3–4 days." />
+    <meta property="og:url" content="https://seraphicsight.com/" />
+    <meta property="og:image" content="https://res.cloudinary.com/dpc1noikx/image/upload/w_1200,h_630,c_fill,f_jpg,q_auto:good/DJI_0944_gho2t4" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Aerial drone photograph of a Southern California skyline at golden hour" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Seraphic Sight | Drone Photography & Aerial Mapping" />
+    <meta name="twitter:description" content="FAA Part 107 certified aerial photography, video, 360° tours, and construction mapping across Southern California." />
+    <meta name="twitter:image" content="https://res.cloudinary.com/dpc1noikx/image/upload/w_1200,h_630,c_fill,f_jpg,q_auto:good/DJI_0944_gho2t4" />
+
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Structured data: local business + aggregate rating -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "@id": "https://seraphicsight.com/#business",
+      "name": "Seraphic Sight LLC",
+      "url": "https://seraphicsight.com/",
+      "image": "https://res.cloudinary.com/dpc1noikx/image/upload/w_1200,h_630,c_fill,f_jpg,q_auto:good/DJI_0944_gho2t4",
+      "description": "FAA Part 107 certified drone services for real estate and construction: aerial photography, cinematic video, 360° virtual tours, orthomosaic mapping, and progress documentation.",
+      "telephone": "+1-909-315-9891",
+      "email": "joseph@seraphicsight.com",
+      "founder": { "@type": "Person", "name": "Joseph Perez" },
+      "areaServed": [
+        { "@type": "Place", "name": "Los Angeles County, CA" },
+        { "@type": "Place", "name": "Orange County, CA" },
+        { "@type": "Place", "name": "Riverside County, CA" },
+        { "@type": "Place", "name": "San Bernardino County, CA" },
+        { "@type": "Place", "name": "San Diego County, CA" },
+        { "@type": "Place", "name": "Kern County, CA" },
+        { "@type": "Place", "name": "Coachella Valley, CA" }
+      ],
+      "priceRange": "$249+",
+      "sameAs": [
+        "https://droners.io/accounts/seraphicsight/"
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5.0",
+        "reviewCount": "26",
+        "bestRating": "5"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Drone Services",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Real Estate Aerial Photography & Video" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "360° Virtual Tours" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Construction Progress Documentation" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Orthomosaic Mapping & Parcel Overlays" } }
+        ]
+      }
+    }
+    </script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+      Seraphic Sight LLC — FAA Part 107 certified drone photography, video, and mapping for Southern California.
+      Call 909.315.9891 or email joseph@seraphicsight.com. Please enable JavaScript to view the full site.
+    </noscript>
     <div id="root"></div>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-      <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-</body>
+  </body>
 </html>
