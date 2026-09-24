@@ -11,6 +11,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Lenis from "lenis";
 import CinematicHero from "./components/CinematicHero";
+import WorldCup2030 from "./WorldCup2030";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -904,6 +905,7 @@ function FAQ() {
 export default function App() {
   const location = useLocation();
   const isShowroom = location.pathname === "/showroom";
+  const isWorldCup = location.pathname === "/worldcup-2030";
 
   React.useEffect(() => {
     if (REDUCED_MOTION) return; // native scrolling for reduced-motion users
@@ -923,7 +925,7 @@ export default function App() {
         backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         backgroundRepeat:"repeat",backgroundSize:"128px 128px"
       }}/>
-      {!isShowroom && <Nav/>}
+      {!isShowroom && !isWorldCup && <Nav/>}
       <React.Suspense fallback={
         <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"monospace",color:"rgba(0,170,255,0.6)",fontSize:12,letterSpacing:"0.2em" }}>LOADING…</div>
       }>
@@ -936,9 +938,10 @@ export default function App() {
         <Route path="/contact" element={<Contact/>}/>
         <Route path="/faq" element={<FAQ/>}/>
         <Route path="/showroom" element={<SpatialShowroom/>}/>
+        <Route path="/worldcup-2030" element={<WorldCup2030/>}/>
       </Routes>
       </React.Suspense>
-      {!isShowroom && <Footer/>}
+      {!isShowroom && !isWorldCup && <Footer/>}
     </div>
   );
 }
