@@ -233,7 +233,7 @@ function Footer() {
             </Link>
             <p style={{ fontSize:13,color:"#6066A0",lineHeight:1.7,marginBottom:18,maxWidth:260 }}>FAA Part 107 certified drone services for real estate and construction across Southern & Central California.</p>
             <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-              <a href="tel:9093159891" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>📞 909.315.9891</a>
+              <a href="tel:+15627431698" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>📞 (562) 743-1698</a>
               <a href="mailto:joseph@seraphicsight.com" style={{ fontSize:13,color:"#8888A0",textDecoration:"none" }}>✉️ joseph@seraphicsight.com</a>
               <a href="https://www.google.com/maps/search/?api=1&query=Seraphic+Sight+LLC" target="_blank" rel="noopener noreferrer" style={{ fontSize:13,color:"#0077FF",textDecoration:"none" }}>⭐ Google Business Profile</a>
             </div>
@@ -845,7 +845,7 @@ function Contact() {
           </button>
         </div>
         <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
-          {[{ label: "Email", value: "joseph@seraphicsight.com", href: "mailto:joseph@seraphicsight.com" }, { label: "Phone", value: "909.315.9891", href: "tel:9093159891" }, { label: "Response Time", value: "Within 24 hours", href: null }].map((c, i) => (
+          {[{ label: "Email", value: "joseph@seraphicsight.com", href: "mailto:joseph@seraphicsight.com" }, { label: "Phone", value: "(562) 743-1698", href: "tel:+15627431698" }, { label: "Response Time", value: "Within 24 hours", href: null }].map((c, i) => (
             <div key={i}>
               <div style={{ fontSize: 11, fontWeight: 600, color: "#8888A0", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
               {c.href ? <a href={c.href} style={{ fontSize: 14, fontWeight: 600, color: "#fff", textDecoration: "none" }}>{c.value}</a> : <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{c.value}</div>}
