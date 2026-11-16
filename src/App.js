@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
 import {
   NAV_LINKS, STATS, PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
@@ -15,7 +15,7 @@ import WorldCup2030 from "./WorldCup2030";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-// Code-split the heavy routes — Three.js showroom and the full portfolio
+// Code-split the full portfolio so it does not ship in the main bundle
 // no longer ship in the main bundle to visitors who just want a quote.
 const PortfolioSection = React.lazy(() => import("./components/PortfolioSection"));
 
@@ -244,7 +244,7 @@ function Footer() {
           <div>
             <p style={{ fontSize:11,fontWeight:700,color:"#444460",textTransform:"uppercase",letterSpacing:1.5,marginBottom:16 }}>Company</p>
             <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-              {["Portfolio","Service Area","FAQ","Contact","3D Showroom"].map(p=><Link key={p} to={R[p]} style={{ color:"#8888A0",textDecoration:"none",fontSize:13 }}>{p}</Link>)}
+              {["Portfolio","Service Area","FAQ","Contact"].map(p=><Link key={p} to={R[p]} style={{ color:"#8888A0",textDecoration:"none",fontSize:13 }}>{p}</Link>)}
             </div>
           </div>
         </div>
@@ -880,7 +880,7 @@ export default function App() {
   React.useEffect(() => {
     if (REDUCED_MOTION) return; // native scrolling for reduced-motion users
     const lenis = new Lenis({ duration: 1.2, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
-    window.__lenis = lenis; // shared with Nav scroll-to-top + showroom pause
+    window.__lenis = lenis; // shared with Nav scroll-to-top
     lenis.on("scroll", ScrollTrigger.update);
     const raf = time => lenis.raf(time * 1000);
     gsap.ticker.add(raf);
@@ -904,6 +904,7 @@ export default function App() {
         <Route path="/property-marketing" element={<PropertyMarketing/>}/>
         <Route path="/construction" element={<Construction/>}/>
         <Route path="/portfolio" element={<Portfolio/>}/>
+        <Route path="/showroom" element={<Navigate to="/portfolio" replace/>}/>
         <Route path="/service-area" element={<ServiceArea/>}/>
         <Route path="/contact" element={<Contact/>}/>
         <Route path="/faq" element={<FAQ/>}/>
