@@ -2,15 +2,30 @@ import { esc, isEmail, rateLimit } from "./_utils.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
+  if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+    return res.status(415).json({ error: "JSON required." });
+  if (Number(req.headers["content-length"] || 0) > 8192)
+    return res.status(413).json({ error: "Request too large." });
   if (!rateLimit(req, { limit: 5, windowMs: 10 * 60 * 1000 }))
     return res.status(429).json({ error: "Too many requests — please try again later." });
 
   const { name, email, phone, type, address, desc, timeline, honeypot } = req.body || {};
 
+  if (!req.body || typeof req.body !== "object" || Array.isArray(req.body))
+    return res.status(400).json({ error: "Invalid request." });
+  const fields = { name: 120, email: 254, phone: 40, type: 80, address: 250, desc: 2000, timeline: 120, honeypot: 200 };
+  if (Object.entries(fields).some(([key, max]) => req.body[key] !== undefined &&
+      (typeof req.body[key] !== "string" || req.body[key].length > max)))
+    return res.status(400).json({ error: "Invalid field type or length." });
+  if (!["Property Marketing", "Construction", "Construction & Development", "Other"].includes(type || "Property Marketing"))
+    return res.status(400).json({ error: "Invalid project type." });
   if (honeypot) return res.status(200).json({ ok: true });
   if (!name || !isEmail(email))
     return res.status(400).json({ error: "Name and a valid email are required." });
 
+  if (!process.env.RESEND_API_KEY)
+    return res.status(503).json({ error: "Messaging temporarily unavailable." });
+  try {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -40,5 +55,9 @@ export default async function handler(req, res) {
   if (response.ok) return res.status(200).json({ ok: true });
   const error = await response.text();
   console.error("Resend error:", error);
-  return res.status(500).json({ error: "Failed to send" });
+  return res.status(502).json({ error: "Failed to send" });
+  } catch (error) {
+    console.error("Contact provider request failed:", error instanceof Error ? error.name : "unknown");
+    return res.status(502).json({ error: "Messaging temporarily unavailable." });
+  }
 }
