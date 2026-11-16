@@ -18,7 +18,6 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 // Code-split the heavy routes — Three.js showroom and the full portfolio
 // no longer ship in the main bundle to visitors who just want a quote.
 const PortfolioSection = React.lazy(() => import("./components/PortfolioSection"));
-const SpatialShowroom  = React.lazy(() => import("./components/SpatialShowroom"));
 
 const REDUCED_MOTION = typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -121,7 +120,7 @@ function Nav() {
   const [scrolled, setScrolled] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const location = useLocation();
-  const R = { Home:"/","Property Marketing":"/property-marketing",Construction:"/construction",Portfolio:"/portfolio","Service Area":"/service-area",FAQ:"/faq",Contact:"/contact","3D Showroom":"/showroom" };
+  const R = { Home:"/","Property Marketing":"/property-marketing",Construction:"/construction",Portfolio:"/portfolio","Service Area":"/service-area",FAQ:"/faq",Contact:"/contact" };
 
   React.useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);
@@ -148,7 +147,6 @@ function Nav() {
           </Link>
           <div className="desktop-nav" style={{ display:"flex",alignItems:"center",gap:28 }}>
             {NAV_LINKS.map(p=><Link key={p} to={R[p]} className={`nav-link ${location.pathname===R[p]?"active":""}`} style={{whiteSpace:"nowrap"}}>{p}</Link>)}
-            <Link to="/showroom" className={`nav-link ${location.pathname==="/showroom"?"active":""}`} style={{whiteSpace:"nowrap"}}>3D Showroom</Link>
             <Link to="/contact"><button className="btn-primary" style={{ padding:"9px 22px",fontSize:12 }}>Get a Quote</button></Link>
           </div>
           <div className="mobile-toggle" style={{ display:"none",cursor:"pointer",flexDirection:"column",gap:5 }} onClick={()=>setMenuOpen(true)}>
@@ -159,7 +157,6 @@ function Nav() {
       {menuOpen&&<div style={{ position:"fixed",inset:0,background:"rgba(10,10,18,0.98)",zIndex:999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:28 }}>
         <div style={{ position:"absolute",top:24,right:32,color:"#fff",fontSize:28,cursor:"pointer" }} onClick={()=>setMenuOpen(false)}>✕</div>
         {NAV_LINKS.map(p=><Link key={p} to={R[p]} style={{ color:"#fff",textDecoration:"none",fontSize:20,fontWeight:500,letterSpacing:1 }} onClick={()=>setMenuOpen(false)}>{p}</Link>)}
-        <Link to="/showroom" style={{ color:"#00BFA6",textDecoration:"none",fontSize:20,fontWeight:500,letterSpacing:1 }} onClick={()=>setMenuOpen(false)}>3D Showroom</Link>
       </div>}
     </>
   );
@@ -219,7 +216,7 @@ function CTABanner({ title, sub, btn }) {
 }
 
 function Footer() {
-  const R = { Home:"/","Property Marketing":"/property-marketing",Construction:"/construction",Portfolio:"/portfolio","Service Area":"/service-area",FAQ:"/faq",Contact:"/contact","3D Showroom":"/showroom" };
+  const R = { Home:"/","Property Marketing":"/property-marketing",Construction:"/construction",Portfolio:"/portfolio","Service Area":"/service-area",FAQ:"/faq",Contact:"/contact" };
   return (
     <footer style={{ borderTop:"1px solid rgba(255,255,255,0.06)",padding:"56px 24px 36px",background:"rgba(0,0,0,0.3)" }}>
       <div style={{ maxWidth:1200,margin:"0 auto" }}>
@@ -385,7 +382,6 @@ function Home() {
           <div className="btn-row" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
             <Link to="/contact?type=property-marketing"><MagneticBtn className="btn-primary">Property Marketing</MagneticBtn></Link>
             <Link to="/contact?type=construction"><MagneticBtn className="btn-outline">Construction &amp; Development</MagneticBtn></Link>
-            <Link to="/showroom"><MagneticBtn className="btn-outline" style={{borderColor:"rgba(0,191,166,0.3)",color:"#00BFA6"}}>&#9654; 3D Showroom</MagneticBtn></Link>
           </div>
           <p style={{ fontSize: 12, color: "#444460", marginTop: 14 }}>
             Packages from <strong style={{ color: "#666680" }}>$249</strong> · Quote within 24 hrs · No obligation
@@ -528,31 +524,6 @@ function Home() {
               </div>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ===== 3D SHOWROOM TEASER ===== */}
-      <section style={{ padding:"90px 24px" }}>
-        <div className="card-hover" style={{ maxWidth:1100,margin:"0 auto",position:"relative",borderRadius:20,overflow:"hidden",border:"1px solid rgba(0,191,166,0.2)",minHeight:340,display:"flex",alignItems:"center" }}>
-          <img src="https://res.cloudinary.com/dpc1noikx/image/upload/w_1600,h_700,c_fill,f_auto,q_auto/DJI_0944_gho2t4" alt="Downtown skyline at golden hour, captured by drone" loading="lazy"
-            style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.4 }}/>
-          <div style={{ position:"absolute",inset:0,background:"linear-gradient(100deg,rgba(5,8,16,0.96) 28%,rgba(5,8,16,0.6) 68%,rgba(0,119,255,0.15))" }}/>
-          <div style={{ position:"relative",zIndex:2,padding:"56px 48px",maxWidth:600 }}>
-            <div className="tag-pill" style={{ background:"rgba(0,191,166,0.1)",border:"1px solid rgba(0,191,166,0.3)",color:"#00BFA6",marginBottom:22,display:"inline-flex" }}>
-              <span style={{ width:6,height:6,borderRadius:"50%",background:"#00BFA6",animation:"pulse 2s infinite" }}/>
-              Interactive Experience
-            </div>
-            <h2 className="section-title" style={{ fontSize:36,fontWeight:800,color:"#fff",letterSpacing:"-0.9px",lineHeight:1.12,marginBottom:16 }}>
-              Step inside the<br/><span className="gradient-text">3D Showroom</span>
-            </h2>
-            <p style={{ fontSize:15,color:"#A8A8C0",lineHeight:1.75,marginBottom:32,maxWidth:480 }}>
-              Walk a virtual gallery of real aerial work — explore photo and video walls, scan a live parcel-boundary exhibit, and fly the drone mission to unlock a free parcel overlay with your quote.
-            </p>
-            <div style={{ display:"flex",gap:14,flexWrap:"wrap" }}>
-              <Link to="/showroom"><MagneticBtn className="btn-primary">&#9654; Enter Showroom</MagneticBtn></Link>
-              <Link to="/portfolio"><MagneticBtn className="btn-outline">Classic Portfolio</MagneticBtn></Link>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -904,7 +875,6 @@ function FAQ() {
 
 export default function App() {
   const location = useLocation();
-  const isShowroom = location.pathname === "/showroom";
   const isWorldCup = location.pathname === "/worldcup-2030";
 
   React.useEffect(() => {
@@ -925,7 +895,7 @@ export default function App() {
         backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         backgroundRepeat:"repeat",backgroundSize:"128px 128px"
       }}/>
-      {!isShowroom && !isWorldCup && <Nav/>}
+      {!isWorldCup && <Nav/>}
       <React.Suspense fallback={
         <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"monospace",color:"rgba(0,170,255,0.6)",fontSize:12,letterSpacing:"0.2em" }}>LOADING…</div>
       }>
@@ -937,11 +907,10 @@ export default function App() {
         <Route path="/service-area" element={<ServiceArea/>}/>
         <Route path="/contact" element={<Contact/>}/>
         <Route path="/faq" element={<FAQ/>}/>
-        <Route path="/showroom" element={<SpatialShowroom/>}/>
         <Route path="/worldcup-2030" element={<WorldCup2030/>}/>
       </Routes>
       </React.Suspense>
-      {!isShowroom && !isWorldCup && <Footer/>}
+      {!isWorldCup && <Footer/>}
     </div>
   );
 }
