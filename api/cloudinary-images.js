@@ -8,8 +8,16 @@
 //   CLOUDINARY_API_KEY
 //   CLOUDINARY_API_SECRET
 export default async function handler(req, res) {
+  if (req.method !== "GET") return res.status(405).end();
   const { folder, type = "image" } = req.query;
 
+  if (typeof folder !== "string" || !/^[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*$/.test(folder) || folder.length > 100 || !["image", "video"].includes(type)) {
+    return res.status(400).json({ error: "Invalid folder or type." });
+  }
+  // Configure CLOUDINARY_PUBLIC_FOLDERS with comma-separated permitted asset folders.
+  // Fail closed: never expose an unrestricted search endpoint.
+  const permitted = (process.env.CLOUDINARY_PUBLIC_FOLDERS || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (!permitted.includes(folder)) return res.status(403).json({ error: "Folder not permitted." });
   if (!folder) {
     return res.status(400).json({ error: "folder is required" });
   }
@@ -24,7 +32,7 @@ export default async function handler(req, res) {
   // The regular /resources endpoint ignores asset_folder as a filter.
   // The Search API is required to filter by asset_folder in Cloudinary's dynamic folder model.
   const expression = `asset_folder="${folder}" AND resource_type:${type}`;
-  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/search?expression=${encodeURIComponent(expression)}&max_results=50`;
+  const url = `https://api.cloudinary.com/v1_1/${encodeURIComponent(CLOUDINARY_CLOUD_NAME)}/resources/search?expression=${encodeURIComponent(expression)}&max_results=50`;
 
   try {
     const response = await fetch(url, {
@@ -53,6 +61,6 @@ export default async function handler(req, res) {
     return res.json({ urls });
   } catch (err) {
     console.error("cloudinary-images handler error:", err);
-    return res.status(500).json({ error: err.message });
+    return res.status(502).json({ error: "Media temporarily unavailable." });
   }
 }
