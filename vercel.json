@@ -1,7 +1,62 @@
 {
-  "buildCommand": "CI=false npm run build",
+  "buildCommand": "GENERATE_SOURCEMAP=false npm run build",
   "outputDirectory": "build",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    {
+      "src": "/(.*)",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Frame-Options": "DENY",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+      },
+      "continue": true
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^/showroom/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/portfolio"
+      }
+    },
+    {
+      "src": "^/property-marketing/?$",
+      "dest": "/property-marketing/index.html"
+    },
+    {
+      "src": "^/construction/?$",
+      "dest": "/construction/index.html"
+    },
+    {
+      "src": "^/portfolio/?$",
+      "dest": "/portfolio/index.html"
+    },
+    {
+      "src": "^/service-area/?$",
+      "dest": "/service-area/index.html"
+    },
+    {
+      "src": "^/faq/?$",
+      "dest": "/faq/index.html"
+    },
+    {
+      "src": "^/contact/?$",
+      "dest": "/contact/index.html"
+    },
+    {
+      "src": "^/worldcup-2030/?$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "^/$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/.*",
+      "status": 404
+    }
   ]
 }

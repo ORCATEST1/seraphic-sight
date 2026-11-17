@@ -21,14 +21,23 @@ export function isEmail(v) {
 // burning the Resend quota. For stronger guarantees move to Upstash/Vercel KV.
 const hits = new Map();
 export function rateLimit(req, { limit = 5, windowMs = 10 * 60 * 1000 } = {}) {
-  const ip =
-    (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
+  // Accept only a string supplied by the hosting proxy; never assume an
+  // arbitrary client-sent header provides strong identity or distributed limits.
+  const forwarded = req.headers?.["x-forwarded-for"];
+  const ip = (typeof forwarded === "string" ? forwarded.split(",")[0].trim() : "") ||
     req.socket?.remoteAddress || "unknown";
   const now = Date.now();
   const rec = hits.get(ip) || { count: 0, start: now };
   if (now - rec.start > windowMs) { rec.count = 0; rec.start = now; }
   rec.count += 1;
   hits.set(ip, rec);
-  if (hits.size > 5000) hits.clear(); // crude memory cap
+  // Reclaim expired records first. Do not clear everyone's counters just
+  // because many distinct requesters have arrived (which bypasses limits).
+  if (hits.size > 5000) {
+    for (const [key, value] of hits) {
+      if (now - value.start > windowMs) hits.delete(key);
+    }
+    while (hits.size > 5000) hits.delete(hits.keys().next().value);
+  }
   return rec.count <= limit;
 }
