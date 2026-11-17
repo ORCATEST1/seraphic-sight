@@ -1,6 +1,5 @@
 // PortfolioSection.js — Seraphic Sight v2
-// High-tech portfolio: large interactive deliverable bubbles, Cloudinary media,
-// video autoplay on hover, fullscreen lightbox, full mobile optimization.
+// Editorial portfolio with a curated selection, subject-based filters, and a media lightbox.
 
 import React, {
   useState, useRef, useEffect, useCallback, useMemo,
@@ -21,18 +20,18 @@ const PHOTOS = [
   { id: "DJI_0915_w53hst",   tags: ["Real Estate"] },
   { id: "DJI_0891_tgrszt",   tags: ["Real Estate"] },
   { id: "DJI_0876_imzqgc",   tags: ["Real Estate"] },
-  { id: "DJI_0802_cdwyvj",   tags: ["Commercial"] },
-  { id: "DJI_0730_enavrk",   tags: ["Commercial"] },
+  { id: "DJI_0802_cdwyvj",   tags: ["Real Estate"] },
+  { id: "DJI_0730_enavrk",   tags: ["Real Estate"] },
   { id: "DJI_0872_vddljb",   tags: ["Real Estate"] },
   { id: "DJI_0812_cb8yrn",   tags: ["Real Estate"] },
-  { id: "Aerial_27_qw5yqr",  tags: ["Commercial"] },
-  { id: "DJI_0327_it5brs",   tags: ["Construction"] },
-  { id: "Aerial_18_njtmry",  tags: ["Commercial"] },
-  { id: "Aerial_25_y6eahl",  tags: ["Commercial"] },
+  { id: "Aerial_27_qw5yqr",  tags: ["Cityscapes"] },
+  { id: "DJI_0327_it5brs",   tags: ["Real Estate"] },
+  { id: "Aerial_18_njtmry",  tags: ["Real Estate"] },
+  { id: "Aerial_25_y6eahl",  tags: ["Real Estate"] },
   { id: "DJI_0780_tdioap",   tags: ["Real Estate"] },
   { id: "DJI_0454_bkvuwb",   tags: ["Real Estate"] },
   { id: "DJI_0888_go6uhb",   tags: ["Real Estate"] },
-  { id: "DJI_0322_khfwqi",   tags: ["Construction"] },
+  { id: "DJI_0322_khfwqi",   tags: ["Real Estate"] },
   { id: "Showcase_nmenkd",   tags: ["Commercial"] },
   { id: "Showcase_2_pkjbvm", tags: ["Commercial"] },
   { id: "Showcase_3_n4gxow", tags: ["Commercial"] },
@@ -47,7 +46,7 @@ const PHOTOS = [
   { id: "DJI_0944_hlpmgh",   tags: ["Real Estate"] },
   { id: "DJI_0715_gh4zrp",   tags: ["Real Estate"] },
   { id: "DJI_0726_ffmdmr",   tags: ["Real Estate"] },
-  { id: "DJI_0036-HDR_bxyo9o", tags: ["Commercial"] },
+  { id: "DJI_0036-HDR_bxyo9o", tags: ["Real Estate"] },
   { id: "DJI_0768_nvafya",   tags: ["Construction"] },
   { id: "DJI_0841_tmdv2e",   tags: ["Commercial"] },
   { id: "DJI_0104_uzqlyr",   tags: ["Real Estate"] },
