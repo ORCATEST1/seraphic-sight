@@ -312,7 +312,7 @@ function Contact() {
             {status === "sending" ? "Sending…" : "Submit Quote Request"}
           </button>
         </form>
-        <p className="ss-contact-disclaimer">Your details are only used to respond to your project enquiry.</p>
+        <p className="ss-contact-disclaimer">We use these details to review your request and follow up about the project.</p>
         </div>
       </section>
     </main>
