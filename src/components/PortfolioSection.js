@@ -648,6 +648,7 @@ const PORTFOLIO_CSS = `
     box-shadow: 0 0 10px rgba(0,212,255,0.5);
   }
   .ps-lb-thumb:hover { opacity: 0.7; }
+  .ps-lb-thumb:focus-visible, .ps-card:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
   .ps-lb-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
   /* ── Empty state ── */
@@ -683,6 +684,8 @@ function Lightbox({ items, startIdx, onClose }) {
   const [idx, setIdx] = useState(startIdx);
   const videoRef      = useRef(null);
   const thumbsRef     = useRef(null);
+  const dialogRef     = useRef(null);
+  const priorFocusRef = useRef(null);
   const item          = items[idx];
   const isVideo       = item.type === "video";
 
@@ -701,6 +704,16 @@ function Lightbox({ items, startIdx, onClose }) {
       if (e.key === "ArrowLeft")  prev();
       if (e.key === "ArrowRight") next();
       if (e.key === "Escape")     onClose();
+      if (e.key === "Tab" && dialogRef.current) {
+        const nodes = Array.from(dialogRef.current.querySelectorAll('button:not([disabled]), a[href], video[controls], [tabindex="0"]'));
+        if (!nodes.length) { e.preventDefault(); dialogRef.current.focus(); return; }
+        const first = nodes[0], last = nodes[nodes.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
+      }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
@@ -722,11 +735,16 @@ function Lightbox({ items, startIdx, onClose }) {
     }
   }, [idx]);
 
-  /* lock body scroll */
+  /* Modal focus and scroll management */
   useEffect(() => {
-    const prev = document.body.style.overflow;
+    priorFocusRef.current = document.activeElement;
+    dialogRef.current?.focus();
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (priorFocusRef.current?.isConnected) priorFocusRef.current.focus();
+    };
   }, []);
 
   /* shareable deep link — keep ?item= in sync with the open media */
@@ -742,7 +760,7 @@ function Lightbox({ items, startIdx, onClose }) {
   }, []);
 
   return (
-    <div className="ps-lb-overlay" onClick={onClose}>
+    <div className="ps-lb-overlay" ref={dialogRef} role="dialog" aria-modal="true" aria-label="Portfolio media viewer" tabIndex={-1} onClick={onClose}>
       <button className="ps-lb-close" onClick={onClose} aria-label="Close">✕</button>
       <button
         className="ps-lb-arrow prev"
@@ -775,17 +793,20 @@ function Lightbox({ items, startIdx, onClose }) {
 
       <div className="ps-lb-thumbs" ref={thumbsRef} onClick={e => e.stopPropagation()}>
         {items.map((it, i) => (
-          <div
+          <button type="button"
             key={i}
             className={`ps-lb-thumb${i === idx ? " active" : ""}`}
+            aria-label={`View media ${i + 1} of ${items.length}`}
+            aria-current={i === idx ? "true" : undefined}
             onClick={() => setIdx(i)}
+            style={{ padding: 0, background: "transparent" }}
           >
             <img
               src={it.type === "video" ? vThumb(it.id, 120, 80) : img(it.id, 120, 80)}
               alt=""
               loading="lazy"
             />
-          </div>
+          </button>
         ))}
       </div>
     </div>
@@ -817,7 +838,7 @@ function VideoCard({ item, onClick }) {
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={e => e.key === "Enter" && onClick()}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
     >
       <img
         src={vThumb(item.id)}
@@ -858,7 +879,7 @@ function PhotoCard({ item, onClick }) {
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={e => e.key === "Enter" && onClick()}
+      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
     >
       <img
         src={img(item.id)}
