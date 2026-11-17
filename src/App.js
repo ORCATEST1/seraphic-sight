@@ -11,6 +11,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import Lenis from "lenis";
 import EditorialHome from "./components/EditorialHome";
+import TurnstileField from "./components/TurnstileField";
 import WorldCup2030 from "./WorldCup2030";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -385,7 +386,7 @@ function Contact() {
   const location = useLocation();
   const [form, setForm] = React.useState({
     name: "", email: "", phone: "", type: "Property Marketing",
-    address: "", desc: "", timeline: "", honeypot: "",
+    address: "", desc: "", timeline: "", honeypot: "", turnstileToken: "",
   });
   const [status, setStatus] = React.useState("idle");
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -419,6 +420,11 @@ function Contact() {
       else emailRef.current?.focus();
       return;
     }
+    if (process.env.REACT_APP_TURNSTILE_SITE_KEY && !form.turnstileToken) {
+      setStatus("error");
+      setErrorMessage("Please complete the verification challenge before sending.");
+      return;
+    }
     setStatus("sending");
     setErrorMessage("");
     try {
@@ -434,6 +440,7 @@ function Contact() {
       setStatus("error");
       const messages = {
         400: "Please review your form details and try again.",
+        403: "Verification failed or expired. Reload the page and try again.",
         413: "Your request is too long. Shorten the description and try again.",
         429: "Too many requests. Please try again in a few minutes.",
         503: "Our inquiry service is temporarily unavailable. Please email us directly.",
@@ -518,6 +525,7 @@ function Contact() {
               value={form.timeline} onChange={e => upd("timeline", e.target.value)}
               placeholder="e.g., Within 2 weeks, ASAP, Flexible" />
           </div>
+          <TurnstileField onToken={token => setForm(p => ({ ...p, turnstileToken: token }))} />
           {status === "error" && (
             <p role="alert" style={{ color: "#FF7777", fontSize: 13, textAlign: "center" }}>
               {errorMessage} <a style={{ textDecoration: "underline", color: "#fff" }} href="mailto:joseph@seraphicsight.com">joseph@seraphicsight.com</a>
