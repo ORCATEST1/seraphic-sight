@@ -63,3 +63,28 @@ Additional lower-risk subject improvements from the successfully rendered batche
 A local CSV report, `Seraphic_Sight_42_Photo_Audit_Status.csv`, records every image's current class, the inspection status, the evidence and the need for re-review. The CSV is not uploaded to the public site.
 
 **Audit outcome: partial.** All 42 were attempted; **the condition of 42 independently visually confirmed images has not been met**, and the branch should not be described as fully content-verified. Production remains untouched until the five inaccessible images and contradictions are resolved or explicitly accepted as unclassified.
+
+## Definitive local-file visual check — 2026-11-17 (supersedes provisional classifications above)
+
+The original **42 catalogue records** were fetched independently by GitHub Actions from Cloudinary's optimized and original image URLs. The successful Action was [run #44197846123](https://github.com/ORCATEST1/seraphic-sight/actions/runs/44197846123). Each accessible file was bundled into a downloadable media artifact, which was then examined from **actual local image bytes**, not a changing browser carousel.
+
+- **37/42** returned HTTP 200 with image content and were displayed in four image-contact-sheet panels.
+- **5/42** returned HTTP 404 through both delivery paths: `Showcase_nmenkd`, `Showcase_2_pkjbvm`, `Showcase_3_n4gxow`, `AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz`, and `dji_fly_20230107_163233_917_1673141677255_photo_m5emzx`.
+- Cryptographic hashing of the downloaded asset bytes found two **identical-image** pairs: `DJI_0944_hlpmgh` / `DJI_0944_gho2t4`, and `DJI_0726_ffmdmr` / `DJI_0726_c1ezfe`.
+- All **42 original IDs** remain in the source catalogue. The five unavailable images and two duplicates are tagged `archived: true`; they no longer appear as broken or repetitive cards. Two old duplicate deep links map to their existing canonical IDs.
+- **35 working distinct images remain visible**, with category distribution: Real Estate 20; Cityscapes 7; Land 2; Construction 2; Coastal 2; Mapping 1; Commercial 1.
+- The featured triptych now uses three actually inspected originals: multifamily-property photo `DJI_0036-HDR_bxyo9o`, blue-pool crane placement `3-DJI_0014_xn3a13`, and night skyline `DJI_0104_uzqlyr`.
+
+Important corrections against the earlier provisional browser reports:
+- `3-DJI_0014_xn3a13` is **Construction**, not Cityscapes. Its image shows a blue pool structure being lowered by crane.
+- `DJI_0768_nvafya` is **Real Estate**, not Construction. It shows a residential-property boundary overlay.
+- `DJI_0104_uzqlyr` is **Cityscapes**, not Real Estate. It shows the blue-lit downtown skyline.
+- `DJI_0011_zmbnvw` and `DJI_0002_xzpfp5` show genuinely undeveloped parcels, and are **Land**.
+- `sola-florance-construction-aerial_oapibr` shows a finished urban multifamily building, so its visible subject is **Real Estate** (its filename is not sufficient proof of an active construction process).
+
+The missing-image finding does **not** demonstrate that assets were intentionally deleted. They may have been renamed/moved, but the public IDs currently in source are not retrievable on the image delivery URLs. Restore from the original Cloudinary asset list before re-enabling any.
+
+**Review completion statement:** 42 IDs independently checked for delivery, 37 originals visually inspected, five confirmed inaccessible at the tested URLs and archived. The 35 unique available originals have been visually inspected and classified. This establishes an accurately sourced public gallery without asserting content knowledge of the unavailable five.
+
+### Final release gate
+Do not merge the draft PR on automated tests alone. Verify the Vercel preview at its exact commit, image/card counts, filter counts, third-party map loading, contact form, and mobile behavior. Do not change production without final approval.
