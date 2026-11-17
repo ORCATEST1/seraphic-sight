@@ -1,21 +1,15 @@
 import React from "react";
-import { Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
-import {
-  PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
-  PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
-  CON_CLIENTS, REGIONS,
-  PROP_HERO_VIDEO_URL, CON_HERO_VIDEO_URL, TRAVEL_FEE,
-} from "./data/content";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 import Lenis from "lenis";
 import EditorialHome from "./components/EditorialHome";
+import { PropertyEditorial, ConstructionEditorial } from "./components/EditorialServices";
+import ServiceAreaMap from "./components/ServiceAreaMap";
 import "./components/EditorialInner.css";
 import TurnstileField from "./components/TurnstileField";
 import WorldCup2030 from "./WorldCup2030";
 
-gsap.registerPlugin(ScrollTrigger, useGSAP);
+gsap.registerPlugin(ScrollTrigger);
 
 // Code-split portfolio media so it does not ship on contact and service pages.
 const PortfolioSection = React.lazy(() => import("./components/PortfolioSection"));
@@ -45,32 +39,7 @@ function usePageMeta(title, description) {
   }, [title, description]);
 }
 
-// ===== PAGE REVEAL HOOK =====
-function usePageReveal(ref) {
-  useGSAP(() => {
-    // Section titles slide up
-    gsap.utils.toArray(".section-title").forEach(el => {
-      gsap.from(el, {
-        y: 28, opacity: 0, duration: 0.8, ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 88%", once: true },
-      });
-    });
-    // Cards stagger in by column position
-    gsap.utils.toArray(".card-hover").forEach((el, i) => {
-      gsap.from(el, {
-        y: 40, opacity: 0, duration: 0.65, delay: (i % 3) * 0.07, ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 90%", once: true },
-      });
-    });
-    // Generic staggered reveal items (process steps, pricing rows, etc.)
-    gsap.utils.toArray(".reveal-item").forEach((el, i) => {
-      gsap.from(el, {
-        y: 24, opacity: 0, duration: 0.55, delay: (i % 5) * 0.09, ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 92%", once: true },
-      });
-    });
-  }, { scope: ref });
-}
+
 
 // ===== NAV =====
 function Nav() {
@@ -124,11 +93,8 @@ function PageHero({ tag, title, subtitle, videoUrl=null }) {
     </div>
   </section>;
 }
-function SectionTitle({ title, sub }) {
-  return <div className="inner-section-title">
-    <h2>{title}</h2>{sub&&<p>{sub}</p>}
-  </div>;
-}
+
+
 function CTABanner({ title, sub, btn }) {
   return <section className="inner-cta">
     <p className="inner-overline">START A CONVERSATION</p>
@@ -156,129 +122,18 @@ function Footer() {
   </footer>;
 }
 
-function TravelFeeNote({ accent = "#d5ddd4" }) {
-  return (
-    <div style={{ marginTop:32,padding:"18px 24px",background:`${accent}08`,border:`1px solid ${accent}18`,borderRadius:12,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12 }}>
-      <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-        
-        <span style={{ fontSize:13,fontWeight:700,color:"#fff" }}>Travel Fee</span>
-        <span style={{ fontSize:13,fontWeight:700,color:accent }}>{TRAVEL_FEE.rate}</span>
-      </div>
-      <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>|</div>
-      <span style={{ fontSize:13,color:"#abb4aa" }}>{TRAVEL_FEE.nearRule}</span>
-      <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>·</div>
-      <span style={{ fontSize:13,color:"#abb4aa" }}>{TRAVEL_FEE.farRule}</span>
-    </div>
-  );
-}
 
-// ===== HOME =====
+
+// ===== EDITORIAL SERVICE PAGES =====
 function PropertyMarketing() {
-  usePageMeta(
-    "Real Estate Drone Photography & Video — from $249 | Seraphic Sight",
-    "MLS-ready aerial photos, cinematic listing videos, and 360° virtual tours delivered in 3–4 business days. LAANC-authorized across Southern California."
-  );
-  const pageRef = React.useRef(null);
-  usePageReveal(pageRef);
-  return (
-    <div ref={pageRef}>
-      <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="MLS-ready aerial content delivered in 3–4 business days. LAANC-authorized for controlled airspace. Send us the APN and your deliverable list — we handle the rest." accent="#d5ddd4" videoUrl={PROP_HERO_VIDEO_URL}/>
-      <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
-        <SectionTitle title="What We Deliver" sub="Every service designed to move listings faster."/>
-        <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
-          {PROP_SERVICES.map((s,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{s.title}</h3><p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.7 }}>{s.desc}</p></div>))}
-        </div>
-      </section>
-      <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
-        <div style={{ maxWidth:1200,margin:"0 auto" }}>
-          <SectionTitle title="Pricing" sub="Transparent packages. No hidden fees."/>
-          <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:24 }}>
-            {PROP_PRICING.map((p,i)=>(<div key={i} className="card-hover" style={{ background:p.popular?"linear-gradient(180deg,rgba(0,119,255,0.08),rgba(0,119,255,0.02))":"rgba(255,255,255,0.03)",border:p.popular?"1px solid rgba(0,119,255,0.25)":"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:40,position:"relative",overflow:"hidden" }}>
-              {p.popular&&<div style={{ position:"absolute",top:16,right:16,background:"#d5ddd4",color:"#fff",fontSize:10,fontWeight:700,padding:"4px 12px",borderRadius:100,letterSpacing:1,textTransform:"uppercase" }}>Most Popular</div>}
-              <h3 style={{ fontSize:16,fontWeight:600,color:"#abb4aa",letterSpacing:1,textTransform:"uppercase",marginBottom:12 }}>{p.name}</h3>
-              <div style={{ fontSize:42,fontWeight:800,color:"#fff",letterSpacing:"-1px",marginBottom:24 }}>{p.price}</div>
-              <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-                {p.features.map((f,j)=>(<div key={j} style={{ display:"flex",alignItems:"flex-start",gap:10 }}><span style={{ color:"#d5ddd4",fontSize:14,marginTop:2,flexShrink:0 }}>✓</span><span style={{ fontSize:14,color:"#e0e5dd",lineHeight:1.5 }}>{f}</span></div>))}
-              </div>
-              <Link to="/contact?type=property-marketing"><button className={p.popular?"btn-primary":"btn-outline"} style={{ width:"100%",marginTop:28 }}>Get Started</button></Link>
-            </div>))}
-          </div>
-          <div style={{ marginTop:56 }}>
-            <h3 style={{ fontSize:22,fontWeight:700,color:"#fff",marginBottom:24,textAlign:"center" }}>Add-Ons</h3>
-            <div style={{ maxWidth:600,margin:"0 auto",display:"grid",gap:12 }}>
-              {PROP_ADDONS.map((a,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10 }}><span style={{ fontSize:14,color:"#e0e5dd" }}>{a.name}</span><span style={{ fontSize:14,fontWeight:700,color:"#fff",flexShrink:0,marginLeft:16 }}>{a.price}</span></div>))}
-            </div>
-            <div style={{ maxWidth:600,margin:"0 auto" }}><TravelFeeNote accent="#d5ddd4"/></div>
-          </div>
-        </div>
-      </section>
-      <section style={{ padding:"80px 24px",maxWidth:1000,margin:"0 auto" }}>
-        <SectionTitle title="How It Works"/>
-        <div style={{ display:"flex",flexDirection:"column",position:"relative" }}>
-          <div style={{ position:"absolute",left:24,top:36,bottom:36,width:2,background:"linear-gradient(180deg,#d5ddd4,#c4d0c4)",opacity:0.2 }}/>
-          {PROP_PROCESS.map((s,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",gap:28,padding:"28px 0",alignItems:"flex-start" }}><div style={{ width:50,height:50,borderRadius:"50%",background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800,color:"#d5ddd4",flexShrink:0,position:"relative",zIndex:2 }}>{s.num}</div><div><h4 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{s.title}</h4><p style={{ fontSize:14,color:"#abb4aa",lineHeight:1.7 }}>{s.desc}</p></div></div>))}
-        </div>
-      </section>
-      <CTABanner title="Ready to Market Your Listing?" sub="Send us the APN and deliverables — we'll get you a quote within 24 hours." btn="Get a Quote →"/>
-    </div>
-  );
+  usePageMeta("Property Marketing | Aerial Photography & Film | Seraphic Sight",
+    "Property aerial photography, cinematic video and immersive listing presentation. Explore starting packages and request a tailored quote.");
+  return <PropertyEditorial/>;
 }
-
-// ===== CONSTRUCTION =====
 function Construction() {
-  usePageMeta(
-    "Construction Drone Mapping & Progress Documentation | Seraphic Sight",
-    "DroneDeploy automated workflows, orthomosaic mapping, GeoTIFF/LAS deliverables, and audit-ready progress documentation for Southern California projects."
-  );
-  const pageRef = React.useRef(null);
-  usePageReveal(pageRef);
-  return (
-    <div ref={pageRef}>
-      <PageHero tag="Construction & Development" title={<>Progress Monitoring,<br/>Mapping & Visualization</>} subtitle="Automated DroneDeploy workflows, orthomosaic mapping, and audit-ready documentation for multi-million dollar projects." accent="#c4d0c4" videoUrl={CON_HERO_VIDEO_URL}/>
-      <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
-        <SectionTitle title="Capabilities" sub="Enterprise-grade aerial documentation for every project phase."/>
-        <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
-          {CON_CAPABILITIES.map((c,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{c.title}</h3><p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.7 }}>{c.desc}</p></div>))}
-        </div>
-      </section>
-      <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
-        <div style={{ maxWidth:1200,margin:"0 auto" }}>
-          <section style={{ padding:"0 24px 60px",maxWidth:960,margin:"0 auto" }}>
-        <div style={{ borderRadius:16,overflow:"hidden",border:"1px solid rgba(0,191,166,0.15)" }}>
-          <img src="https://res.cloudinary.com/dpc1noikx/image/upload/v1778210648/map-snapshot_q3dk25.png" alt="DroneDeploy orthomosaic map - active construction site" style={{ width:"100%",display:"block" }}/>
-          <div style={{ padding:"16px 24px",background:"rgba(0,191,166,0.04)",borderTop:"1px solid rgba(0,191,166,0.1)" }}>
-            <p style={{ fontSize:12,color:"#97a399",margin:0 }}>Orthomosaic site map · live DroneDeploy flight, construction progress monitoring, Southern California.</p>
-          </div>
-        </div>
-      </section>
-
-      <SectionTitle title="Our Workflow" sub="Repeatable, automated, audit-ready."/>
-          <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:28 }}>
-            {CON_STEPS.map((s,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(0,191,166,0.03)",border:"1px solid rgba(0,191,166,0.1)",borderRadius:16,padding:40,textAlign:"center" }}><div className="gradient-text" style={{ fontSize:44,fontWeight:900,marginBottom:18 }}>{s.num}</div><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{s.title}</h3><p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.7 }}>{s.desc}</p></div>))}
-          </div>
-        </div>
-      </section>
-      <section style={{ padding:"80px 24px",maxWidth:800,margin:"0 auto" }}>
-        <SectionTitle title="Pricing Framework" sub="Construction documentation is scoped per project. Here are our starting benchmarks."/>
-        <div style={{ display:"grid",gap:12 }}>
-          {CON_PRICING.map((p,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,flexWrap:"wrap",gap:12 }}><span style={{ fontSize:14,color:"#e0e5dd" }}>{p.service}</span><span style={{ fontSize:15,fontWeight:700,color:"#c4d0c4",flexShrink:0 }}>{p.price}</span></div>))}
-        </div>
-        <div style={{ marginTop:32,padding:24,background:"rgba(0,191,166,0.05)",border:"1px solid rgba(0,191,166,0.12)",borderRadius:12 }}>
-          <p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.8 }}><strong style={{ color:"#fff" }}>Every engagement includes:</strong> DroneDeploy automated flight plans · GeoTIFF + LAS/LAZ deliverables · Procore / BIM 360 compatible outputs · Organized, timestamped progress imagery · Site superintendent coordination · COI provided upon request</p>
-        </div>
-        <TravelFeeNote accent="#c4d0c4"/>
-      </section>
-      <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
-        <div style={{ maxWidth:900,margin:"0 auto" }}>
-          <SectionTitle title="Who We Work With"/>
-          <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16 }}>
-            {CON_CLIENTS.map((w,i)=>(<div key={i} className="reveal-item" style={{ padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,textAlign:"center",fontSize:14,fontWeight:500,color:"#e0e5dd" }}>{w}</div>))}
-          </div>
-        </div>
-      </section>
-      <CTABanner title="Scope Your Next Project" sub="Send us your site details and deliverable requirements. We'll respond with a detailed proposal within 48 hours." btn="Request a Proposal →"/>
-    </div>
-  );
+  usePageMeta("Construction Drone Documentation & Mapping | Seraphic Sight",
+    "Construction progress imagery, orthomosaic mapping and coordinated aerial site visits across Southern California.");
+  return <ConstructionEditorial/>;
 }
 
 // ===== PORTFOLIO =====
@@ -291,36 +146,11 @@ function Portfolio() {
 }
 
 function ServiceArea() {
-  usePageMeta(
-    "Drone Service Area — Southern & Central California | Seraphic Sight",
-    "Drone photography and mapping coverage from San Diego to Bakersfield: LA, Orange County, Inland Empire, Coachella Valley, and the coast."
-  );
-  return (
-    <div>
-      <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast — if your project is in our range, we'll be on site."/>
-      <section style={{ padding:"0 24px 60px",maxWidth:1200,margin:"0 auto" }}>
-        <div style={{ maxWidth:900,margin:"0 auto 60px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",padding:48 }}>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:32,textAlign:"center" }}>
-            {[{n:"7",l:"Coverage Regions"},{n:"200+",l:"Cities & Communities"},{n:"400mi",l:"Coverage Radius"},{n:"Same Week",l:"Typical Availability"}].map((s,i)=>(
-              <div key={i}>
-                <div style={{ fontSize:32,fontWeight:800,color:"#fff",letterSpacing:"-1px" }}>{s.n}</div>
-                <div style={{ fontSize:11,fontWeight:600,color:"#abb4aa",textTransform:"uppercase",letterSpacing:1.5,marginTop:6 }}>{s.l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <SectionTitle title="Coverage Regions"/>
-        <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:20 }}>
-          {REGIONS.map((r,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{r.name}</h3><p style={{ fontSize:12,color:"#d5ddd4",fontWeight:500,marginBottom:12 }}>{r.cities}</p><p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.7 }}>{r.desc}</p></div>))}
-        </div>
-      </section>
-      <section style={{ padding:"60px 24px 100px",textAlign:"center" }}>
-        <p style={{ fontSize:15,color:"#abb4aa",marginBottom:8 }}>Not sure if we cover your area?</p>
-        <p style={{ fontSize:18,fontWeight:700,color:"#fff" }}>Reach out — if you're in range, we'll be there.</p>
-      </section>
-    </div>
-  );
+  usePageMeta("Southern California Drone Service Area | Seraphic Sight",
+    "Explore aerial imaging and construction documentation service areas from Los Angeles and San Diego to the Inland Empire and southern Central Valley.");
+  return <ServiceAreaMap/>;
 }
+
 // ===== CONTACT =====
 function Contact() {
   usePageMeta(
