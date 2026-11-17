@@ -52,6 +52,13 @@ export default async function handler(req, res) {
     }
   }
 
+  // Preview deployments share provider credentials unless Vercel scopes them
+  // separately. Do not send real customer mail from preview by default.
+  const previewRecipient = process.env.PREVIEW_CONTACT_EMAIL_TO;
+  if (process.env.VERCEL_ENV === "preview" &&
+      (!previewRecipient || !isEmail(previewRecipient)))
+    return res.status(503).json({ error: "Quote delivery is disabled in preview." });
+
   if (!process.env.RESEND_API_KEY)
     return res.status(503).json({ error: "Messaging temporarily unavailable." });
   try {
@@ -64,7 +71,7 @@ export default async function handler(req, res) {
     },
     body: JSON.stringify({
       from: "quotes@seraphicsight.com",
-      to: "Joseph@SeraphicSight.com",
+      to: process.env.VERCEL_ENV === "preview" ? previewRecipient : "joseph@seraphicsight.com",
       reply_to: normalizedEmail,
       subject: `New Quote Request — ${esc(type)}`,
       html: `
