@@ -339,45 +339,48 @@ function Contact() {
 
 // ===== FAQ =====
 function FAQ() {
-  usePageMeta(
-    "Drone Services FAQ — Licensing, Pricing, Turnaround | Seraphic Sight",
-    "Answers on FAA Part 107 certification, insurance and COIs, LAANC airspace authorization, deliverable formats, turnaround times, and travel fees."
-  );
-  const [open, setOpen] = React.useState(null);
-  const items = [
-    { q: "Are you FAA Part 107 certified?", a: "Yes. Joseph Perez holds an FAA Part 107 Remote Pilot Certificate, required for all commercial drone operations in the U.S. We are also fully insured and can provide a Certificate of Insurance (COI) upon request — standard for GCs, brokerages, and property management companies." },
-    { q: "What areas do you serve?", a: "Southern and Central California — from San Diego to Bakersfield, and the Inland Empire to the coast. Primary coverage includes Los Angeles, Orange County, Riverside County, San Bernardino County, the Coachella Valley, and surrounding areas. Travel fees apply beyond our primary service zone." },
-    { q: "How long does it take to receive my deliverables?", a: "Standard turnaround is 3–4 business days from the date of the flight. Rush delivery (1–2 business days) is available as an add-on. Large DroneDeploy mapping or construction projects may require additional processing time — we'll confirm timelines when scoping your project." },
-    { q: "What file formats do you deliver?", a: "Property marketing: edited JPEG/PNG photos (MLS-ready), MP4 video in 16:9 and 9:16 (Reels/TikTok cuts), and hosted 360° tour links. Construction/mapping: GeoTIFF orthomosaics, LAS/LAZ point clouds, and Procore / BIM 360-compatible outputs. All files delivered via a cloud download link." },
-    { q: "Do you handle airspace authorization?", a: "Yes — we manage all LAANC authorizations for controlled airspace through the FAA's automated system. For restricted or complex airspace, we obtain manual waivers as needed at no additional cost to you." },
-    { q: "What is your travel fee?", a: "We charge $0.70 per mile. Jobs under 50 miles are billed round-trip; jobs 50 miles or more are billed one-way. For most projects in the greater Los Angeles, Inland Empire, or San Diego areas, travel fees are minimal or zero." },
-    { q: "How do I book a shoot?", a: "Fill out our quote request form with your project address (or APN for land/construction sites), your deliverable list, and your timeline. We respond within 24 hours with pricing and availability. A 50% deposit is required to hold your shoot date." },
-    { q: "Do you work with real estate agents and brokerages?", a: "Absolutely — we work with individual agents, teams, and brokerages on a per-listing or retainer basis. If you have regular listing volume, ask about agent pricing. We're happy to build a workflow that fits your business and turnaround requirements." },
-    { q: "Can you accommodate urgent timelines?", a: "We do our best to accommodate tight deadlines. Same-week availability is typical. For same-day or next-day requests, reach out directly and we'll make every effort to be on site when you need us." },
-    { q: "What equipment do you use?", a: "We fly DJI drones (Mavic 3 Pro, Phantom 4 RTK) for photography, cinematic video, and precision mapping. 360° virtual tours are captured with the Ricoh Theta Z1 and Insta360 X series. Construction flight plans are powered by DroneDeploy's automated workflow platform." },
+  usePageMeta("Drone Services FAQ | Seraphic Sight",
+    "Practical answers about aerial imaging, construction documentation, deliverables, scheduling, flight permissions and travel.");
+  const [open,setOpen]=React.useState(null);
+  const items=[
+    {q:"Are you FAA Part 107 certified?",a:"Yes. Commercial aerial work is conducted by an FAA Part 107-certificated remote pilot. We assess airspace, site requirements and weather for each assignment. A certificate of insurance can be provided when requested and applicable."},
+    {q:"Where do you travel?",a:"We regularly consider assignments across Southern California, including Los Angeles, Orange County, the Inland Empire, San Diego, the Coachella Valley and the High Desert. Select southern Central Valley projects are available by arrangement. Confirm coverage and pricing with the project address."},
+    {q:"How soon will I receive my files?",a:"Many standard property-image packages can be delivered within approximately 3–4 business days after capture. Processing-intensive maps, complex edits, weather and access constraints can change that schedule. We confirm turnaround in your proposal."},
+    {q:"What deliverable formats are available?",a:"Typical property deliverables include edited JPEGs, MP4 video and optional vertical cutdowns or tour links. Construction services may include organized timestamped imagery, orthomosaics and project-specific geospatial formats. We define required outputs before flight rather than assuming every package includes every format."},
+    {q:"Can you fly in controlled airspace?",a:"We check each location against current FAA airspace requirements. LAANC authorizations are available for some locations and conditions; other sites may require additional approvals or may not be flyable on the requested date. We never promise approval before checking."},
+    {q:"How is travel calculated?",a:"The published travel rate is $0.70 per mile. Trips under 50 miles use round-trip mileage; trips of 50 miles or more use one-way mileage. The route, applicable fee and any additional expenses are confirmed in your quote."},
+    {q:"Are your property boundary overlays surveys?",a:"No. White-line parcel outlines and other marketing annotations are visual aids based on the boundaries supplied or verified for the project. They are not a substitute for a licensed land survey or legal property description."},
+    {q:"How do I request a shoot?",a:"Use the contact form with your property address or APN, type of project, requested media and target date. We'll review scope and availability and explain the next steps, including any required scheduling or payment terms."},
+    {q:"Can you support repeated construction visits?",a:"Yes. Projects can be scoped for one-off documentation or scheduled return visits. Flight paths, frequency, deliverables and site coordination are agreed with your team for consistent progress records."},
+    {q:"What equipment and processing tools do you use?",a:"We select aerial camera equipment and processing workflows to suit the assignment. For mapping, the required accuracy, control points and deliverable formats must be defined in advance. Ask us about the proposed equipment and workflow for your site."}
   ];
-  return (
-    <div>
-      <PageHero tag="FAQ" title="Frequently Asked Questions" subtitle="Everything you need to know about booking, deliverables, and working with Seraphic Sight." accent="#d5ddd4"/>
-      <section style={{ padding:"0 24px 100px",maxWidth:780,margin:"0 auto" }}>
-        {items.map((item,i)=>(
-          <div key={i} style={{ borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-            <button onClick={()=>setOpen(open===i?null:i)}
-              style={{ width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"22px 0",background:"none",border:"none",cursor:"pointer",gap:16,textAlign:"left" }}>
-              <span style={{ fontSize:15,fontWeight:600,color:"#fff",lineHeight:1.4 }}>{item.q}</span>
-              <span style={{ color:"#d5ddd4",fontSize:22,flexShrink:0,transform:open===i?"rotate(45deg)":"none",transition:"transform 0.2s",display:"inline-block" }}>+</span>
+  return <main className="ss-faq-page">
+    <header className="ss-faq-head"><p className="ss-faq-eyebrow">FAQ / WORKING TOGETHER</p>
+      <h1>Good questions.<br/>Clear answers.</h1>
+      <p>From flight approvals and deliverables to travel and scheduling, here's what to know before we begin.</p>
+    </header>
+    <section className="ss-faq-layout">
+      <div className="ss-faq-intro"><p className="ss-faq-eyebrow">THE DETAILS</p>
+        <h2>Thoughtful planning makes better imagery.</h2>
+        <p>Every site has its own conditions. If your question isn't covered here, share the project details and we'll talk through what's possible.</p>
+        <Link to="/contact" className="ss-faq-contact">ASK ABOUT A PROJECT <span aria-hidden="true">↗</span></Link>
+      </div>
+      <div className="ss-faq-accordions">
+        {items.map((item,index)=>{
+          const id="ss-faq-answer-"+index;
+          return <article key={item.q} className="ss-faq-item">
+            <button type="button" aria-expanded={open===index} aria-controls={id} onClick={()=>setOpen(open===index?null:index)}>
+              <span className="ss-faq-number">{String(index+1).padStart(2,"0")}</span>
+              <span className="ss-faq-question">{item.q}</span>
+              <span className="ss-faq-symbol" aria-hidden="true">{open===index?"−":"+"}</span>
             </button>
-            {open===i&&(
-              <div style={{ paddingBottom:22 }}>
-                <p style={{ fontSize:14,color:"#abb4aa",lineHeight:1.8,margin:0 }}>{item.a}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </section>
-      <CTABanner title="Still Have Questions?" sub="Reach out directly — we respond within 24 hours." btn="Contact Us →"/>
-    </div>
-  );
+            <div id={id} hidden={open!==index}><p>{item.a}</p></div>
+          </article>;
+        })}
+      </div>
+    </section>
+    <CTABanner title="Still curious?" sub="Send the address and a few lines about your project. We'll take it from there." btn="Contact Seraphic Sight"/>
+  </main>;
 }
 
 // ===== NOT FOUND =====
