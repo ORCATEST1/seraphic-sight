@@ -21,7 +21,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "test:api": "node --test tests/*.test.mjs"
+    "test:api": "node --test tests/*.test.mjs",
+    "postbuild": "node scripts/generate-route-html.mjs"
   },
   "eslintConfig": {
     "extends": [
