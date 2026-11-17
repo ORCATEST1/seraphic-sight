@@ -71,3 +71,11 @@ test("visually corroborated residential portfolio subjects are not commercial or
 test("coastal aerial cityscape is not a commercial property assignment",()=>{
   assert.deepEqual(byId["Aerial_27_qw5yqr"],["Cityscapes"]);
 });
+
+test("inaccessible originals remain visible in All but are not presented as verified subjects",()=>{
+  for(const id of [
+    "Showcase_nmenkd","Showcase_2_pkjbvm","Showcase_3_n4gxow",
+    "AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz",
+    "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx"
+  ]) assert.deepEqual(byId[id],[],id);
+});
