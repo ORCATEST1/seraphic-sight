@@ -16,7 +16,14 @@
       "handle": "filesystem"
     },
     {
-      "src": "^/(?:property-marketing|construction|portfolio|showroom|service-area|contact|faq|worldcup-2030)/?$",
+      "src": "^/showroom/?$",
+      "status": 308,
+      "headers": {
+        "Location": "/portfolio"
+      }
+    },
+    {
+      "src": "^/(?:property-marketing|construction|portfolio|service-area|contact|faq|worldcup-2030)/?$",
       "dest": "/index.html"
     },
     {
