@@ -16,7 +16,7 @@ test("portfolio retains every distinct photograph",()=>{
 });
 
 test("a photograph has at most one primary subject and only supported labels",()=>{
-  const allowed=new Set(["Real Estate","Commercial","Construction","Land"]);
+  const allowed=new Set(["Real Estate","Commercial","Construction","Land","Cityscapes"]);
   for(const row of rows){
     assert.ok(row.tags.length<=1, `${row.id} has conflicting categories`);
     for(const tag of row.tags) assert.ok(allowed.has(tag),`Unsupported category ${tag}`);
@@ -27,7 +27,7 @@ test("land-filter misclassification shown in screenshot is fixed",()=>{
   const corrected={
     "DJI_0454_bkvuwb":"Real Estate",
     "4-DJI_0960_etujxs":"Construction",
-    "3-DJI_0014_xn3a13":"Commercial",
+    "3-DJI_0014_xn3a13":"Cityscapes",
     "DJI_0768_nvafya":"Construction",
     "DJI_0104_uzqlyr":"Real Estate",
     "map-snapshot_q3dk25":"Construction"
@@ -43,4 +43,14 @@ test("photo without visual verification stays only in All, not a guessed categor
 
 test("empty category filters stay hidden",()=>{
   assert.match(source,/allBubbles\.filter\(b => b\.label === "All" \|\| \(counts\[b\.label\] \?\? 0\) > 0\)/);
+});
+
+test("nighttime skyline is presented as cityscape rather than commercial property",()=>{
+  assert.deepEqual(byId["3-DJI_0014_xn3a13"],["Cityscapes"]);
+  assert.match(source,/03 \/ CITYSCAPES/);
+  assert.doesNotMatch(source,/03 \/ LAND/);
+});
+
+test("photo and video filter titles reflect different classification axes",()=>{
+  assert.match(source,/isPhoto \? "FILTER BY SUBJECT" : "FILTER BY FILM TYPE"/);
 });
