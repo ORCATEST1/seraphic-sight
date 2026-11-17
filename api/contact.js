@@ -23,7 +23,9 @@ export default async function handler(req, res) {
   if (!["Property Marketing", "Construction", "Construction & Development", "Other"].includes(type || "Property Marketing"))
     return res.status(400).json({ error: "Invalid project type." });
   if (honeypot) return res.status(200).json({ ok: true });
-  if (!name?.trim() || !isEmail(email))
+  const normalizedEmail = typeof email === "string" ? email.trim() : email;
+  const normalizedName = typeof name === "string" ? name.trim() : name;
+  if (!normalizedName || !isEmail(normalizedEmail))
     return res.status(400).json({ error: "Name and a valid email are required." });
 
   if (!process.env.RESEND_API_KEY)
@@ -39,13 +41,13 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       from: "quotes@seraphicsight.com",
       to: "Joseph@SeraphicSight.com",
-      reply_to: email,
+      reply_to: normalizedEmail,
       subject: `New Quote Request — ${esc(type)}`,
       html: `
         <h2 style="font-family:sans-serif;color:#111">New Quote Request</h2>
         <table style="font-family:sans-serif;font-size:14px;border-collapse:collapse;width:100%">
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600;width:160px">Name</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(name)}</td></tr>
-          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Email</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(email)}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600;width:160px">Name</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(normalizedName)}</td></tr>
+          <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Email</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(normalizedEmail)}</td></tr>
           <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Phone</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(phone) || "—"}</td></tr>
           <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Project Type</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(type)}</td></tr>
           <tr><td style="padding:8px 12px;background:#f5f5f5;font-weight:600">Address / APN</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${esc(address) || "—"}</td></tr>
