@@ -18,14 +18,10 @@ export default async function handler(req, res) {
   // Fail closed: never expose an unrestricted search endpoint.
   const permitted = (process.env.CLOUDINARY_PUBLIC_FOLDERS || "").split(",").map(s => s.trim()).filter(Boolean);
   if (!permitted.includes(folder)) return res.status(403).json({ error: "Folder not permitted." });
-  if (!folder) {
-    return res.status(400).json({ error: "folder is required" });
-  }
-
   const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
 
   if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-    return res.status(500).json({ error: "Cloudinary environment variables not configured" });
+    return res.status(503).json({ error: "Media temporarily unavailable." });
   }
 
   const auth = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString("base64");
@@ -36,13 +32,13 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
       headers: { Authorization: `Basic ${auth}` },
     });
 
     if (!response.ok) {
-      const text = await response.text();
-      console.error("Cloudinary API error:", response.status, text);
-      return res.status(502).json({ error: `Cloudinary error ${response.status}` });
+      console.error("Cloudinary media search failed with status:", response.status);
+      return res.status(502).json({ error: "Media temporarily unavailable." });
     }
 
     const data = await response.json();
@@ -53,14 +49,27 @@ export default async function handler(req, res) {
     // w_2000,c_limit caps width at 2000px — still sharp in lightbox but avoids
     // serving raw 50–80 MB drone files. Videos get adaptive codec + quality.
     const xform = type === "image" ? "f_auto,q_auto,a_exif,w_2000,c_limit" : "vc_auto,q_auto";
-    const urls = (data.resources || []).map(r =>
-      r.secure_url.replace("/upload/", `/upload/${xform}/`)
-    );
+    // Only return assets actually hosted by our Cloudinary account. Provider
+    // records should not be allowed to introduce arbitrary external URLs.
+    const assetPrefix = `/${encodeURIComponent(CLOUDINARY_CLOUD_NAME)}/${type}/upload/`;
+    const urls = (Array.isArray(data.resources) ? data.resources : [])
+      .slice(0, 50)
+      .flatMap(resource => {
+        if (typeof resource?.secure_url !== "string") return [];
+        try {
+          const asset = new URL(resource.secure_url);
+          if (asset.protocol !== "https:" || asset.hostname !== "res.cloudinary.com" ||
+              !asset.pathname.startsWith(assetPrefix) || asset.username || asset.password ||
+              asset.search || asset.hash) return [];
+          asset.pathname = asset.pathname.replace(assetPrefix, assetPrefix + xform + "/");
+          return [asset.toString()];
+        } catch { return []; }
+      });
 
     res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
     return res.json({ urls });
   } catch (err) {
-    console.error("cloudinary-images handler error:", err);
+    console.error("Cloudinary media request failed:", err instanceof Error ? err.name : "unknown");
     return res.status(502).json({ error: "Media temporarily unavailable." });
   }
 }
