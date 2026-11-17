@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { HERO_VIDEO_URL } from "../data/content";
-const FALLBACK = "https://res.cloudinary.com/dpc1noikx/image/upload/w_1000,c_limit,f_auto,q_auto/DJI_0944_gho2t4";
 import "./EditorialHome.css";
+
+const FALLBACK = "https://res.cloudinary.com/dpc1noikx/image/upload/w_1000,c_limit,f_auto,q_auto/DJI_0944_gho2t4";
 
 const PHOTO = "https://res.cloudinary.com/dpc1noikx/image/upload/w_1400,h_1500,c_fill,f_auto,q_auto/DJI_0944_gho2t4";
 const MAP = "https://res.cloudinary.com/dpc1noikx/image/upload/w_1000,f_auto,q_auto/v1778210648/map-snapshot_q3dk25.png";
