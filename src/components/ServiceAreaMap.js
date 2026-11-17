@@ -47,6 +47,7 @@ export default function ServiceAreaMap(){
   const container=React.useRef(null);
   const mapRef=React.useRef(null);
   const markersRef=React.useRef({});
+  const halosRef=React.useRef({});
   const active=AREAS.find(a=>a.id===selected)||AREAS[0];
 
   React.useEffect(()=>{
@@ -61,6 +62,11 @@ export default function ServiceAreaMap(){
       }).addTo(map);
       const bounds=L.latLngBounds([]);
       AREAS.forEach(area=>{
+        // Visual emphasis only: halos represent a service hub, not a guaranteed radius.
+        halosRef.current[area.id]=L.circleMarker([area.lat,area.lng],{
+          radius:22,color:"#d8e8d7",weight:1,opacity:.45,
+          fillColor:"#bed2bc",fillOpacity:.11,interactive:false
+        }).addTo(map);
         const marker=L.marker([area.lat,area.lng],{
           icon:L.divIcon({className:"ss-location-pin",html:markerHTML,iconSize:[28,28],iconAnchor:[14,14]}),
           title:area.region,
@@ -75,11 +81,15 @@ export default function ServiceAreaMap(){
       L.control.scale({imperial:true,metric:false}).addTo(map);
       setMapReady(true);
     }).catch(()=>{if(!cancelled)setMapFailed(true)});
-    return ()=>{cancelled=true;if(mapRef.current){mapRef.current.remove();mapRef.current=null;markersRef.current={}}};
+    return ()=>{cancelled=true;if(mapRef.current){mapRef.current.remove();mapRef.current=null;markersRef.current={};halosRef.current={}}};
   },[]);
   React.useEffect(()=>{
     const map=mapRef.current;
     if(!map)return;
+    Object.entries(halosRef.current).forEach(([id,halo])=>{
+      halo.setRadius(id===selected?36:20);
+      halo.setStyle({opacity:id===selected?.8:.35,fillOpacity:id===selected?.18:.07});
+    });
     Object.entries(markersRef.current).forEach(([id,marker])=>{
       const el=marker.getElement();
       if(el)el.classList.toggle("ss-location-pin-active",id===selected);
