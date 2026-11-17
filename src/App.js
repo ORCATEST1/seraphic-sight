@@ -31,6 +31,14 @@ function usePageMeta(title, description) {
       if (!m) { m = document.createElement("meta"); m.name = "description"; document.head.appendChild(m); }
       m.setAttribute("content", description);
     }
+    const canonicalUrl = "https://seraphicsight.com" + (window.location.pathname === "/" ? "/" : window.location.pathname.replace(/\/$/, ""));
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = canonicalUrl;
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute("content", canonicalUrl);
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute("content", title);
   }, [title, description]);
 }
 
@@ -871,6 +879,23 @@ function FAQ() {
   );
 }
 
+// ===== NOT FOUND =====
+function NotFound() {
+  usePageMeta("Page Not Found | Seraphic Sight", "The requested page could not be found.");
+  React.useEffect(() => {
+    let tag = document.querySelector('meta[name="robots"]');
+    if (!tag) { tag = document.createElement("meta"); tag.name = "robots"; document.head.appendChild(tag); }
+    tag.content = "noindex,follow";
+  }, []);
+  return (
+    <main style={{minHeight:"75vh",padding:"180px 24px 100px",textAlign:"center"}}>
+      <h1 style={{fontSize:48,color:"#fff",marginBottom:20}}>Page not found</h1>
+      <p style={{color:"#aaa",marginBottom:32}}>The page you requested is unavailable.</p>
+      <Link to="/portfolio" className="btn-primary" style={{display:"inline-block",textDecoration:"none"}}>Explore the portfolio</Link>
+    </main>
+  );
+}
+
 // ===== MAIN APP =====
 
 export default function App() {
@@ -909,6 +934,7 @@ export default function App() {
         <Route path="/contact" element={<Contact/>}/>
         <Route path="/faq" element={<FAQ/>}/>
         <Route path="/worldcup-2030" element={<WorldCup2030/>}/>
+        <Route path="*" element={<NotFound/>}/>
       </Routes>
       </React.Suspense>
       {!isWorldCup && <Footer/>}
