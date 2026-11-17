@@ -35,3 +35,8 @@ The supplied screenshot is authoritative for the visible Land subset, not for th
 - Introduced a distinct `Cityscapes` category for nighttime downtown imagery instead of treating city architecture as a commercial-property assignment.
 - Replaced the inaccurate `03 / LAND` featured-study label with a genuine cityscape image and title.
 - Photo filters are described as subjects; video filters as film types. No claim that all 42 photos have received full visual confirmation.
+
+## 3D mapping clarification
+The orthomosaic/photogrammetry asset `map-snapshot_q3dk25` is now under a dedicated `Mapping` filter instead of generic `Construction`. This allows prospective construction clients to discover the mapping deliverable directly. The original media ID and lightbox behavior are retained.
+
+A browser check confirmed `3-DJI_0014_xn3a13` is the identical source file in the Cityscapes filter and featured-study card despite differing responsive crops. Escape and the labeled Close button both dismiss the media dialog.
