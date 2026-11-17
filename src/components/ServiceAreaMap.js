@@ -23,7 +23,7 @@ function loadLeaflet(){
       const css=document.createElement("link");
       css.rel="stylesheet";
       css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-      css.integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoT6sBRCmZ9gIyw=";
+      css.integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=";
       css.crossOrigin="";
       css.dataset.ssLeafletCss="true";
       document.head.appendChild(css);
@@ -55,7 +55,7 @@ export default function ServiceAreaMap(){
       if(cancelled||!container.current)return;
       const map=L.map(container.current,{scrollWheelZoom:false,zoomControl:true,attributionControl:true});
       mapRef.current=map;
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",{
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
         maxZoom:17,
         attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>'
       }).addTo(map);
