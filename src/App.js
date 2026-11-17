@@ -7,6 +7,7 @@ import EditorialHome from "./components/EditorialHome";
 import { PropertyEditorial, ConstructionEditorial } from "./components/EditorialServices";
 import ServiceAreaMap from "./components/ServiceAreaMap";
 import "./components/EditorialInner.css";
+import "./components/EditorialPolish.css";
 import TurnstileField from "./components/TurnstileField";
 import WorldCup2030 from "./WorldCup2030";
 
