@@ -1045,7 +1045,7 @@ export default function PortfolioSection() {
 
         {/* Deliverable bubbles */}
         <div className="ps-bubbles-wrap">
-          <div className="ps-bubbles-label">"FILTER BY SUBJECT"</div>
+          <div className="ps-bubbles-label">FILTER BY SUBJECT</div>
           <div className="ps-bubbles" role="group" aria-label="Filter by deliverable type">
             {bubbles.map(b => (
               <Bubble
