@@ -17,6 +17,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:api
+      - run: CI=true npm test -- --watchAll=false --runInBand
       - run: GENERATE_SOURCEMAP=false npm run build
         env:
           CI: 'true'
