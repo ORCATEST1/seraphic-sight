@@ -13,7 +13,7 @@ The screenshot shows the Land results in catalogue order. We preserved every Clo
 | --- | --- | --- | --- |
 | `DJI_0454_bkvuwb` | Land | Real Estate | Aerial view of an existing mobile-home community with property overlay |
 | `4-DJI_0960_etujxs` | Land | Construction | Active lift/crane and site work, not undeveloped land |
-| `3-DJI_0014_xn3a13` | Land | Commercial | Nighttime downtown/cityscape imagery; provisional commercial/urban subject |
+| `3-DJI_0014_xn3a13` | Land | Cityscapes | Nighttime downtown/cityscape imagery is not a commercial-property listing |
 | `DJI_0768_nvafya` | Land | Construction | Street works and equipment among coastal palm trees |
 | `DJI_0104_uzqlyr` | Land | Real Estate | Existing houses / parcels with white property boundary overlay |
 | `map-snapshot_q3dk25` | Construction + Land | Construction | Site-mapping/photogrammetry visualization |
@@ -30,3 +30,8 @@ The screenshot shows the Land results in catalogue order. We preserved every Clo
 The supplied screenshot is authoritative for the visible Land subset, not for the subjects of every one of the 42 photos. An attempted automated browser audit only inspected a subset in detail and produced contradictory image-to-ID observations for some photos, so it was not used to override the screenshot-derived assignments or to claim a full-gallery audit.
 
 **Next quality gate:** create a numbered contact sheet with all 42 actual images, have the owner verify categories and select a compelling featured set. Consider distinguishing `Cityscapes / Architecture` from `Commercial property` if that is a major part of the body of work. Do not invent specific client or property metadata.
+
+## Follow-up correction
+- Introduced a distinct `Cityscapes` category for nighttime downtown imagery instead of treating city architecture as a commercial-property assignment.
+- Replaced the inaccurate `03 / LAND` featured-study label with a genuine cityscape image and title.
+- Photo filters are described as subjects; video filters as film types. No claim that all 42 photos have received full visual confirmation.
