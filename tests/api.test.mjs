@@ -192,3 +192,59 @@ test("preview quote requests fail closed without an isolated test recipient", as
     }
   }
 });
+
+test("cloudinary ignores untrusted external media URLs and applies transformations to valid assets", async () => {
+  const keys = ["CLOUDINARY_PUBLIC_FOLDERS", "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"];
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+  const oldFetch = globalThis.fetch;
+  try {
+    process.env.CLOUDINARY_PUBLIC_FOLDERS = "public-gallery";
+    process.env.CLOUDINARY_CLOUD_NAME = "test-cloud";
+    process.env.CLOUDINARY_API_KEY = "test-key";
+    process.env.CLOUDINARY_API_SECRET = "test-secret";
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({ resources: [
+        { secure_url: "https://res.cloudinary.com/test-cloud/image/upload/v1/photo.jpg" },
+        { secure_url: "https://evil.example.net/collect/image/upload/secret" },
+        { secure_url: "http://res.cloudinary.com/test-cloud/image/upload/v1/insecure.jpg" },
+        { secure_url: "https://res.cloudinary.com/other-cloud/image/upload/v1/other.jpg" },
+        { secure_url: null }
+      ] })
+    });
+    const res = response();
+    await cloudinary({ ...request(undefined, "GET"), query: { folder:"public-gallery", type:"image" } }, res);
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.payload.urls, [
+      "https://res.cloudinary.com/test-cloud/image/upload/f_auto,q_auto,a_exif,w_2000,c_limit/v1/photo.jpg"
+    ]);
+  } finally {
+    globalThis.fetch = oldFetch;
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
+test("cloudinary provider errors do not reveal response text", async () => {
+  const keys = ["CLOUDINARY_PUBLIC_FOLDERS", "CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"];
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+  const oldFetch = globalThis.fetch;
+  try {
+    process.env.CLOUDINARY_PUBLIC_FOLDERS = "public-gallery";
+    process.env.CLOUDINARY_CLOUD_NAME = "test-cloud";
+    process.env.CLOUDINARY_API_KEY = "test-key";
+    process.env.CLOUDINARY_API_SECRET = "test-secret";
+    globalThis.fetch = async () => ({ok:false,status:401,text:async()=> "secret upstream response"});
+    const res = response();
+    await cloudinary({...request(undefined,"GET"),query:{folder:"public-gallery",type:"image"}},res);
+    assert.equal(res.statusCode, 502);
+    assert.doesNotMatch(JSON.stringify(res.payload), /secret upstream response|401/);
+  } finally {
+    globalThis.fetch = oldFetch;
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
