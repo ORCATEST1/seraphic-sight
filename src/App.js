@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
 import {
-  NAV_LINKS, PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
+  PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
   PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
   CON_CLIENTS, REGIONS,
   PROP_HERO_VIDEO_URL, CON_HERO_VIDEO_URL, TRAVEL_FEE,
