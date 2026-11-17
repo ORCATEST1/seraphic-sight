@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { HERO_VIDEO_URL } from "../data/content";
+const FALLBACK = "https://res.cloudinary.com/dpc1noikx/image/upload/w_1000,c_limit,f_auto,q_auto/DJI_0944_gho2t4";
 import "./EditorialHome.css";
 
 const PHOTO = "https://res.cloudinary.com/dpc1noikx/image/upload/w_1400,h_1500,c_fill,f_auto,q_auto/DJI_0944_gho2t4";
@@ -14,13 +15,23 @@ function EditorialLink({ to, children }) {
 }
 export default function EditorialHome() {
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const videoRef = React.useRef(null);
+  const prefersStill = typeof window !== "undefined" &&
+    (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !!navigator.connection?.saveData);
   const [videoPlaying, setVideoPlaying] = React.useState(false);
+  const [videoFailed, setVideoFailed] = React.useState(false);
+  const [videoPaused, setVideoPaused] = React.useState(false);
   React.useEffect(() => {
     document.title = "Seraphic Sight | Aerial Imaging Studio — Southern California";
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.href = "https://seraphicsight.com/";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.content = "Independent Southern California aerial imaging studio. Real estate photography, film, construction mapping and documentation.";
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute("content", document.title);
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute("content", "https://seraphicsight.com/");
+    document.querySelector('meta[data-route-not-found="true"]')?.remove();
   }, []);
   const navLinks = [
     { label:"Work", to:"/portfolio" },
@@ -39,9 +50,21 @@ export default function EditorialHome() {
     <main id="ed-main">
       <section className="ed-hero" aria-label="Aerial imaging studio">
         <div className="ed-video-shell">
-          <video className={"ed-hero-video"+(videoPlaying?" is-playing":"")} autoPlay playsInline muted loop preload="metadata" onPlaying={()=>setVideoPlaying(true)} onError={()=>setVideoPlaying(false)} aria-hidden="true">
+          {(videoFailed || prefersStill) && <img className="ed-video-fallback" src={FALLBACK} alt="Aerial view of Southern California" />}
+          {!prefersStill && !videoFailed && <video ref={videoRef} className={"ed-hero-video"+(videoPlaying?" is-playing":"")}
+            autoPlay playsInline muted loop preload="metadata" aria-hidden="true"
+            onPlaying={()=>{setVideoPlaying(true);setVideoPaused(false);}}
+            onError={()=>setVideoFailed(true)}>
             <source src={HERO_VIDEO_URL} type="video/mp4"/>
-          </video>
+          </video>}
+          {!prefersStill && !videoFailed && videoPlaying && <button type="button" className="ed-video-control"
+            aria-label={videoPaused ? "Play background video" : "Pause background video"}
+            onClick={()=>{
+              const video = videoRef.current;
+              if (!video) return;
+              if (video.paused) video.play().catch(()=>setVideoFailed(true));
+              else {video.pause();setVideoPaused(true);}
+            }}>{videoPaused ? "PLAY FILM" : "PAUSE FILM"}</button>}
         </div>
         <div className="ed-hero-copy">
           <div className="ed-eyebrow">INDEPENDENT AERIAL IMAGING STUDIO / SOUTHERN CALIFORNIA</div>
