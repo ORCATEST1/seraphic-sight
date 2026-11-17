@@ -88,7 +88,7 @@ export default function ServiceAreaMap(){
     if(!map)return;
     Object.entries(halosRef.current).forEach(([id,halo])=>{
       halo.setRadius(id===selected?36:20);
-      halo.setStyle({opacity:id===selected?.8:.35,fillOpacity:id===selected?.18:.07});
+      halo.setStyle({opacity:id===selected ? 0.8 : 0.35,fillOpacity:id===selected ? 0.18 : 0.07});
     });
     Object.entries(markersRef.current).forEach(([id,marker])=>{
       const el=marker.getElement();
