@@ -12,11 +12,11 @@ export default async function handler(req, res) {
   if (!rateLimit(req, { limit: 5, windowMs: 10 * 60 * 1000 }))
     return res.status(429).json({ error: "Too many requests — please try again later." });
 
-  const { name, email, phone, type, address, desc, timeline, honeypot } = req.body || {};
+  const { name, email, phone, type, address, desc, timeline, honeypot, turnstileToken } = req.body || {};
 
   if (!req.body || typeof req.body !== "object" || Array.isArray(req.body))
     return res.status(400).json({ error: "Invalid request." });
-  const fields = { name: 120, email: 254, phone: 40, type: 80, address: 250, desc: 2000, timeline: 120, honeypot: 200 };
+  const fields = { name: 120, email: 254, phone: 40, type: 80, address: 250, desc: 2000, timeline: 120, honeypot: 200, turnstileToken: 2048 };
   if (Object.entries(fields).some(([key, max]) => req.body[key] !== undefined &&
       (typeof req.body[key] !== "string" || req.body[key].length > max)))
     return res.status(400).json({ error: "Invalid field type or length." });
@@ -27,6 +27,30 @@ export default async function handler(req, res) {
   const normalizedName = typeof name === "string" ? name.trim() : name;
   if (!normalizedName || !isEmail(normalizedEmail))
     return res.status(400).json({ error: "Name and a valid email are required." });
+
+  // Feature-gated until a matching public site key and isolated preview secret
+  // are configured. Never require a challenge without rendering it in the UI.
+  if (process.env.CONTACT_REQUIRE_TURNSTILE === "true") {
+    if (!process.env.TURNSTILE_SECRET_KEY)
+      return res.status(503).json({ error: "Verification temporarily unavailable." });
+    if (typeof turnstileToken !== "string" || !/^[a-zA-Z0-9._-]{10,2048}$/.test(turnstileToken))
+      return res.status(403).json({ error: "Complete the verification challenge." });
+    try {
+      const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        signal: AbortSignal.timeout(7000),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ secret: process.env.TURNSTILE_SECRET_KEY, response: turnstileToken }),
+      });
+      if (!verifyRes.ok) return res.status(503).json({ error: "Verification unavailable." });
+      const verification = await verifyRes.json();
+      if (verification?.success !== true)
+        return res.status(403).json({ error: "Verification failed. Try again." });
+    } catch (error) {
+      console.error("Turnstile verification request failed:", error instanceof Error ? error.name : "unknown");
+      return res.status(503).json({ error: "Verification temporarily unavailable." });
+    }
+  }
 
   if (!process.env.RESEND_API_KEY)
     return res.status(503).json({ error: "Messaging temporarily unavailable." });
