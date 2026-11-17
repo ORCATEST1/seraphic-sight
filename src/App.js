@@ -242,10 +242,29 @@ function Contact() {
   }
 
   return (
-    <div>
-      <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need: APN, address, deliverables. We'll respond within 24 hours." />
-      <section style={{ padding: "0 24px 100px", maxWidth: 640, margin: "0 auto" }}>
-        <form noValidate onSubmit={handleSubmit} style={{ display: "grid", gap: 24 }}>
+    <main className="ss-contact-page">
+      <header className="ss-contact-head">
+        <p className="ss-contact-eyebrow">CONTACT / START A PROJECT</p>
+        <h1>Tell us what<br/>you're building.</h1>
+        <p>From a single listing to an active construction site, the right first step is a clear brief. Send us the location, what you need captured, and your timeline.</p>
+      </header>
+      <section className="ss-contact-layout">
+        <aside className="ss-contact-aside">
+          <p className="ss-contact-eyebrow">A DIRECT LINE</p>
+          <h2>Better work starts with a conversation.</h2>
+          <p>We'll review your request, confirm feasibility and follow up with the scope, travel and pricing.</p>
+          <div className="ss-contact-direct">
+            <span>EMAIL</span>
+            <a href="mailto:joseph@seraphicsight.com">joseph@seraphicsight.com</a>
+            <span>PHONE</span>
+            <a href="tel:+15627431698">(562) 743-1698</a>
+          </div>
+          <p className="ss-contact-footnote">Flight scheduling is subject to weather, airspace restrictions, site access and availability.</p>
+        </aside>
+        <div className="ss-contact-form-col">
+          <p className="ss-contact-eyebrow">PROJECT ENQUIRY</p>
+          <h2>Share the essentials.</h2>
+        <form noValidate onSubmit={handleSubmit} className="ss-contact-form" style={{ display: "grid", gap: 24 }}>
           <div style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }} aria-hidden="true">
             <label htmlFor="contact-website">Website (leave blank)</label>
             <input id="contact-website" name="website" tabIndex={-1} autoComplete="off" value={form.honeypot} onChange={e => upd("honeypot", e.target.value)} />
@@ -261,14 +280,14 @@ function Contact() {
             <div>
               <label htmlFor="contact-phone" className="form-label">Phone</label>
               <input id="contact-phone" name="phone" type="tel" autoComplete="tel" maxLength={40}
-                className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="(000) 000-0000" />
+                className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="Optional phone number" />
             </div>
           </div>
           <div>
             <label htmlFor="contact-email" className="form-label">Email *</label>
             <input id="contact-email" ref={emailRef} name="email" type="email" autoComplete="email" required maxLength={254}
               className="form-input" value={form.email} onChange={e => upd("email", e.target.value)}
-              aria-invalid={!!errors.email} aria-describedby={errors.email ? "contact-email-error" : undefined} placeholder="you@email.com" />
+              aria-invalid={!!errors.email} aria-describedby={errors.email ? "contact-email-error" : undefined} placeholder="Your business email" />
             {errors.email && <p id="contact-email-error" role="alert" style={{ color: "#FF7777", fontSize: 12, marginTop: 6 }}>{errors.email}</p>}
           </div>
           <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
@@ -277,7 +296,7 @@ function Contact() {
               {["Property Marketing", "Construction & Development", "Other"].map(t => (
                 <button key={t} type="button" className="filter-btn" aria-pressed={form.type === t}
                   onClick={() => upd("type", t)}
-                  style={{ border: form.type === t ? "1px solid #d5ddd4" : "1px solid rgba(255,255,255,0.1)", background: form.type === t ? "rgba(0,119,255,0.12)" : "transparent", color: form.type === t ? "#68ADFF" : "#AAAAC0" }}>
+                  style={{ border: form.type === t ? "1px solid #d5ddd4" : "1px solid rgba(255,255,255,0.1)", background: form.type === t ? "#344638" : "transparent", color: form.type === t ? "#f2f4e9" : "#a9baaa" }}>
                   {t}
                 </button>
               ))}
@@ -311,16 +330,10 @@ function Contact() {
             {status === "sending" ? "Sending…" : "Submit Quote Request"}
           </button>
         </form>
-        <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
-          {[{ label: "Email", value: "joseph@seraphicsight.com", href: "mailto:joseph@seraphicsight.com" }, { label: "Phone", value: "(562) 743-1698", href: "tel:+15627431698" }, { label: "Response Time", value: "Within 24 hours", href: null }].map((c, i) => (
-            <div key={i}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#abb4aa", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
-              {c.href ? <a href={c.href} style={{ fontSize: 14, fontWeight: 600, color: "#fff", textDecoration: "none" }}>{c.value}</a> : <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{c.value}</div>}
-            </div>
-          ))}
+        <p className="ss-contact-disclaimer">Your details are only used to respond to your project enquiry.</p>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
 
