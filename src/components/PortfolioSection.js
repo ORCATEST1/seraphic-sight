@@ -52,7 +52,7 @@ const PHOTOS = [
   { id: "DJI_0841_tmdv2e",   tags: ["Commercial"] },
   { id: "DJI_0104_uzqlyr",   tags: ["Real Estate"] },
   { id: "DJI_0002_xzpfp5",   tags: ["Commercial"] },
-  { id: "map-snapshot_q3dk25", tags: ["Construction"] },
+  { id: "map-snapshot_q3dk25", tags: ["Mapping"] },
   { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: [] },
   { id: "DJI_0944_gho2t4",        tags: ["Real Estate"] },
   { id: "DJI_0147-Pano-2_ewomdl", tags: ["Commercial"] },
@@ -88,6 +88,7 @@ const PHOTO_BUBBLES = [
   { label: "Commercial",   icon: "", color: "#34d399" },
   { label: "Cityscapes",   icon: "", color: "#a1b9a7" },
   { label: "Construction", icon: "", color: "#fb923c" },
+  { label: "Mapping",      icon: "", color: "#a9c5be" },
   { label: "Land",         icon: "", color: "#fbbf24" },
 ];
 
