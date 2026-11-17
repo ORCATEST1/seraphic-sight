@@ -59,3 +59,15 @@ test("3D mapping snapshot has its own capability category",()=>{
   assert.deepEqual(byId["map-snapshot_q3dk25"],["Mapping"]);
   assert.match(source,/label: "Mapping"/);
 });
+
+test("visually corroborated residential portfolio subjects are not commercial or construction",()=>{
+  for(const id of [
+    "DJI_0802_cdwyvj","DJI_0730_enavrk","DJI_0327_it5brs",
+    "Aerial_18_njtmry","Aerial_25_y6eahl","DJI_0322_khfwqi",
+    "DJI_0036-HDR_bxyo9o"
+  ]) assert.deepEqual(byId[id],["Real Estate"], id);
+});
+
+test("coastal aerial cityscape is not a commercial property assignment",()=>{
+  assert.deepEqual(byId["Aerial_27_qw5yqr"],["Cityscapes"]);
+});
