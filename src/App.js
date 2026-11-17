@@ -386,41 +386,68 @@ function Contact() {
     address: "", desc: "", timeline: "", honeypot: "",
   });
   const [status, setStatus] = React.useState("idle");
+  const [errorMessage, setErrorMessage] = React.useState("");
   const [errors, setErrors] = React.useState({});
-  const upd = (k, v) => { setForm(p => ({ ...p, [k]: v })); setErrors(p => ({ ...p, [k]: undefined })); };
+  const nameRef = React.useRef(null);
+  const emailRef = React.useRef(null);
+  const upd = (k, v) => {
+    setForm(p => ({ ...p, [k]: v }));
+    setErrors(p => ({ ...p, [k]: undefined }));
+    setStatus("idle");
+    setErrorMessage("");
+  };
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
     const t = params.get("type");
     if (t === "property-marketing") setForm(p => ({ ...p, type: "Property Marketing" }));
-    else if (t === "construction") setForm(p => ({ ...p, type: "Construction" }));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    else if (t === "construction") setForm(p => ({ ...p, type: "Construction & Development" }));
+  }, [location.search]);
 
-  const handleSubmit = async () => {
-    // Validate with visible feedback — silently returning lost leads
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (status === "sending") return;
+    const payload = { ...form, name: form.name.trim(), email: form.email.trim() };
     const errs = {};
-    if (!form.name.trim()) errs.name = "Please enter your name.";
-    if (!form.email.trim()) errs.email = "Please enter your email.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = "That email doesn't look right.";
+    if (!payload.name) errs.name = "Please enter your name.";
+    if (!payload.email) errs.email = "Please enter your email.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) errs.email = "Enter a valid email address.";
     setErrors(errs);
-    if (Object.keys(errs).some(k => errs[k])) return;
+    if (Object.keys(errs).length) {
+      if (errs.name) nameRef.current?.focus();
+      else emailRef.current?.focus();
+      return;
+    }
     setStatus("sending");
+    setErrorMessage("");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
-      setStatus(res.ok ? "success" : "error");
+      if (res.ok) {
+        setStatus("success");
+        return;
+      }
+      setStatus("error");
+      const messages = {
+        400: "Please review your form details and try again.",
+        413: "Your request is too long. Shorten the description and try again.",
+        429: "Too many requests. Please try again in a few minutes.",
+        503: "Our inquiry service is temporarily unavailable. Please email us directly.",
+      };
+      setErrorMessage(messages[res.status] || "We couldn't send your request. Please email us directly.");
     } catch {
       setStatus("error");
+      setErrorMessage("Connection error. Please retry or email us directly.");
     }
   };
 
   if (status === "success") {
     return (
-      <section style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px" }}>
+      <section role="status" style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "120px 24px" }}>
         <div>
-          <div style={{ fontSize: 64, marginBottom: 24 }}>✓</div>
+          <div aria-hidden="true" style={{ fontSize: 64, marginBottom: 24 }}>✓</div>
           <h2 style={{ fontSize: 34, fontWeight: 800, color: "#fff", marginBottom: 16 }}>Quote Request Received</h2>
           <p style={{ color: "#8888A0", fontSize: 16, lineHeight: 1.7, maxWidth: 450, margin: "0 auto" }}>
             Thank you. We'll review your project details and respond within 24 hours.
@@ -432,45 +459,73 @@ function Contact() {
 
   return (
     <div>
-      <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need — APN, address, deliverables. We'll respond within 24 hours." />
+      <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need: APN, address, deliverables. We'll respond within 24 hours." />
       <section style={{ padding: "0 24px 100px", maxWidth: 640, margin: "0 auto" }}>
-        <div style={{ display: "grid", gap: 24 }}>
-          <div style={{ display: "none" }}>
-            <input tabIndex="-1" autoComplete="off" value={form.honeypot} onChange={e => upd("honeypot", e.target.value)} />
+        <form noValidate onSubmit={handleSubmit} style={{ display: "grid", gap: 24 }}>
+          <div style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }} aria-hidden="true">
+            <label htmlFor="contact-website">Website (leave blank)</label>
+            <input id="contact-website" name="website" tabIndex={-1} autoComplete="off" value={form.honeypot} onChange={e => upd("honeypot", e.target.value)} />
           </div>
           <div className="responsive-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div><label className="form-label">Name *</label><input className="form-input" style={errors.name ? { borderColor: "rgba(255,77,77,0.6)" } : undefined} value={form.name} onChange={e => upd("name", e.target.value)} placeholder="Your name" aria-invalid={!!errors.name} />{errors.name && <p style={{ color: "#FF4D4D", fontSize: 12, marginTop: 6 }}>{errors.name}</p>}</div>
-            <div><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="(000) 000-0000" /></div>
+            <div>
+              <label htmlFor="contact-name" className="form-label">Name *</label>
+              <input id="contact-name" ref={nameRef} name="name" autoComplete="name" required maxLength={120}
+                className="form-input" value={form.name} onChange={e => upd("name", e.target.value)}
+                aria-invalid={!!errors.name} aria-describedby={errors.name ? "contact-name-error" : undefined} placeholder="Your name" />
+              {errors.name && <p id="contact-name-error" role="alert" style={{ color: "#FF7777", fontSize: 12, marginTop: 6 }}>{errors.name}</p>}
+            </div>
+            <div>
+              <label htmlFor="contact-phone" className="form-label">Phone</label>
+              <input id="contact-phone" name="phone" type="tel" autoComplete="tel" maxLength={40}
+                className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="(000) 000-0000" />
+            </div>
           </div>
-          <div><label className="form-label">Email *</label><input className="form-input" type="email" style={errors.email ? { borderColor: "rgba(255,77,77,0.6)" } : undefined} value={form.email} onChange={e => upd("email", e.target.value)} placeholder="you@email.com" aria-invalid={!!errors.email} />{errors.email && <p style={{ color: "#FF4D4D", fontSize: 12, marginTop: 6 }}>{errors.email}</p>}</div>
           <div>
-            <label className="form-label">Project Type</label>
+            <label htmlFor="contact-email" className="form-label">Email *</label>
+            <input id="contact-email" ref={emailRef} name="email" type="email" autoComplete="email" required maxLength={254}
+              className="form-input" value={form.email} onChange={e => upd("email", e.target.value)}
+              aria-invalid={!!errors.email} aria-describedby={errors.email ? "contact-email-error" : undefined} placeholder="you@email.com" />
+            {errors.email && <p id="contact-email-error" role="alert" style={{ color: "#FF7777", fontSize: 12, marginTop: 6 }}>{errors.email}</p>}
+          </div>
+          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend className="form-label">Project Type</legend>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               {["Property Marketing", "Construction & Development", "Other"].map(t => (
-                <button key={t} className="filter-btn" onClick={() => upd("type", t)}
-                  style={{ border: form.type === t ? "1px solid #0077FF" : "1px solid rgba(255,255,255,0.1)", background: form.type === t ? "rgba(0,119,255,0.12)" : "transparent", color: form.type === t ? "#0077FF" : "#8888A0" }}>
+                <button key={t} type="button" className="filter-btn" aria-pressed={form.type === t}
+                  onClick={() => upd("type", t)}
+                  style={{ border: form.type === t ? "1px solid #0077FF" : "1px solid rgba(255,255,255,0.1)", background: form.type === t ? "rgba(0,119,255,0.12)" : "transparent", color: form.type === t ? "#68ADFF" : "#AAAAC0" }}>
                   {t}
                 </button>
               ))}
             </div>
+          </fieldset>
+          <div>
+            <label htmlFor="contact-address" className="form-label">Project Address or APN</label>
+            <input id="contact-address" name="address" maxLength={250} className="form-input" value={form.address}
+              onChange={e => upd("address", e.target.value)} placeholder="123 Main St or APN #" />
           </div>
-          <div><label className="form-label">Project Address or APN</label><input className="form-input" value={form.address} onChange={e => upd("address", e.target.value)} placeholder="123 Main St or APN #" /></div>
-          <div><label className="form-label">Project Description</label><textarea className="form-input" style={{ minHeight: 120, resize: "vertical" }} value={form.desc} onChange={e => upd("desc", e.target.value)} placeholder="Deliverables needed, site access notes, specific requirements." /></div>
-          <div><label className="form-label">Preferred Timeline</label><input className="form-input" value={form.timeline} onChange={e => upd("timeline", e.target.value)} placeholder="e.g., Within 2 weeks, ASAP, Flexible" /></div>
+          <div>
+            <label htmlFor="contact-description" className="form-label">Project Description</label>
+            <textarea id="contact-description" name="description" maxLength={2000} className="form-input"
+              style={{ minHeight: 120, resize: "vertical" }} value={form.desc}
+              onChange={e => upd("desc", e.target.value)} placeholder="Deliverables needed, site access notes, specific requirements." />
+          </div>
+          <div>
+            <label htmlFor="contact-timeline" className="form-label">Preferred Timeline</label>
+            <input id="contact-timeline" name="timeline" maxLength={120} className="form-input"
+              value={form.timeline} onChange={e => upd("timeline", e.target.value)}
+              placeholder="e.g., Within 2 weeks, ASAP, Flexible" />
+          </div>
           {status === "error" && (
-            <p style={{ color: "#FF4D4D", fontSize: 13, textAlign: "center" }}>
-              Something went wrong. Email us directly at joseph@seraphicsight.com
+            <p role="alert" style={{ color: "#FF7777", fontSize: 13, textAlign: "center" }}>
+              {errorMessage} <a style={{ textDecoration: "underline", color: "#fff" }} href="mailto:joseph@seraphicsight.com">joseph@seraphicsight.com</a>
             </p>
           )}
-          <button
-            className="btn-primary"
-            style={{ width: "100%", padding: 16, fontSize: 15, marginTop: 8, opacity: status === "sending" ? 0.6 : 1 }}
-            onClick={handleSubmit}
-            disabled={status === "sending"}
-          >
+          <button type="submit" className="btn-primary" disabled={status === "sending"}
+            style={{ width: "100%", padding: 16, fontSize: 15, marginTop: 8, opacity: status === "sending" ? 0.6 : 1 }}>
             {status === "sending" ? "Sending…" : "Submit Quote Request"}
           </button>
-        </div>
+        </form>
         <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
           {[{ label: "Email", value: "joseph@seraphicsight.com", href: "mailto:joseph@seraphicsight.com" }, { label: "Phone", value: "(562) 743-1698", href: "tel:+15627431698" }, { label: "Response Time", value: "Within 24 hours", href: null }].map((c, i) => (
             <div key={i}>
