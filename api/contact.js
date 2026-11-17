@@ -2,10 +2,13 @@ import { esc, isEmail, rateLimit } from "./_utils.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
-  if (!req.headers["content-type"]?.toLowerCase().startsWith("application/json"))
+  if (typeof req.headers["content-type"] !== "string" || !/^application\/json(?:\s*;|\s*$)/i.test(req.headers["content-type"]))
     return res.status(415).json({ error: "JSON required." });
-  if (Number(req.headers["content-length"] || 0) > 8192)
-    return res.status(413).json({ error: "Request too large." });
+  // Enforce real UTF-8 body size after Vercel parses JSON; do not trust Content-Length.
+  let bodyBytes;
+  try { bodyBytes = Buffer.byteLength(JSON.stringify(req.body ?? null), "utf8"); }
+  catch { return res.status(400).json({ error: "Invalid request." }); }
+  if (bodyBytes > 8192) return res.status(413).json({ error: "Request too large." });
   if (!rateLimit(req, { limit: 5, windowMs: 10 * 60 * 1000 }))
     return res.status(429).json({ error: "Too many requests — please try again later." });
 
@@ -20,7 +23,7 @@ export default async function handler(req, res) {
   if (!["Property Marketing", "Construction", "Construction & Development", "Other"].includes(type || "Property Marketing"))
     return res.status(400).json({ error: "Invalid project type." });
   if (honeypot) return res.status(200).json({ ok: true });
-  if (!name || !isEmail(email))
+  if (!name?.trim() || !isEmail(email))
     return res.status(400).json({ error: "Name and a valid email are required." });
 
   if (!process.env.RESEND_API_KEY)
@@ -28,6 +31,7 @@ export default async function handler(req, res) {
   try {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
+    signal: AbortSignal.timeout(10000),
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
@@ -53,8 +57,7 @@ export default async function handler(req, res) {
   });
 
   if (response.ok) return res.status(200).json({ ok: true });
-  const error = await response.text();
-  console.error("Resend error:", error);
+  console.error("Resend returned non-success status:", response.status);
   return res.status(502).json({ error: "Failed to send" });
   } catch (error) {
     console.error("Contact provider request failed:", error instanceof Error ? error.name : "unknown");
