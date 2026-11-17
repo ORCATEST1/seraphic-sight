@@ -3,7 +3,39 @@
   "outputDirectory": "build",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/property-marketing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/construction",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/portfolio",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/showroom",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/service-area",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/faq",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/worldcup-2030",
       "destination": "/index.html"
     }
   ],
