@@ -23,7 +23,31 @@
       }
     },
     {
-      "src": "^/(?:property-marketing|construction|portfolio|service-area|contact|faq|worldcup-2030)/?$",
+      "src": "^/property-marketing/?$",
+      "dest": "/property-marketing/index.html"
+    },
+    {
+      "src": "^/construction/?$",
+      "dest": "/construction/index.html"
+    },
+    {
+      "src": "^/portfolio/?$",
+      "dest": "/portfolio/index.html"
+    },
+    {
+      "src": "^/service-area/?$",
+      "dest": "/service-area/index.html"
+    },
+    {
+      "src": "^/faq/?$",
+      "dest": "/faq/index.html"
+    },
+    {
+      "src": "^/contact/?$",
+      "dest": "/contact/index.html"
+    },
+    {
+      "src": "^/worldcup-2030/?$",
       "dest": "/index.html"
     },
     {
