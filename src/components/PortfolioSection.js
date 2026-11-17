@@ -5,6 +5,7 @@
 import React, {
   useState, useRef, useEffect, useCallback, useMemo,
 } from "react";
+import "./PortfolioEditorial.css";
 
 /* ─── Cloudinary helpers ──────────────────────────────────────────────────── */
 const CLD    = "https://res.cloudinary.com/dpc1noikx";
@@ -842,7 +843,7 @@ function VideoCard({ item, onClick }) {
     >
       <img
         src={vThumb(item.id)}
-        alt=""
+        alt={"Aerial drone photography — "+item.tags.join(", ")}
         loading="lazy"
         style={{ display: hov ? "none" : "block" }}
         onError={e => { const card = e.target.closest(".ps-card"); if(card) card.style.display="none"; }}
@@ -865,7 +866,7 @@ function VideoCard({ item, onClick }) {
         <div className="ps-card-tags">
           {item.tags.map(t => <span key={t} className="ps-card-tag">{t}</span>)}
         </div>
-        <p className="ps-card-title">Drone Video</p>
+        <p className="ps-card-title">{item.tags.join(" / ")}</p>
       </div>
     </div>
   );
@@ -891,7 +892,7 @@ function PhotoCard({ item, onClick }) {
         <div className="ps-card-tags">
           {item.tags.map(t => <span key={t} className="ps-card-tag">{t}</span>)}
         </div>
-        <p className="ps-card-title">Aerial Photography</p>
+        <p className="ps-card-title">{item.tags.join(" / ")}</p>
       </div>
     </div>
   );
@@ -930,7 +931,6 @@ export default function PortfolioSection() {
   const [cat,    setCat]    = useState("photo"); // "photo" | "video"
   const [filter, setFilter] = useState("All");
   const [lbState, setLbState] = useState(null); // { items, idx }
-  const bgVideoRef = useRef(null);
 
   /* inject CSS once on mount */
   useEffect(() => {
@@ -942,11 +942,6 @@ export default function PortfolioSection() {
       document.head.appendChild(el);
     }
     return () => document.getElementById("ps-v2-styles")?.remove();
-  }, []);
-
-  /* attempt bg video autoplay */
-  useEffect(() => {
-    bgVideoRef.current?.play().catch(() => {});
   }, []);
 
   /* deep-linking: /portfolio?item=<cloudinary-id> opens that item directly —
@@ -1002,30 +997,29 @@ export default function PortfolioSection() {
       <div className="ps-bg" aria-hidden="true" />
       <div className="ps-scanline" aria-hidden="true" />
 
-      {/* ── Hero video banner ── */}
-      <div className="ps-hero-banner">
-        {/*
-          Background loop — once your 720p renders are uploaded to Cloudinary,
-          swap "Copy_of_DJI_0939_pcc1dl" for your rendered video's public ID.
-        */}
-        <video
-          ref={bgVideoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-        >
-          <source src={vSrc("Copy_of_DJI_0939_pcc1dl")} type="video/mp4" />
-        </video>
-        <div className="ps-hero-title-wrap">
-          <div className="ps-hero-eyebrow">Seraphic Sight · Portfolio</div>
-          <h1 className="ps-hero-h1">
-            Aerial <span>Precision</span>,<br />
-            Cinematic <span>Vision</span>
-          </h1>
+      <header className="ps-editorial-intro">
+        <p className="ps-ed-eyebrow">SELECTED IMAGES / WORK IN CONTEXT</p>
+        <h1>Seen from<br/><em>another angle.</em></h1>
+        <div className="ps-ed-description"><p>Property, land and construction documented from above. A curated look at how our imagery describes setting, scale and progress.</p>
+          <span>REAL PROJECT IMAGERY / SOUTHERN CALIFORNIA</span>
         </div>
-      </div>
+      </header>
+      <section className="ps-featured" aria-label="Featured aerial studies">
+        {[
+          {label:"01 / PROPERTY",title:"A sense of place",id:"DJI_0944_gho2t4"},
+          {label:"02 / CONSTRUCTION",title:"The evolving site",id:"sola-florance-construction-aerial_oapibr"},
+          {label:"03 / LAND",title:"Context from above",id:"DJI_0454_bkvuwb"}
+        ].map((featured,i)=>{
+          const idx=PHOTOS.findIndex(photo=>photo.id===featured.id);
+          return <button className={"ps-featured-card ps-featured-"+i} type="button" key={featured.id}
+            onClick={()=>openLb(PHOTOS.map(photo=>({...photo,type:"photo"})),idx)}>
+            <img src={img(featured.id,i===0?1400:900,i===0?950:760)} loading={i===0?"eager":"lazy"}
+              alt={featured.title+" — aerial photography from Seraphic Sight"}/>
+            <span className="ps-featured-meta"><span>{featured.label}</span><strong>{featured.title}</strong><span aria-hidden="true">↗</span></span>
+          </button>;
+        })}
+      </section>
+      <div className="ps-archive-heading"><p className="ps-ed-eyebrow">BROWSE THE ARCHIVE</p><h2>Every perspective,<br/>on its own terms.</h2></div>
 
       {/* ── Main content ── */}
       <div className="ps-content">
@@ -1051,7 +1045,7 @@ export default function PortfolioSection() {
 
         {/* Deliverable bubbles */}
         <div className="ps-bubbles-wrap">
-          <div className="ps-bubbles-label">{"// filter by deliverable type"}</div>
+          <div className="ps-bubbles-label">"FILTER BY SUBJECT"</div>
           <div className="ps-bubbles" role="group" aria-label="Filter by deliverable type">
             {bubbles.map(b => (
               <Bubble
@@ -1076,7 +1070,7 @@ export default function PortfolioSection() {
 
         {/* Grid */}
         {filtered.length === 0 ? (
-          <div className="ps-empty">{"// No items match this filter yet."}</div>
+          <div className="ps-empty">"No items match this filter."</div>
         ) : (
           <div className="ps-grid" key={`${cat}::${filter}`}>
             {filtered.map((item, i) =>
