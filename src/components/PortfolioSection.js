@@ -32,34 +32,42 @@ const PHOTOS = [
   { id: "DJI_0454_bkvuwb",   tags: ["Real Estate"] },
   { id: "DJI_0888_go6uhb",   tags: ["Real Estate"] },
   { id: "DJI_0322_khfwqi",   tags: ["Real Estate"] },
-  { id: "Showcase_nmenkd",   tags: [] },
-  { id: "Showcase_2_pkjbvm", tags: [] },
-  { id: "Showcase_3_n4gxow", tags: [] },
-  { id: "DJI_0011_zmbnvw",   tags: ["Commercial"] },
-  { id: "sola-florance-construction-aerial_oapibr", tags: ["Construction"] },
-  { id: "AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz", tags: [] },
+  { id: "Showcase_nmenkd",   tags: [], archived: true },
+  { id: "Showcase_2_pkjbvm", tags: [], archived: true },
+  { id: "Showcase_3_n4gxow", tags: [], archived: true },
+  { id: "DJI_0011_zmbnvw",   tags: ["Land"] },
+  { id: "sola-florance-construction-aerial_oapibr", tags: ["Real Estate"] },
+  { id: "AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz", tags: [], archived: true },
   { id: "4-DJI_0960_etujxs", tags: ["Construction"] },
-  { id: "3-DJI_0014_xn3a13", tags: ["Cityscapes"] },
-  { id: "DJI_0377_xl7frm",   tags: ["Commercial"] },
-  { id: "94-DJI_0259_e83rda",  tags: ["Construction"] },
-  { id: "112-DJI_0287_vmrise", tags: ["Construction"] },
-  { id: "DJI_0944_hlpmgh",   tags: ["Real Estate"] },
+  { id: "3-DJI_0014_xn3a13", tags: ["Construction"] },
+  { id: "DJI_0377_xl7frm",   tags: ["Cityscapes"] },
+  { id: "94-DJI_0259_e83rda",  tags: ["Real Estate"] },
+  { id: "112-DJI_0287_vmrise", tags: ["Real Estate"] },
+  { id: "DJI_0944_hlpmgh",   tags: ["Cityscapes"] },
   { id: "DJI_0715_gh4zrp",   tags: ["Real Estate"] },
-  { id: "DJI_0726_ffmdmr",   tags: ["Real Estate"] },
+  { id: "DJI_0726_ffmdmr",   tags: ["Cityscapes"] },
   { id: "DJI_0036-HDR_bxyo9o", tags: ["Real Estate"] },
-  { id: "DJI_0768_nvafya",   tags: ["Construction"] },
-  { id: "DJI_0841_tmdv2e",   tags: ["Commercial"] },
-  { id: "DJI_0104_uzqlyr",   tags: ["Real Estate"] },
-  { id: "DJI_0002_xzpfp5",   tags: ["Commercial"] },
+  { id: "DJI_0768_nvafya",   tags: ["Real Estate"] },
+  { id: "DJI_0841_tmdv2e",   tags: ["Cityscapes"] },
+  { id: "DJI_0104_uzqlyr",   tags: ["Cityscapes"] },
+  { id: "DJI_0002_xzpfp5",   tags: ["Land"] },
   { id: "map-snapshot_q3dk25", tags: ["Mapping"] },
-  { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: [] },
-  { id: "DJI_0944_gho2t4",        tags: ["Real Estate"] },
-  { id: "DJI_0147-Pano-2_ewomdl", tags: ["Commercial"] },
-  { id: "5-DJI_0138-HDR_eroxlw",  tags: ["Commercial"] },
-  { id: "DJI_0726_c1ezfe",        tags: ["Commercial"] },
-  { id: "B8BF74C3-98E2-4C69-8958-D92124D1FE27_mlcue4", tags: ["Commercial"] },
+  { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: [], archived: true },
+  { id: "DJI_0944_gho2t4",        tags: ["Cityscapes"], archived: true },
+  { id: "DJI_0147-Pano-2_ewomdl", tags: ["Cityscapes"] },
+  { id: "5-DJI_0138-HDR_eroxlw",  tags: ["Coastal"] },
+  { id: "DJI_0726_c1ezfe",        tags: ["Cityscapes"], archived: true },
+  { id: "B8BF74C3-98E2-4C69-8958-D92124D1FE27_mlcue4", tags: ["Coastal"] },
   { id: "dji_fly_20230107_145206_631_1673132863018_photo_m5emzx", tags: ["Commercial"] },
 ];
+
+// All 42 source records are retained, including missing Cloudinary IDs and duplicate aliases.
+// Only existing, unique images appear in the public grid and lightbox.
+const VISIBLE_PHOTOS = PHOTOS.filter(photo => !photo.archived);
+const PHOTO_ALIASES = {
+  "DJI_0944_gho2t4": "DJI_0944_hlpmgh",
+  "DJI_0726_c1ezfe": "DJI_0726_ffmdmr"
+};
 
 const VIDEOS = [
   { id: "clip_joey_updated_bbfclp", tags: ["Cinematic", "Real Estate"] },
@@ -89,6 +97,7 @@ const PHOTO_BUBBLES = [
   { label: "Construction", icon: "", color: "#fb923c" },
   { label: "Mapping",      icon: "", color: "#a9c5be" },
   { label: "Land",         icon: "", color: "#fbbf24" },
+  { label: "Coastal",      icon: "", color: "#a3c4d1" },
 ];
 
 const VIDEO_BUBBLES = [
@@ -951,10 +960,11 @@ export default function PortfolioSection() {
     const params = new URLSearchParams(window.location.search);
     const itemId = params.get("item");
     if (!itemId) return;
-    const pIdx = PHOTOS.findIndex(x => x.id === itemId);
+    const canonicalId = PHOTO_ALIASES[itemId] || itemId;
+    const pIdx = VISIBLE_PHOTOS.findIndex(x => x.id === canonicalId);
     if (pIdx >= 0) {
       setCat("photo"); setFilter("All");
-      setLbState({ items: PHOTOS.map(x => ({ ...x, type: "photo" })), idx: pIdx });
+      setLbState({ items: VISIBLE_PHOTOS.map(x => ({ ...x, type: "photo" })), idx: pIdx });
       return;
     }
     const vIdx = VIDEOS.findIndex(x => x.id === itemId);
@@ -967,7 +977,7 @@ export default function PortfolioSection() {
   /* current data */
   const isPhoto  = cat === "photo";
   const rawItems = useMemo(
-    () => (isPhoto ? PHOTOS : VIDEOS).map(x => ({ ...x, type: isPhoto ? "photo" : "video" })),
+    () => (isPhoto ? VISIBLE_PHOTOS : VIDEOS).map(x => ({ ...x, type: isPhoto ? "photo" : "video" })),
     [isPhoto],
   );
   const allBubbles = isPhoto ? PHOTO_BUBBLES : VIDEO_BUBBLES;
@@ -1011,13 +1021,13 @@ export default function PortfolioSection() {
       </header>
       <section className="ps-featured" aria-label="Featured aerial studies">
         {[
-          {label:"01 / PROPERTY",title:"A sense of place",id:"DJI_0944_gho2t4"},
-          {label:"02 / CONSTRUCTION",title:"The evolving site",id:"sola-florance-construction-aerial_oapibr"},
-          {label:"03 / CITYSCAPES",title:"After dark",id:"3-DJI_0014_xn3a13"}
+          {label:"01 / PROPERTY",title:"A sense of place",id:"DJI_0036-HDR_bxyo9o"},
+          {label:"02 / CONSTRUCTION",title:"The evolving site",id:"3-DJI_0014_xn3a13"},
+          {label:"03 / CITYSCAPES",title:"After dark",id:"DJI_0104_uzqlyr"}
         ].map((featured,i)=>{
-          const idx=PHOTOS.findIndex(photo=>photo.id===featured.id);
+          const idx=VISIBLE_PHOTOS.findIndex(photo=>photo.id===featured.id);
           return <button className={"ps-featured-card ps-featured-"+i} type="button" key={featured.id}
-            onClick={()=>openLb(PHOTOS.map(photo=>({...photo,type:"photo"})),idx)}>
+            onClick={()=>openLb(VISIBLE_PHOTOS.map(photo=>({...photo,type:"photo"})),idx)}>
             <img src={img(featured.id,i===0?1400:900,i===0?950:760)} loading={i===0?"eager":"lazy"}
               alt={featured.title+" — aerial photography from Seraphic Sight"}/>
             <span className="ps-featured-meta"><span>{featured.label}</span><strong>{featured.title}</strong><span aria-hidden="true">↗</span></span>
@@ -1032,7 +1042,7 @@ export default function PortfolioSection() {
         {/* Category tabs */}
         <div className="ps-tabs" role="tablist" aria-label="Portfolio category">
           {[
-            { id: "photo", label: "Aerial Photography", count: PHOTOS.length },
+            { id: "photo", label: "Aerial Photography", count: VISIBLE_PHOTOS.length },
             { id: "video", label: "Drone Video",        count: VIDEOS.length },
           ].map(t => (
             <button
@@ -1075,7 +1085,7 @@ export default function PortfolioSection() {
 
         {/* Grid */}
         {filtered.length === 0 ? (
-          <div className="ps-empty">"No items match this filter."</div>
+          <div className="ps-empty">No media match this filter.</div>
         ) : (
           <div className="ps-grid" key={`${cat}::${filter}`}>
             {filtered.map((item, i) =>
