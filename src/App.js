@@ -78,25 +78,6 @@ function Nav() {
 }
 
 // ===== SHARED COMPONENTS =====
-function PageHero({ tag, title, subtitle, videoUrl=null }) {
-  const [playing,setPlaying] = React.useState(false);
-  const [failed,setFailed] = React.useState(false);
-  const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  return <section className="inner-page-hero">
-    {videoUrl && !reduced && !failed && <div className="inner-page-video">
-      <video src={videoUrl} autoPlay muted loop playsInline preload="metadata" aria-hidden="true"
-        onPlaying={()=>setPlaying(true)} onError={()=>setFailed(true)}
-        style={{opacity:playing?1:0}}/>
-    </div>}
-    <div className="inner-hero-content">
-      {tag&&<p className="inner-overline">{tag}</p>}
-      <h1>{title}</h1>
-      {subtitle&&<p className="inner-hero-deck">{subtitle}</p>}
-    </div>
-  </section>;
-}
-
-
 function CTABanner({ title, sub, btn }) {
   return <section className="inner-cta">
     <p className="inner-overline">START A CONVERSATION</p>
