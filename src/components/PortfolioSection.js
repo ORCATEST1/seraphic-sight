@@ -30,7 +30,7 @@ const PHOTOS = [
   { id: "Aerial_18_njtmry",  tags: ["Commercial"] },
   { id: "Aerial_25_y6eahl",  tags: ["Commercial"] },
   { id: "DJI_0780_tdioap",   tags: ["Real Estate"] },
-  { id: "DJI_0454_bkvuwb",   tags: ["Land"] },
+  { id: "DJI_0454_bkvuwb",   tags: ["Real Estate"] },
   { id: "DJI_0888_go6uhb",   tags: ["Real Estate"] },
   { id: "DJI_0322_khfwqi",   tags: ["Construction"] },
   { id: "Showcase_nmenkd",   tags: ["Commercial"] },
@@ -39,8 +39,8 @@ const PHOTOS = [
   { id: "DJI_0011_zmbnvw",   tags: ["Commercial"] },
   { id: "sola-florance-construction-aerial_oapibr", tags: ["Construction"] },
   { id: "AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz", tags: ["Real Estate"] },
-  { id: "4-DJI_0960_etujxs", tags: ["Land"] },
-  { id: "3-DJI_0014_xn3a13", tags: ["Land"] },
+  { id: "4-DJI_0960_etujxs", tags: ["Construction"] },
+  { id: "3-DJI_0014_xn3a13", tags: ["Commercial"] },
   { id: "DJI_0377_xl7frm",   tags: ["Commercial"] },
   { id: "94-DJI_0259_e83rda",  tags: ["Construction"] },
   { id: "112-DJI_0287_vmrise", tags: ["Construction"] },
@@ -48,12 +48,12 @@ const PHOTOS = [
   { id: "DJI_0715_gh4zrp",   tags: ["Real Estate"] },
   { id: "DJI_0726_ffmdmr",   tags: ["Real Estate"] },
   { id: "DJI_0036-HDR_bxyo9o", tags: ["Commercial"] },
-  { id: "DJI_0768_nvafya",   tags: ["Land"] },
+  { id: "DJI_0768_nvafya",   tags: ["Construction"] },
   { id: "DJI_0841_tmdv2e",   tags: ["Commercial"] },
-  { id: "DJI_0104_uzqlyr",   tags: ["Land"] },
+  { id: "DJI_0104_uzqlyr",   tags: ["Real Estate"] },
   { id: "DJI_0002_xzpfp5",   tags: ["Commercial"] },
-  { id: "map-snapshot_q3dk25", tags: ["Construction", "Land"] },
-  { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: ["Land"] },
+  { id: "map-snapshot_q3dk25", tags: ["Construction"] },
+  { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: [] },
   { id: "DJI_0944_gho2t4",        tags: ["Real Estate"] },
   { id: "DJI_0147-Pano-2_ewomdl", tags: ["Commercial"] },
   { id: "5-DJI_0138-HDR_eroxlw",  tags: ["Commercial"] },
@@ -843,7 +843,7 @@ function VideoCard({ item, onClick }) {
     >
       <img
         src={vThumb(item.id)}
-        alt={"Aerial drone photography — "+item.tags.join(", ")}
+        alt={"Aerial drone photography — "+(item.tags.length ? item.tags.join(", ") : "subject pending review")}
         loading="lazy"
         style={{ display: hov ? "none" : "block" }}
         onError={e => { const card = e.target.closest(".ps-card"); if(card) card.style.display="none"; }}
@@ -866,7 +866,7 @@ function VideoCard({ item, onClick }) {
         <div className="ps-card-tags">
           {item.tags.map(t => <span key={t} className="ps-card-tag">{t}</span>)}
         </div>
-        <p className="ps-card-title">{item.tags.join(" / ")}</p>
+        <p className="ps-card-title">{item.tags.length ? item.tags.join(" / ") : "Aerial Study"}</p>
       </div>
     </div>
   );
@@ -969,7 +969,7 @@ export default function PortfolioSection() {
     () => (isPhoto ? PHOTOS : VIDEOS).map(x => ({ ...x, type: isPhoto ? "photo" : "video" })),
     [isPhoto],
   );
-  const bubbles  = isPhoto ? PHOTO_BUBBLES : VIDEO_BUBBLES;
+  const allBubbles = isPhoto ? PHOTO_BUBBLES : VIDEO_BUBBLES;
 
   /* per-tag counts */
   const counts = useMemo(() => {
@@ -977,6 +977,10 @@ export default function PortfolioSection() {
     rawItems.forEach(it => it.tags.forEach(t => { m[t] = (m[t] || 0) + 1; }));
     return m;
   }, [rawItems]);
+
+  // Do not offer a subject filter unless the media catalogue actually contains it.
+  // Uncategorized media remain in All until visually reviewed and classified.
+  const bubbles = allBubbles.filter(b => b.label === "All" || (counts[b.label] ?? 0) > 0);
 
   const filtered = useMemo(
     () => filter === "All" ? rawItems : rawItems.filter(it => it.tags.includes(filter)),
