@@ -168,3 +168,27 @@ test("failed challenge never contacts the email provider", async () => {
     }
   }
 });
+
+test("preview quote requests fail closed without an isolated test recipient", async () => {
+  const previous = Object.fromEntries(["VERCEL_ENV","PREVIEW_CONTACT_EMAIL_TO","CONTACT_REQUIRE_TURNSTILE"].map(k=>[k,process.env[k]]));
+  const oldFetch = globalThis.fetch;
+  let calls = 0;
+  try {
+    process.env.VERCEL_ENV = "preview";
+    delete process.env.PREVIEW_CONTACT_EMAIL_TO;
+    delete process.env.CONTACT_REQUIRE_TURNSTILE;
+    globalThis.fetch = async () => { calls++; throw new Error("Should not send"); };
+    const req = request({name:"Preview Test",email:"test@example.invalid",type:"Other"});
+    req.socket.remoteAddress = "127.0.0.54";
+    const res = response();
+    await contact(req,res);
+    assert.equal(res.statusCode,503);
+    assert.equal(calls,0);
+  } finally {
+    globalThis.fetch = oldFetch;
+    for(const [key,value] of Object.entries(previous)){
+      if(value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+});
