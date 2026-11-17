@@ -31,6 +31,8 @@ function usePageMeta(title, description) {
       m.setAttribute("content", description);
     }
     const canonicalUrl = "https://seraphicsight.com" + (window.location.pathname === "/" ? "/" : window.location.pathname.replace(/\/$/, ""));
+    const previousNotFoundRobots = document.querySelector('meta[data-route-not-found="true"]');
+    if (previousNotFoundRobots) previousNotFoundRobots.remove();
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
     canonical.href = canonicalUrl;
@@ -587,8 +589,16 @@ function NotFound() {
   usePageMeta("Page Not Found | Seraphic Sight", "The requested page could not be found.");
   React.useEffect(() => {
     let tag = document.querySelector('meta[name="robots"]');
+    const created = !tag;
+    const prior = tag?.getAttribute("content");
     if (!tag) { tag = document.createElement("meta"); tag.name = "robots"; document.head.appendChild(tag); }
     tag.content = "noindex,follow";
+    if (created) tag.setAttribute("data-route-not-found", "true");
+    return () => {
+      if (created) tag.remove();
+      else if (prior === null) tag.removeAttribute("content");
+      else tag.setAttribute("content", prior);
+    };
   }, []);
   return (
     <main style={{minHeight:"75vh",padding:"180px 24px 100px",textAlign:"center"}}>
