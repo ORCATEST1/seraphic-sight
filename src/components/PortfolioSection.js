@@ -40,7 +40,7 @@ const PHOTOS = [
   { id: "sola-florance-construction-aerial_oapibr", tags: ["Construction"] },
   { id: "AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz", tags: ["Real Estate"] },
   { id: "4-DJI_0960_etujxs", tags: ["Construction"] },
-  { id: "3-DJI_0014_xn3a13", tags: ["Commercial"] },
+  { id: "3-DJI_0014_xn3a13", tags: ["Cityscapes"] },
   { id: "DJI_0377_xl7frm",   tags: ["Commercial"] },
   { id: "94-DJI_0259_e83rda",  tags: ["Construction"] },
   { id: "112-DJI_0287_vmrise", tags: ["Construction"] },
@@ -86,6 +86,7 @@ const PHOTO_BUBBLES = [
   { label: "All",          icon: "",  color: "#00d4ff" },
   { label: "Real Estate",  icon: "", color: "#a78bfa" },
   { label: "Commercial",   icon: "", color: "#34d399" },
+  { label: "Cityscapes",   icon: "", color: "#a1b9a7" },
   { label: "Construction", icon: "", color: "#fb923c" },
   { label: "Land",         icon: "", color: "#fbbf24" },
 ];
@@ -884,7 +885,7 @@ function PhotoCard({ item, onClick }) {
     >
       <img
         src={img(item.id)}
-        alt=""
+        alt={item.tags.length ? `Aerial photograph categorized as ${item.tags.join(", ")}` : "Aerial photograph, category not yet verified"}
         loading="lazy"
         onError={e => { const card = e.target.closest(".ps-card"); if(card) card.style.display="none"; }}
       />
@@ -892,7 +893,7 @@ function PhotoCard({ item, onClick }) {
         <div className="ps-card-tags">
           {item.tags.map(t => <span key={t} className="ps-card-tag">{t}</span>)}
         </div>
-        <p className="ps-card-title">{item.tags.join(" / ")}</p>
+        <p className="ps-card-title">{item.tags.length ? item.tags.join(" / ") : "Aerial Study"}</p>
       </div>
     </div>
   );
@@ -1012,7 +1013,7 @@ export default function PortfolioSection() {
         {[
           {label:"01 / PROPERTY",title:"A sense of place",id:"DJI_0944_gho2t4"},
           {label:"02 / CONSTRUCTION",title:"The evolving site",id:"sola-florance-construction-aerial_oapibr"},
-          {label:"03 / LAND",title:"Context from above",id:"DJI_0454_bkvuwb"}
+          {label:"03 / CITYSCAPES",title:"After dark",id:"3-DJI_0014_xn3a13"}
         ].map((featured,i)=>{
           const idx=PHOTOS.findIndex(photo=>photo.id===featured.id);
           return <button className={"ps-featured-card ps-featured-"+i} type="button" key={featured.id}
@@ -1049,8 +1050,8 @@ export default function PortfolioSection() {
 
         {/* Deliverable bubbles */}
         <div className="ps-bubbles-wrap">
-          <div className="ps-bubbles-label">FILTER BY SUBJECT</div>
-          <div className="ps-bubbles" role="group" aria-label="Filter by deliverable type">
+          <div className="ps-bubbles-label">{isPhoto ? "FILTER BY SUBJECT" : "FILTER BY FILM TYPE"}</div>
+          <div className="ps-bubbles" role="group" aria-label={isPhoto ? "Filter photographs by subject" : "Filter video by film type"}>
             {bubbles.map(b => (
               <Bubble
                 key={b.label}
