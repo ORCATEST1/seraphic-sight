@@ -17,7 +17,7 @@ test("coverage map lists the regions and changes details when selected", () => {
 test("service map explains coverage markers are not fixed boundaries", () => {
   render(<MemoryRouter><ServiceAreaMap/></MemoryRouter>);
   expect(screen.getByText(/The shaded outline approximates where we typically travel/)).toBeInTheDocument();
-  expect(screen.getByText(/weather, and project scope/)).toBeInTheDocument();
+  expect(screen.getByText(/airspace, site access, weather, scheduling, and scope/)).toBeInTheDocument();
 });
 
 test("map explains the contiguous shaded footprint is approximate, not a flight boundary", () => {
