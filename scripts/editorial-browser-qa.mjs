@@ -72,6 +72,11 @@ try{
  check("Two verified land photographs",(await page.locator(".ps-card").count())===2);
  await page.locator(".ps-bubble").filter({hasText:"Cityscapes"}).click();
  check("Seven cityscape photographs",(await page.locator(".ps-card").count())===7);
+ // Wait for featured images and explicitly fail on broken or unsupported transforms.
+ await page.locator(".ps-featured").scrollIntoViewIfNeeded();
+ await page.waitForTimeout(1700);
+ const featureStates=await page.locator(".ps-featured-card img").evaluateAll(nodes=>nodes.map(n=>({id:n.currentSrc.split("/").pop(),loaded:n.complete&&n.naturalWidth>0,naturalWidth:n.naturalWidth})));
+ check("All three featured images render",featureStates.length===3&&featureStates.every(x=>x.loaded),JSON.stringify(featureStates));
  const feature3=await page.locator(".ps-featured-card").nth(2).innerText();
  check("Cityscape feature correctly labeled",feature3.includes("CITYSCAPES"));
  await page.locator(".ps-featured-card").nth(2).click();
@@ -83,10 +88,20 @@ try{
  await go(page,"/property-marketing");
  check("Property editorial h1",(await page.locator("h1").innerText()).includes("Show the place"));
  check("Package tiers present",await page.locator(".ess-package").count()===3);
+ await page.locator(".ess-media-pair").scrollIntoViewIfNeeded();
+ await page.waitForTimeout(1600);
+ const propImages=await page.locator(".ess-media-pair img").evaluateAll(nodes=>nodes.map(n=>({id:n.currentSrc.split("/").pop(),loaded:n.complete&&n.naturalWidth>0})));
+ check("Property gallery images render",propImages.length===2&&propImages.every(x=>x.loaded),JSON.stringify(propImages));
+ await page.evaluate(()=>scrollTo(0,0));
  await screenshot(page,"03-property-desktop");
  await go(page,"/construction");
  check("Construction editorial h1",(await page.locator("h1").innerText()).includes("Make progress"));
  check("Mapping scope caveat",(await page.locator("body").innerText()).includes("not a replacement for a licensed"));
+ await page.locator(".ess-media-pair").scrollIntoViewIfNeeded();
+ await page.waitForTimeout(1600);
+ const constructionImages=await page.locator(".ess-media-pair img").evaluateAll(nodes=>nodes.map(n=>({id:n.currentSrc.split("/").pop(),loaded:n.complete&&n.naturalWidth>0})));
+ check("Construction gallery images render",constructionImages.length===2&&constructionImages.every(x=>x.loaded),JSON.stringify(constructionImages));
+ await page.evaluate(()=>scrollTo(0,0));
  await screenshot(page,"04-construction-desktop");
  await go(page,"/faq");
  const faq=page.locator(".ss-faq-item button").first();
