@@ -57,18 +57,24 @@ try{
  check("Region selector changes details",(await page.locator(".ss-region-detail h2").innerText()).includes("San Diego County"));
  await page.locator(".ss-region-tab").filter({hasText:"Orange County"}).click();
  check("Second region selector works",(await page.locator(".ss-region-detail h2").innerText()).includes("Orange County"));
- // A geographic circle must grow in SCREEN pixels when zooming into a fixed
- // coordinate, unlike Leaflet's fixed-pixel CircleMarker. Catch that regression.
- const geographicHighlights=page.locator(".ss-hub-geographic-highlight");
- check("Eight geographic hub highlights",await geographicHighlights.count()===8);
+ // Owner-sketched service zone is ONE Leaflet polygon. Its geographic
+ // coordinates remain fixed while its SVG projection changes on zoom.
+ const footprint=page.locator("path.ss-service-footprint");
+ check("One continuous service coverage polygon",await footprint.count()===1);
+ check("No disconnected hub circles",await page.locator(".ss-hub-geographic-highlight").count()===0);
  await page.locator(".ss-region-tab").filter({hasText:"Los Angeles County"}).click();
  await page.waitForTimeout(850);
- const beforeZoom=await geographicHighlights.first().boundingBox();
+ const beforeZoom=await footprint.getAttribute("d");
  await page.locator(".leaflet-control-zoom-in").click();
  await page.waitForTimeout(850);
- const afterZoom=await geographicHighlights.first().boundingBox();
- check("Geographic highlights expand on zoom",Boolean(beforeZoom&&afterZoom&&afterZoom.width>beforeZoom.width*1.5),
-    "width before="+(beforeZoom?.width??"missing")+" after="+(afterZoom?.width??"missing"));
+ const afterZoom=await footprint.getAttribute("d");
+ check("Coverage polygon tracks map zoom",Boolean(beforeZoom&&afterZoom&&beforeZoom!==afterZoom),
+   "SVG path changes with geographic projection");
+ const reset=page.getByRole("button",{name:/VIEW FULL AREA/i});
+ check("Full-coverage reset is available",await reset.isEnabled());
+ await reset.click();
+ await page.waitForTimeout(950);
+ check("Full-coverage reset preserves map polygon",await footprint.count()===1);
  await screenshot(page,"01-map-desktop");
  // Portfolio
  await go(page,"/portfolio");

@@ -16,11 +16,18 @@ test("coverage map lists the regions and changes details when selected", () => {
 
 test("service map explains coverage markers are not fixed boundaries", () => {
   render(<MemoryRouter><ServiceAreaMap/></MemoryRouter>);
-  expect(screen.getByText(/Shaded circles are illustrative geographic highlights/)).toBeInTheDocument();
-  expect(screen.getByText(/weather, and project scope/)).toBeInTheDocument();
+  expect(screen.getByText(/The shaded outline approximates where we typically travel/)).toBeInTheDocument();
+  expect(screen.getByText(/airspace, site access, weather, scheduling, and scope/)).toBeInTheDocument();
 });
 
-test("map explains region highlights are geographic, not fixed flight boundaries", () => {
+test("map explains the contiguous shaded footprint is approximate, not a flight boundary", () => {
   render(<MemoryRouter><ServiceAreaMap/></MemoryRouter>);
-  expect(screen.getByText(/They scale with zoom but do not define guaranteed flight zones/)).toBeInTheDocument();
+  expect(screen.getByText(/It is not a strict service limit or guaranteed flight zone/)).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:/VIEW FULL AREA/i})).toBeInTheDocument();
+});
+
+test("Montclair is expressly included in the Inland Empire service examples",()=>{
+  render(<MemoryRouter><ServiceAreaMap/></MemoryRouter>);
+  fireEvent.click(screen.getByRole("button",{name:/Riverside & San Bernardino/}));
+  expect(screen.getByText(/Ontario · Montclair · Rancho Cucamonga/)).toBeInTheDocument();
 });

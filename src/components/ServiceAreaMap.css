@@ -35,3 +35,14 @@
 .ss-map-canvas .leaflet-tile-pane{filter:grayscale(1) invert(1) brightness(.72) contrast(.94)}
 .ss-map-canvas .leaflet-control-attribution{background:#14241bdf!important;color:#e1ebde!important}
 .ss-map-canvas .leaflet-control-attribution a{color:#e1ebde!important}
+
+/* Approximate owner-drawn service footprint: one contiguous tinted area, not
+   circles that imply gaps between nearby cities. */
+.ss-map-reset{border:0;border-bottom:1px solid #b6c7b7;background:transparent;color:#d1dfd1;padding:4px 0 6px;cursor:pointer;font:700 10px 'DM Sans',sans-serif;letter-spacing:.13em}
+.ss-map-reset span{margin-left:14px}
+.ss-map-reset:hover{color:#fff;border-color:#fff}
+.ss-map-reset:focus-visible{outline:2px solid #e5eee1;outline-offset:4px}
+.ss-map-reset:disabled{opacity:.5;cursor:default}
+.ss-map-legend{position:absolute;top:12px;right:12px;z-index:550;background:#12201ae8;color:#e3ece0;border:1px solid #a0bca077;padding:9px 13px;display:flex;align-items:center;gap:8px;font:600 10px 'DM Sans',sans-serif;letter-spacing:.07em;pointer-events:none}
+.ss-map-legend-swatch{display:block;width:15px;height:13px;border:1px dashed #d6e8d7;background:#9ccaab45}
+@media(max-width:560px){.ss-map-top{gap:12px;align-items:center}.ss-map-reset{font-size:9px}.ss-map-legend{top:11px;right:11px;font-size:9px}}
