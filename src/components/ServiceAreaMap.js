@@ -63,10 +63,13 @@ export default function ServiceAreaMap(){
       }).addTo(map);
       const bounds=L.latLngBounds([]);
       AREAS.forEach(area=>{
-        // Visual emphasis only: halos represent a service hub, not a guaranteed radius.
-        halosRef.current[area.id]=L.circleMarker([area.lat,area.lng],{
-          radius:22,color:"#d8e8d7",weight:1,opacity:.45,
-          fillColor:"#bed2bc",fillOpacity:.11,interactive:false
+        // A Circle has a radius in *meters*, unlike CircleMarker's fixed pixel
+        // radius. This illustrative hub highlight therefore keeps the same
+        // geographic footprint as the visitor zooms; it is NOT a coverage limit.
+        halosRef.current[area.id]=L.circle([area.lat,area.lng],{
+          radius:30000,className:"ss-hub-geographic-highlight",
+          color:"#d8e8d7",weight:1,opacity:.38,
+          fillColor:"#bed2bc",fillOpacity:.06,interactive:false
         }).addTo(map);
         const marker=L.marker([area.lat,area.lng],{
           icon:L.divIcon({className:"ss-location-pin",html:markerHTML,iconSize:[28,28],iconAnchor:[14,14]}),
@@ -88,8 +91,13 @@ export default function ServiceAreaMap(){
     const map=mapRef.current;
     if(!map)return;
     Object.entries(halosRef.current).forEach(([id,halo])=>{
-      halo.setRadius(id===selected?36:20);
-      halo.setStyle({opacity:id===selected ? 0.8 : 0.35,fillOpacity:id===selected ? 0.18 : 0.07});
+      // Selection changes emphasis, never the geographic extent.
+      halo.setStyle({
+        color:id===selected ? "#eff6e9" : "#d8e8d7",
+        weight:id===selected ? 2 : 1,
+        opacity:id===selected ? 0.85 : 0.38,
+        fillOpacity:id===selected ? 0.15 : 0.06
+      });
     });
     Object.entries(markersRef.current).forEach(([id,marker])=>{
       const el=marker.getElement();
@@ -111,7 +119,7 @@ export default function ServiceAreaMap(){
           {!mapReady&&!mapFailed&&<div className="ss-map-notice" role="status">Loading regional map…</div>}
           {mapFailed&&<div className="ss-map-notice" role="status">Map tiles are unavailable. Select a region from the list to see coverage details.</div>}
         </div>
-        <p className="ss-map-disclaimer">Markers represent service hubs, not guaranteed flight zones or fixed travel boundaries. Availability depends on airspace, site access, weather, and project scope.</p>
+        <p className="ss-map-disclaimer">Shaded circles are illustrative geographic highlights around service hubs. They scale with zoom but do not define guaranteed flight zones or travel boundaries. Availability depends on airspace, site access, weather, and project scope.</p>
       </div>
       <div className="ss-map-aside">
         <div className="ss-region-list" aria-label="Choose coverage region">

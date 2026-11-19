@@ -16,6 +16,11 @@ test("coverage map lists the regions and changes details when selected", () => {
 
 test("service map explains coverage markers are not fixed boundaries", () => {
   render(<MemoryRouter><ServiceAreaMap/></MemoryRouter>);
-  expect(screen.getByText(/Markers represent service hubs/)).toBeInTheDocument();
+  expect(screen.getByText(/Shaded circles are illustrative geographic highlights/)).toBeInTheDocument();
   expect(screen.getByText(/weather, and project scope/)).toBeInTheDocument();
+});
+
+test("map explains region highlights are geographic, not fixed flight boundaries", () => {
+  render(<MemoryRouter><ServiceAreaMap/></MemoryRouter>);
+  expect(screen.getByText(/They scale with zoom but do not define guaranteed flight zones/)).toBeInTheDocument();
 });
