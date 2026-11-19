@@ -1028,7 +1028,7 @@ export default function PortfolioSection() {
           const idx=VISIBLE_PHOTOS.findIndex(photo=>photo.id===featured.id);
           return <button className={"ps-featured-card ps-featured-"+i} type="button" key={featured.id}
             onClick={()=>openLb(VISIBLE_PHOTOS.map(photo=>({...photo,type:"photo"})),idx)}>
-            <img src={img(featured.id,i===0?1400:900,i===0?950:760)} loading={i===0?"eager":"lazy"}
+            <img src={img(featured.id,900,600)} loading={i===0?"eager":"lazy"}
               alt={featured.title+" — aerial photography from Seraphic Sight"}/>
             <span className="ps-featured-meta"><span>{featured.label}</span><strong>{featured.title}</strong><span aria-hidden="true">↗</span></span>
           </button>;
