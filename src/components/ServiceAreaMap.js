@@ -136,6 +136,6 @@ export default function ServiceAreaMap(){
         </div>
       </div>
     </section>
-    <section className="ss-travel-note"><div><p className="ss-eyebrow">PLANNING A SHOOT</p><h2>Travel is part<br/>of the scope.</h2></div><div><p>Our published travel rate is <strong>$0.70 per mile</strong>. For shorter jobs (under 50 miles), mileage is calculated round-trip; for trips of 50 miles or more, mileage is calculated one-way. We confirm the final fee and scheduling before you commit.</p><p>Outside the highlighted hubs? Send the address or APN and we'll confirm whether the site is within our working range.</p><Link to="/contact" className="ss-link-arrow">REQUEST A QUOTE <span aria-hidden="true">↗</span></Link></div></section>
+    <section className="ss-travel-note"><div><p className="ss-eyebrow">PLANNING A SHOOT</p><h2>Travel is part<br/>of the scope.</h2></div><div><p>Our published travel rate is <strong>$0.70 per mile</strong>. For shorter jobs (under 50 miles), mileage is calculated round-trip; for trips of 50 miles or more, mileage is calculated one-way. We confirm the final fee and scheduling before you commit.</p><p>Outside the shaded area? Send your address or APN. We can often accommodate locations beyond the outline and will confirm the travel cost and scheduling.</p><Link to="/contact" className="ss-link-arrow">REQUEST A QUOTE <span aria-hidden="true">↗</span></Link></div></section>
   </main>;
 }
