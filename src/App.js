@@ -1,21 +1,17 @@
 import React from "react";
 import { Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
-import {
-  PROP_SERVICES, PROP_PRICING, PROP_ADDONS,
-  PROP_PROCESS, CON_CAPABILITIES, CON_PRICING, CON_STEPS,
-  CON_CLIENTS, REGIONS,
-  PROP_HERO_VIDEO_URL, CON_HERO_VIDEO_URL, TRAVEL_FEE,
-} from "./data/content";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
 import Lenis from "lenis";
 import EditorialHome from "./components/EditorialHome";
+import { PropertyEditorial, ConstructionEditorial } from "./components/EditorialServices";
+import ServiceAreaMap from "./components/ServiceAreaMap";
 import "./components/EditorialInner.css";
+import "./components/EditorialPolish.css";
 import TurnstileField from "./components/TurnstileField";
 import WorldCup2030 from "./WorldCup2030";
 
-gsap.registerPlugin(ScrollTrigger, useGSAP);
+gsap.registerPlugin(ScrollTrigger);
 
 // Code-split portfolio media so it does not ship on contact and service pages.
 const PortfolioSection = React.lazy(() => import("./components/PortfolioSection"));
@@ -45,32 +41,7 @@ function usePageMeta(title, description) {
   }, [title, description]);
 }
 
-// ===== PAGE REVEAL HOOK =====
-function usePageReveal(ref) {
-  useGSAP(() => {
-    // Section titles slide up
-    gsap.utils.toArray(".section-title").forEach(el => {
-      gsap.from(el, {
-        y: 28, opacity: 0, duration: 0.8, ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 88%", once: true },
-      });
-    });
-    // Cards stagger in by column position
-    gsap.utils.toArray(".card-hover").forEach((el, i) => {
-      gsap.from(el, {
-        y: 40, opacity: 0, duration: 0.65, delay: (i % 3) * 0.07, ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 90%", once: true },
-      });
-    });
-    // Generic staggered reveal items (process steps, pricing rows, etc.)
-    gsap.utils.toArray(".reveal-item").forEach((el, i) => {
-      gsap.from(el, {
-        y: 24, opacity: 0, duration: 0.55, delay: (i % 5) * 0.09, ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 92%", once: true },
-      });
-    });
-  }, { scope: ref });
-}
+
 
 // ===== NAV =====
 function Nav() {
@@ -107,28 +78,6 @@ function Nav() {
 }
 
 // ===== SHARED COMPONENTS =====
-function PageHero({ tag, title, subtitle, videoUrl=null }) {
-  const [playing,setPlaying] = React.useState(false);
-  const [failed,setFailed] = React.useState(false);
-  const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  return <section className="inner-page-hero">
-    {videoUrl && !reduced && !failed && <div className="inner-page-video">
-      <video src={videoUrl} autoPlay muted loop playsInline preload="metadata" aria-hidden="true"
-        onPlaying={()=>setPlaying(true)} onError={()=>setFailed(true)}
-        style={{opacity:playing?1:0}}/>
-    </div>}
-    <div className="inner-hero-content">
-      {tag&&<p className="inner-overline">{tag}</p>}
-      <h1>{title}</h1>
-      {subtitle&&<p className="inner-hero-deck">{subtitle}</p>}
-    </div>
-  </section>;
-}
-function SectionTitle({ title, sub }) {
-  return <div className="inner-section-title">
-    <h2>{title}</h2>{sub&&<p>{sub}</p>}
-  </div>;
-}
 function CTABanner({ title, sub, btn }) {
   return <section className="inner-cta">
     <p className="inner-overline">START A CONVERSATION</p>
@@ -156,129 +105,18 @@ function Footer() {
   </footer>;
 }
 
-function TravelFeeNote({ accent = "#d5ddd4" }) {
-  return (
-    <div style={{ marginTop:32,padding:"18px 24px",background:`${accent}08`,border:`1px solid ${accent}18`,borderRadius:12,display:"flex",flexWrap:"wrap",alignItems:"center",gap:12 }}>
-      <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-        
-        <span style={{ fontSize:13,fontWeight:700,color:"#fff" }}>Travel Fee</span>
-        <span style={{ fontSize:13,fontWeight:700,color:accent }}>{TRAVEL_FEE.rate}</span>
-      </div>
-      <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>|</div>
-      <span style={{ fontSize:13,color:"#abb4aa" }}>{TRAVEL_FEE.nearRule}</span>
-      <div style={{ color:"rgba(255,255,255,0.15)",fontSize:13 }}>·</div>
-      <span style={{ fontSize:13,color:"#abb4aa" }}>{TRAVEL_FEE.farRule}</span>
-    </div>
-  );
-}
 
-// ===== HOME =====
+
+// ===== EDITORIAL SERVICE PAGES =====
 function PropertyMarketing() {
-  usePageMeta(
-    "Real Estate Drone Photography & Video — from $249 | Seraphic Sight",
-    "MLS-ready aerial photos, cinematic listing videos, and 360° virtual tours delivered in 3–4 business days. LAANC-authorized across Southern California."
-  );
-  const pageRef = React.useRef(null);
-  usePageReveal(pageRef);
-  return (
-    <div ref={pageRef}>
-      <PageHero tag="Property Marketing" title={<>Aerial Photography, Video<br/>& 3D Tours</>} subtitle="MLS-ready aerial content delivered in 3–4 business days. LAANC-authorized for controlled airspace. Send us the APN and your deliverable list — we handle the rest." accent="#d5ddd4" videoUrl={PROP_HERO_VIDEO_URL}/>
-      <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
-        <SectionTitle title="What We Deliver" sub="Every service designed to move listings faster."/>
-        <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
-          {PROP_SERVICES.map((s,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{s.title}</h3><p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.7 }}>{s.desc}</p></div>))}
-        </div>
-      </section>
-      <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
-        <div style={{ maxWidth:1200,margin:"0 auto" }}>
-          <SectionTitle title="Pricing" sub="Transparent packages. No hidden fees."/>
-          <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:24 }}>
-            {PROP_PRICING.map((p,i)=>(<div key={i} className="card-hover" style={{ background:p.popular?"linear-gradient(180deg,rgba(0,119,255,0.08),rgba(0,119,255,0.02))":"rgba(255,255,255,0.03)",border:p.popular?"1px solid rgba(0,119,255,0.25)":"1px solid rgba(255,255,255,0.06)",borderRadius:16,padding:40,position:"relative",overflow:"hidden" }}>
-              {p.popular&&<div style={{ position:"absolute",top:16,right:16,background:"#d5ddd4",color:"#fff",fontSize:10,fontWeight:700,padding:"4px 12px",borderRadius:100,letterSpacing:1,textTransform:"uppercase" }}>Most Popular</div>}
-              <h3 style={{ fontSize:16,fontWeight:600,color:"#abb4aa",letterSpacing:1,textTransform:"uppercase",marginBottom:12 }}>{p.name}</h3>
-              <div style={{ fontSize:42,fontWeight:800,color:"#fff",letterSpacing:"-1px",marginBottom:24 }}>{p.price}</div>
-              <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-                {p.features.map((f,j)=>(<div key={j} style={{ display:"flex",alignItems:"flex-start",gap:10 }}><span style={{ color:"#d5ddd4",fontSize:14,marginTop:2,flexShrink:0 }}>✓</span><span style={{ fontSize:14,color:"#e0e5dd",lineHeight:1.5 }}>{f}</span></div>))}
-              </div>
-              <Link to="/contact?type=property-marketing"><button className={p.popular?"btn-primary":"btn-outline"} style={{ width:"100%",marginTop:28 }}>Get Started</button></Link>
-            </div>))}
-          </div>
-          <div style={{ marginTop:56 }}>
-            <h3 style={{ fontSize:22,fontWeight:700,color:"#fff",marginBottom:24,textAlign:"center" }}>Add-Ons</h3>
-            <div style={{ maxWidth:600,margin:"0 auto",display:"grid",gap:12 }}>
-              {PROP_ADDONS.map((a,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10 }}><span style={{ fontSize:14,color:"#e0e5dd" }}>{a.name}</span><span style={{ fontSize:14,fontWeight:700,color:"#fff",flexShrink:0,marginLeft:16 }}>{a.price}</span></div>))}
-            </div>
-            <div style={{ maxWidth:600,margin:"0 auto" }}><TravelFeeNote accent="#d5ddd4"/></div>
-          </div>
-        </div>
-      </section>
-      <section style={{ padding:"80px 24px",maxWidth:1000,margin:"0 auto" }}>
-        <SectionTitle title="How It Works"/>
-        <div style={{ display:"flex",flexDirection:"column",position:"relative" }}>
-          <div style={{ position:"absolute",left:24,top:36,bottom:36,width:2,background:"linear-gradient(180deg,#d5ddd4,#c4d0c4)",opacity:0.2 }}/>
-          {PROP_PROCESS.map((s,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",gap:28,padding:"28px 0",alignItems:"flex-start" }}><div style={{ width:50,height:50,borderRadius:"50%",background:"rgba(0,119,255,0.1)",border:"1px solid rgba(0,119,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:800,color:"#d5ddd4",flexShrink:0,position:"relative",zIndex:2 }}>{s.num}</div><div><h4 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{s.title}</h4><p style={{ fontSize:14,color:"#abb4aa",lineHeight:1.7 }}>{s.desc}</p></div></div>))}
-        </div>
-      </section>
-      <CTABanner title="Ready to Market Your Listing?" sub="Send us the APN and deliverables — we'll get you a quote within 24 hours." btn="Get a Quote →"/>
-    </div>
-  );
+  usePageMeta("Property Marketing | Aerial Photography & Film | Seraphic Sight",
+    "Property aerial photography, cinematic video and immersive listing presentation. Explore starting packages and request a tailored quote.");
+  return <PropertyEditorial/>;
 }
-
-// ===== CONSTRUCTION =====
 function Construction() {
-  usePageMeta(
-    "Construction Drone Mapping & Progress Documentation | Seraphic Sight",
-    "DroneDeploy automated workflows, orthomosaic mapping, GeoTIFF/LAS deliverables, and audit-ready progress documentation for Southern California projects."
-  );
-  const pageRef = React.useRef(null);
-  usePageReveal(pageRef);
-  return (
-    <div ref={pageRef}>
-      <PageHero tag="Construction & Development" title={<>Progress Monitoring,<br/>Mapping & Visualization</>} subtitle="Automated DroneDeploy workflows, orthomosaic mapping, and audit-ready documentation for multi-million dollar projects." accent="#c4d0c4" videoUrl={CON_HERO_VIDEO_URL}/>
-      <section style={{ padding:"80px 24px",maxWidth:1200,margin:"0 auto" }}>
-        <SectionTitle title="Capabilities" sub="Enterprise-grade aerial documentation for every project phase."/>
-        <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(320px,1fr))",gap:20 }}>
-          {CON_CAPABILITIES.map((c,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{c.title}</h3><p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.7 }}>{c.desc}</p></div>))}
-        </div>
-      </section>
-      <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
-        <div style={{ maxWidth:1200,margin:"0 auto" }}>
-          <section style={{ padding:"0 24px 60px",maxWidth:960,margin:"0 auto" }}>
-        <div style={{ borderRadius:16,overflow:"hidden",border:"1px solid rgba(0,191,166,0.15)" }}>
-          <img src="https://res.cloudinary.com/dpc1noikx/image/upload/v1778210648/map-snapshot_q3dk25.png" alt="DroneDeploy orthomosaic map - active construction site" style={{ width:"100%",display:"block" }}/>
-          <div style={{ padding:"16px 24px",background:"rgba(0,191,166,0.04)",borderTop:"1px solid rgba(0,191,166,0.1)" }}>
-            <p style={{ fontSize:12,color:"#97a399",margin:0 }}>Orthomosaic site map · live DroneDeploy flight, construction progress monitoring, Southern California.</p>
-          </div>
-        </div>
-      </section>
-
-      <SectionTitle title="Our Workflow" sub="Repeatable, automated, audit-ready."/>
-          <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:28 }}>
-            {CON_STEPS.map((s,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(0,191,166,0.03)",border:"1px solid rgba(0,191,166,0.1)",borderRadius:16,padding:40,textAlign:"center" }}><div className="gradient-text" style={{ fontSize:44,fontWeight:900,marginBottom:18 }}>{s.num}</div><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:10 }}>{s.title}</h3><p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.7 }}>{s.desc}</p></div>))}
-          </div>
-        </div>
-      </section>
-      <section style={{ padding:"80px 24px",maxWidth:800,margin:"0 auto" }}>
-        <SectionTitle title="Pricing Framework" sub="Construction documentation is scoped per project. Here are our starting benchmarks."/>
-        <div style={{ display:"grid",gap:12 }}>
-          {CON_PRICING.map((p,i)=>(<div key={i} className="reveal-item" style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,flexWrap:"wrap",gap:12 }}><span style={{ fontSize:14,color:"#e0e5dd" }}>{p.service}</span><span style={{ fontSize:15,fontWeight:700,color:"#c4d0c4",flexShrink:0 }}>{p.price}</span></div>))}
-        </div>
-        <div style={{ marginTop:32,padding:24,background:"rgba(0,191,166,0.05)",border:"1px solid rgba(0,191,166,0.12)",borderRadius:12 }}>
-          <p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.8 }}><strong style={{ color:"#fff" }}>Every engagement includes:</strong> DroneDeploy automated flight plans · GeoTIFF + LAS/LAZ deliverables · Procore / BIM 360 compatible outputs · Organized, timestamped progress imagery · Site superintendent coordination · COI provided upon request</p>
-        </div>
-        <TravelFeeNote accent="#c4d0c4"/>
-      </section>
-      <section style={{ padding:"80px 24px",background:"rgba(255,255,255,0.015)" }}>
-        <div style={{ maxWidth:900,margin:"0 auto" }}>
-          <SectionTitle title="Who We Work With"/>
-          <div className="responsive-grid-3" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16 }}>
-            {CON_CLIENTS.map((w,i)=>(<div key={i} className="reveal-item" style={{ padding:"18px 24px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:10,textAlign:"center",fontSize:14,fontWeight:500,color:"#e0e5dd" }}>{w}</div>))}
-          </div>
-        </div>
-      </section>
-      <CTABanner title="Scope Your Next Project" sub="Send us your site details and deliverable requirements. We'll respond with a detailed proposal within 48 hours." btn="Request a Proposal →"/>
-    </div>
-  );
+  usePageMeta("Construction Drone Documentation & Mapping | Seraphic Sight",
+    "Construction progress imagery, orthomosaic mapping and coordinated aerial site visits across Southern California.");
+  return <ConstructionEditorial/>;
 }
 
 // ===== PORTFOLIO =====
@@ -291,36 +129,11 @@ function Portfolio() {
 }
 
 function ServiceArea() {
-  usePageMeta(
-    "Drone Service Area — Southern & Central California | Seraphic Sight",
-    "Drone photography and mapping coverage from San Diego to Bakersfield: LA, Orange County, Inland Empire, Coachella Valley, and the coast."
-  );
-  return (
-    <div>
-      <PageHero tag="Service Area" title={<>Southern & Central<br/>California</>} subtitle="From San Diego to Bakersfield, Palm Springs to the coast — if your project is in our range, we'll be on site."/>
-      <section style={{ padding:"0 24px 60px",maxWidth:1200,margin:"0 auto" }}>
-        <div style={{ maxWidth:900,margin:"0 auto 60px",borderRadius:16,border:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)",padding:48 }}>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:32,textAlign:"center" }}>
-            {[{n:"7",l:"Coverage Regions"},{n:"200+",l:"Cities & Communities"},{n:"400mi",l:"Coverage Radius"},{n:"Same Week",l:"Typical Availability"}].map((s,i)=>(
-              <div key={i}>
-                <div style={{ fontSize:32,fontWeight:800,color:"#fff",letterSpacing:"-1px" }}>{s.n}</div>
-                <div style={{ fontSize:11,fontWeight:600,color:"#abb4aa",textTransform:"uppercase",letterSpacing:1.5,marginTop:6 }}>{s.l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <SectionTitle title="Coverage Regions"/>
-        <div className="responsive-grid-2" style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(340px,1fr))",gap:20 }}>
-          {REGIONS.map((r,i)=>(<div key={i} className="card-hover" style={{ background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:32 }}><h3 style={{ fontSize:18,fontWeight:700,color:"#fff",marginBottom:6 }}>{r.name}</h3><p style={{ fontSize:12,color:"#d5ddd4",fontWeight:500,marginBottom:12 }}>{r.cities}</p><p style={{ fontSize:13,color:"#abb4aa",lineHeight:1.7 }}>{r.desc}</p></div>))}
-        </div>
-      </section>
-      <section style={{ padding:"60px 24px 100px",textAlign:"center" }}>
-        <p style={{ fontSize:15,color:"#abb4aa",marginBottom:8 }}>Not sure if we cover your area?</p>
-        <p style={{ fontSize:18,fontWeight:700,color:"#fff" }}>Reach out — if you're in range, we'll be there.</p>
-      </section>
-    </div>
-  );
+  usePageMeta("Southern California Drone Service Area | Seraphic Sight",
+    "Explore aerial imaging and construction documentation service areas from Los Angeles and San Diego to the Inland Empire and southern Central Valley.");
+  return <ServiceAreaMap/>;
 }
+
 // ===== CONTACT =====
 function Contact() {
   usePageMeta(
@@ -411,10 +224,29 @@ function Contact() {
   }
 
   return (
-    <div>
-      <PageHero tag="Contact" title="Get a Quote" subtitle="Tell us what you need: APN, address, deliverables. We'll respond within 24 hours." />
-      <section style={{ padding: "0 24px 100px", maxWidth: 640, margin: "0 auto" }}>
-        <form noValidate onSubmit={handleSubmit} style={{ display: "grid", gap: 24 }}>
+    <main className="ss-contact-page">
+      <header className="ss-contact-head">
+        <p className="ss-contact-eyebrow">CONTACT / START A PROJECT</p>
+        <h1>Tell us what<br/>you're building.</h1>
+        <p>From a single listing to an active construction site, the right first step is a clear brief. Send us the location, what you need captured, and your timeline.</p>
+      </header>
+      <section className="ss-contact-layout">
+        <aside className="ss-contact-aside">
+          <p className="ss-contact-eyebrow">A DIRECT LINE</p>
+          <h2>Better work starts with a conversation.</h2>
+          <p>We'll review your request, confirm feasibility and follow up with the scope, travel and pricing.</p>
+          <div className="ss-contact-direct">
+            <span>EMAIL</span>
+            <a href="mailto:joseph@seraphicsight.com">joseph@seraphicsight.com</a>
+            <span>PHONE</span>
+            <a href="tel:+15627431698">(562) 743-1698</a>
+          </div>
+          <p className="ss-contact-footnote">Flight scheduling is subject to weather, airspace restrictions, site access and availability.</p>
+        </aside>
+        <div className="ss-contact-form-col">
+          <p className="ss-contact-eyebrow">PROJECT ENQUIRY</p>
+          <h2>Share the essentials.</h2>
+        <form noValidate onSubmit={handleSubmit} className="ss-contact-form" style={{ display: "grid", gap: 24 }}>
           <div style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }} aria-hidden="true">
             <label htmlFor="contact-website">Website (leave blank)</label>
             <input id="contact-website" name="website" tabIndex={-1} autoComplete="off" value={form.honeypot} onChange={e => upd("honeypot", e.target.value)} />
@@ -430,14 +262,14 @@ function Contact() {
             <div>
               <label htmlFor="contact-phone" className="form-label">Phone</label>
               <input id="contact-phone" name="phone" type="tel" autoComplete="tel" maxLength={40}
-                className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="(000) 000-0000" />
+                className="form-input" value={form.phone} onChange={e => upd("phone", e.target.value)} placeholder="Optional phone number" />
             </div>
           </div>
           <div>
             <label htmlFor="contact-email" className="form-label">Email *</label>
             <input id="contact-email" ref={emailRef} name="email" type="email" autoComplete="email" required maxLength={254}
               className="form-input" value={form.email} onChange={e => upd("email", e.target.value)}
-              aria-invalid={!!errors.email} aria-describedby={errors.email ? "contact-email-error" : undefined} placeholder="you@email.com" />
+              aria-invalid={!!errors.email} aria-describedby={errors.email ? "contact-email-error" : undefined} placeholder="Your business email" />
             {errors.email && <p id="contact-email-error" role="alert" style={{ color: "#FF7777", fontSize: 12, marginTop: 6 }}>{errors.email}</p>}
           </div>
           <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
@@ -446,7 +278,7 @@ function Contact() {
               {["Property Marketing", "Construction & Development", "Other"].map(t => (
                 <button key={t} type="button" className="filter-btn" aria-pressed={form.type === t}
                   onClick={() => upd("type", t)}
-                  style={{ border: form.type === t ? "1px solid #d5ddd4" : "1px solid rgba(255,255,255,0.1)", background: form.type === t ? "rgba(0,119,255,0.12)" : "transparent", color: form.type === t ? "#68ADFF" : "#AAAAC0" }}>
+                  style={{ border: form.type === t ? "1px solid #d5ddd4" : "1px solid rgba(255,255,255,0.1)", background: form.type === t ? "#344638" : "transparent", color: form.type === t ? "#f2f4e9" : "#a9baaa" }}>
                   {t}
                 </button>
               ))}
@@ -480,60 +312,57 @@ function Contact() {
             {status === "sending" ? "Sending…" : "Submit Quote Request"}
           </button>
         </form>
-        <div style={{ marginTop: 56, padding: 32, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 24, textAlign: "center" }}>
-          {[{ label: "Email", value: "joseph@seraphicsight.com", href: "mailto:joseph@seraphicsight.com" }, { label: "Phone", value: "(562) 743-1698", href: "tel:+15627431698" }, { label: "Response Time", value: "Within 24 hours", href: null }].map((c, i) => (
-            <div key={i}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#abb4aa", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
-              {c.href ? <a href={c.href} style={{ fontSize: 14, fontWeight: 600, color: "#fff", textDecoration: "none" }}>{c.value}</a> : <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{c.value}</div>}
-            </div>
-          ))}
+        <p className="ss-contact-disclaimer">We use these details to review your request and follow up about the project.</p>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
 
 // ===== FAQ =====
 function FAQ() {
-  usePageMeta(
-    "Drone Services FAQ — Licensing, Pricing, Turnaround | Seraphic Sight",
-    "Answers on FAA Part 107 certification, insurance and COIs, LAANC airspace authorization, deliverable formats, turnaround times, and travel fees."
-  );
-  const [open, setOpen] = React.useState(null);
-  const items = [
-    { q: "Are you FAA Part 107 certified?", a: "Yes. Joseph Perez holds an FAA Part 107 Remote Pilot Certificate, required for all commercial drone operations in the U.S. We are also fully insured and can provide a Certificate of Insurance (COI) upon request — standard for GCs, brokerages, and property management companies." },
-    { q: "What areas do you serve?", a: "Southern and Central California — from San Diego to Bakersfield, and the Inland Empire to the coast. Primary coverage includes Los Angeles, Orange County, Riverside County, San Bernardino County, the Coachella Valley, and surrounding areas. Travel fees apply beyond our primary service zone." },
-    { q: "How long does it take to receive my deliverables?", a: "Standard turnaround is 3–4 business days from the date of the flight. Rush delivery (1–2 business days) is available as an add-on. Large DroneDeploy mapping or construction projects may require additional processing time — we'll confirm timelines when scoping your project." },
-    { q: "What file formats do you deliver?", a: "Property marketing: edited JPEG/PNG photos (MLS-ready), MP4 video in 16:9 and 9:16 (Reels/TikTok cuts), and hosted 360° tour links. Construction/mapping: GeoTIFF orthomosaics, LAS/LAZ point clouds, and Procore / BIM 360-compatible outputs. All files delivered via a cloud download link." },
-    { q: "Do you handle airspace authorization?", a: "Yes — we manage all LAANC authorizations for controlled airspace through the FAA's automated system. For restricted or complex airspace, we obtain manual waivers as needed at no additional cost to you." },
-    { q: "What is your travel fee?", a: "We charge $0.70 per mile. Jobs under 50 miles are billed round-trip; jobs 50 miles or more are billed one-way. For most projects in the greater Los Angeles, Inland Empire, or San Diego areas, travel fees are minimal or zero." },
-    { q: "How do I book a shoot?", a: "Fill out our quote request form with your project address (or APN for land/construction sites), your deliverable list, and your timeline. We respond within 24 hours with pricing and availability. A 50% deposit is required to hold your shoot date." },
-    { q: "Do you work with real estate agents and brokerages?", a: "Absolutely — we work with individual agents, teams, and brokerages on a per-listing or retainer basis. If you have regular listing volume, ask about agent pricing. We're happy to build a workflow that fits your business and turnaround requirements." },
-    { q: "Can you accommodate urgent timelines?", a: "We do our best to accommodate tight deadlines. Same-week availability is typical. For same-day or next-day requests, reach out directly and we'll make every effort to be on site when you need us." },
-    { q: "What equipment do you use?", a: "We fly DJI drones (Mavic 3 Pro, Phantom 4 RTK) for photography, cinematic video, and precision mapping. 360° virtual tours are captured with the Ricoh Theta Z1 and Insta360 X series. Construction flight plans are powered by DroneDeploy's automated workflow platform." },
+  usePageMeta("Drone Services FAQ | Seraphic Sight",
+    "Practical answers about aerial imaging, construction documentation, deliverables, scheduling, flight permissions and travel.");
+  const [open,setOpen]=React.useState(null);
+  const items=[
+    {q:"Are you FAA Part 107 certified?",a:"Yes. Commercial aerial work is conducted by an FAA Part 107-certificated remote pilot. We assess airspace, site requirements and weather for each assignment. A certificate of insurance can be provided when requested and applicable."},
+    {q:"Where do you travel?",a:"We regularly consider assignments across Southern California, including Los Angeles, Orange County, the Inland Empire, San Diego, the Coachella Valley and the High Desert. Select southern Central Valley projects are available by arrangement. Confirm coverage and pricing with the project address."},
+    {q:"How soon will I receive my files?",a:"Many standard property-image packages can be delivered within approximately 3–4 business days after capture. Processing-intensive maps, complex edits, weather and access constraints can change that schedule. We confirm turnaround in your proposal."},
+    {q:"What deliverable formats are available?",a:"Typical property deliverables include edited JPEGs, MP4 video and optional vertical cutdowns or tour links. Construction services may include organized timestamped imagery, orthomosaics and project-specific geospatial formats. We define required outputs before flight rather than assuming every package includes every format."},
+    {q:"Can you fly in controlled airspace?",a:"We check each location against current FAA airspace requirements. LAANC authorizations are available for some locations and conditions; other sites may require additional approvals or may not be flyable on the requested date. We never promise approval before checking."},
+    {q:"How is travel calculated?",a:"The published travel rate is $0.70 per mile. Trips under 50 miles use round-trip mileage; trips of 50 miles or more use one-way mileage. The route, applicable fee and any additional expenses are confirmed in your quote."},
+    {q:"Are your property boundary overlays surveys?",a:"No. White-line parcel outlines and other marketing annotations are visual aids based on the boundaries supplied or verified for the project. They are not a substitute for a licensed land survey or legal property description."},
+    {q:"How do I request a shoot?",a:"Use the contact form with your property address or APN, type of project, requested media and target date. We'll review scope and availability and explain the next steps, including any required scheduling or payment terms."},
+    {q:"Can you support repeated construction visits?",a:"Yes. Projects can be scoped for one-off documentation or scheduled return visits. Flight paths, frequency, deliverables and site coordination are agreed with your team for consistent progress records."},
+    {q:"What equipment and processing tools do you use?",a:"We select aerial camera equipment and processing workflows to suit the assignment. For mapping, the required accuracy, control points and deliverable formats must be defined in advance. Ask us about the proposed equipment and workflow for your site."}
   ];
-  return (
-    <div>
-      <PageHero tag="FAQ" title="Frequently Asked Questions" subtitle="Everything you need to know about booking, deliverables, and working with Seraphic Sight." accent="#d5ddd4"/>
-      <section style={{ padding:"0 24px 100px",maxWidth:780,margin:"0 auto" }}>
-        {items.map((item,i)=>(
-          <div key={i} style={{ borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-            <button onClick={()=>setOpen(open===i?null:i)}
-              style={{ width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"22px 0",background:"none",border:"none",cursor:"pointer",gap:16,textAlign:"left" }}>
-              <span style={{ fontSize:15,fontWeight:600,color:"#fff",lineHeight:1.4 }}>{item.q}</span>
-              <span style={{ color:"#d5ddd4",fontSize:22,flexShrink:0,transform:open===i?"rotate(45deg)":"none",transition:"transform 0.2s",display:"inline-block" }}>+</span>
+  return <main className="ss-faq-page">
+    <header className="ss-faq-head"><p className="ss-faq-eyebrow">FAQ / WORKING TOGETHER</p>
+      <h1>Good questions.<br/>Clear answers.</h1>
+      <p>From flight approvals and deliverables to travel and scheduling, here's what to know before we begin.</p>
+    </header>
+    <section className="ss-faq-layout">
+      <div className="ss-faq-intro"><p className="ss-faq-eyebrow">THE DETAILS</p>
+        <h2>Thoughtful planning makes better imagery.</h2>
+        <p>Every site has its own conditions. If your question isn't covered here, share the project details and we'll talk through what's possible.</p>
+        <Link to="/contact" className="ss-faq-contact">ASK ABOUT A PROJECT <span aria-hidden="true">↗</span></Link>
+      </div>
+      <div className="ss-faq-accordions">
+        {items.map((item,index)=>{
+          const id="ss-faq-answer-"+index;
+          return <article key={item.q} className="ss-faq-item">
+            <button type="button" aria-expanded={open===index} aria-controls={id} onClick={()=>setOpen(open===index?null:index)}>
+              <span className="ss-faq-number">{String(index+1).padStart(2,"0")}</span>
+              <span className="ss-faq-question">{item.q}</span>
+              <span className="ss-faq-symbol" aria-hidden="true">{open===index?"−":"+"}</span>
             </button>
-            {open===i&&(
-              <div style={{ paddingBottom:22 }}>
-                <p style={{ fontSize:14,color:"#abb4aa",lineHeight:1.8,margin:0 }}>{item.a}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </section>
-      <CTABanner title="Still Have Questions?" sub="Reach out directly — we respond within 24 hours." btn="Contact Us →"/>
-    </div>
-  );
+            <div id={id} hidden={open!==index}><p>{item.a}</p></div>
+          </article>;
+        })}
+      </div>
+    </section>
+    <CTABanner title="Still curious?" sub="Send the address and a few lines about your project. We'll take it from there." btn="Contact Seraphic Sight"/>
+  </main>;
 }
 
 // ===== NOT FOUND =====

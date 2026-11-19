@@ -1,0 +1,39 @@
+/* Complete the site-wide editorial treatment on Contact and FAQ. */
+.ss-contact-page,.ss-faq-page{background:#f0efe9;color:#19241c;font-family:'DM Sans',Arial,sans-serif}
+.ss-contact-eyebrow,.ss-faq-eyebrow{font:700 10px "DM Sans",sans-serif;letter-spacing:.21em;color:#647568}
+.ss-contact-head,.ss-faq-head{background:#141e19;color:#f0f0e8;padding:95px clamp(24px,6vw,96px) 110px}
+.ss-contact-head .ss-contact-eyebrow,.ss-faq-head .ss-faq-eyebrow{color:#b9c9ba}
+.ss-contact-head h1,.ss-faq-head h1{font:400 clamp(53px,8vw,128px)/1.04 Manrope,sans-serif;letter-spacing:-.075em;margin:27px 0 35px}
+.ss-contact-head>p:last-child,.ss-faq-head>p:last-child{font-size:clamp(16px,1.8vw,22px);line-height:1.7;max-width:660px;color:#b9c8bc}
+.ss-contact-layout{display:grid;grid-template-columns:41% minmax(0,1fr);gap:8vw;padding:100px clamp(24px,6vw,96px) 130px;max-width:1550px;margin:auto}
+.ss-contact-aside{padding-top:10px}
+.ss-contact-aside h2,.ss-contact-form-col h2,.ss-faq-intro h2{font:400 clamp(28px,3.8vw,57px)/1.15 Manrope,sans-serif;letter-spacing:-.06em;margin:24px 0}
+.ss-contact-aside>p:not(.ss-contact-eyebrow),.ss-faq-intro>p:not(.ss-faq-eyebrow){font-size:15px;line-height:1.85;color:#566859;max-width:430px}
+.ss-contact-direct{display:grid;gap:15px;margin-top:55px;border-top:1px solid #adbcae;padding-top:28px}
+.ss-contact-direct span{font-size:10px;letter-spacing:.15em;color:#566859}
+.ss-contact-direct a{font-size:clamp(15px,1.6vw,22px);text-decoration:none!important;overflow-wrap:anywhere;width:max-content;max-width:100%;border-bottom:1px solid #8b9b8c;padding-bottom:8px;margin-bottom:14px}
+.ss-contact-aside .ss-contact-footnote{font-size:12px!important;margin-top:50px;line-height:1.7!important;color:#66776a!important}
+.ss-contact-form-col{border-top:1px solid #a6b6a7;padding-top:10px}
+.ss-contact-form-col h2{margin:12px 0 33px}
+.ss-contact-form .form-label{font-size:11px!important;letter-spacing:.12em!important;color:#405346!important}
+.editorial-inner .ss-contact-form .form-input{background:transparent!important;border:none!important;border-bottom:1px solid #a0b09f!important;border-radius:0!important;color:#19291e!important;font-size:15px!important;padding:16px 4px!important}
+.editorial-inner .ss-contact-form .form-input::placeholder{color:#7d8b7e!important}
+.editorial-inner .ss-contact-form .form-input:focus-visible{outline:2px solid #1e4d2e!important;outline-offset:2px}
+.editorial-inner .ss-contact-form .filter-btn{background:transparent!important;color:#39533c!important;border:1px solid #a9bbaa!important;border-radius:0!important;padding:13px 16px!important;line-height:1.3!important}
+.editorial-inner .ss-contact-form .filter-btn[aria-pressed=true]{color:#fff!important;background:#1d3929!important;border-color:#1d3929!important}
+.editorial-inner .ss-contact-form .btn-primary{background:#1a2c21!important;color:#f3f4eb!important;border-color:#1a2c21!important;border-radius:0!important;letter-spacing:.14em!important;box-shadow:none!important}
+.editorial-inner .ss-contact-form .btn-primary:hover{background:#304936!important}
+.ss-contact-disclaimer{font-size:11px;color:#697a6b;line-height:1.7;margin-top:22px}
+.ss-faq-layout{display:grid;grid-template-columns:36% minmax(0,1fr);gap:9vw;max-width:1540px;margin:auto;padding:110px clamp(24px,6vw,96px) 130px}
+.ss-faq-contact{display:inline-flex;justify-content:space-between;gap:25px;border-bottom:1px solid #324936;padding:0 0 12px;margin-top:34px;text-decoration:none!important;font-size:10px;letter-spacing:.14em;font-weight:700}
+.ss-faq-accordions{border-top:1px solid #adbbae}
+.ss-faq-item{border-bottom:1px solid #adbbae}
+.ss-faq-item>button{width:100%;border:0;background:transparent;color:#1a291e;display:grid;grid-template-columns:32px 1fr 24px;gap:18px;align-items:start;text-align:left;padding:28px 0;cursor:pointer}
+.ss-faq-item>button:focus-visible{outline:2px solid #36553a;outline-offset:3px}
+.ss-faq-number{font-size:10px;color:#758875;letter-spacing:.13em;margin-top:7px}
+.ss-faq-question{font:400 clamp(17px,1.9vw,27px)/1.35 Manrope,sans-serif;letter-spacing:-.035em}
+.ss-faq-symbol{font-size:24px;line-height:1;color:#4c6950;text-align:right}
+.ss-faq-item>div{padding:0 38px 30px 50px}
+.ss-faq-item>div p{font-size:14px;color:#4e6052;line-height:1.85;max-width:720px}
+@media(max-width:850px){.ss-contact-layout,.ss-faq-layout{grid-template-columns:1fr;gap:55px;padding:70px 24px 95px}.ss-contact-aside .ss-contact-footnote{margin-top:25px!important}.ss-contact-direct{margin-top:30px}.ss-faq-head,.ss-contact-head{padding:75px 24px 85px}}
+@media(max-width:550px){.ss-contact-head h1,.ss-faq-head h1{font-size:clamp(45px,11vw,65px)}.ss-faq-item>button{grid-template-columns:24px 1fr 20px;gap:11px}.ss-faq-item>div{padding-left:35px;padding-right:5px}}

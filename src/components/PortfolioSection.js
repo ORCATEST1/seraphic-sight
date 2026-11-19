@@ -1,10 +1,10 @@
 // PortfolioSection.js — Seraphic Sight v2
-// High-tech portfolio: large interactive deliverable bubbles, Cloudinary media,
-// video autoplay on hover, fullscreen lightbox, full mobile optimization.
+// Editorial portfolio with a curated selection, subject-based filters, and a media lightbox.
 
 import React, {
   useState, useRef, useEffect, useCallback, useMemo,
 } from "react";
+import "./PortfolioEditorial.css";
 
 /* ─── Cloudinary helpers ──────────────────────────────────────────────────── */
 const CLD    = "https://res.cloudinary.com/dpc1noikx";
@@ -20,46 +20,54 @@ const PHOTOS = [
   { id: "DJI_0915_w53hst",   tags: ["Real Estate"] },
   { id: "DJI_0891_tgrszt",   tags: ["Real Estate"] },
   { id: "DJI_0876_imzqgc",   tags: ["Real Estate"] },
-  { id: "DJI_0802_cdwyvj",   tags: ["Commercial"] },
-  { id: "DJI_0730_enavrk",   tags: ["Commercial"] },
+  { id: "DJI_0802_cdwyvj",   tags: ["Real Estate"] },
+  { id: "DJI_0730_enavrk",   tags: ["Real Estate"] },
   { id: "DJI_0872_vddljb",   tags: ["Real Estate"] },
   { id: "DJI_0812_cb8yrn",   tags: ["Real Estate"] },
-  { id: "Aerial_27_qw5yqr",  tags: ["Commercial"] },
-  { id: "DJI_0327_it5brs",   tags: ["Construction"] },
-  { id: "Aerial_18_njtmry",  tags: ["Commercial"] },
-  { id: "Aerial_25_y6eahl",  tags: ["Commercial"] },
+  { id: "Aerial_27_qw5yqr",  tags: ["Cityscapes"] },
+  { id: "DJI_0327_it5brs",   tags: ["Real Estate"] },
+  { id: "Aerial_18_njtmry",  tags: ["Real Estate"] },
+  { id: "Aerial_25_y6eahl",  tags: ["Real Estate"] },
   { id: "DJI_0780_tdioap",   tags: ["Real Estate"] },
-  { id: "DJI_0454_bkvuwb",   tags: ["Land"] },
+  { id: "DJI_0454_bkvuwb",   tags: ["Real Estate"] },
   { id: "DJI_0888_go6uhb",   tags: ["Real Estate"] },
-  { id: "DJI_0322_khfwqi",   tags: ["Construction"] },
-  { id: "Showcase_nmenkd",   tags: ["Commercial"] },
-  { id: "Showcase_2_pkjbvm", tags: ["Commercial"] },
-  { id: "Showcase_3_n4gxow", tags: ["Commercial"] },
-  { id: "DJI_0011_zmbnvw",   tags: ["Commercial"] },
-  { id: "sola-florance-construction-aerial_oapibr", tags: ["Construction"] },
-  { id: "AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz", tags: ["Real Estate"] },
-  { id: "4-DJI_0960_etujxs", tags: ["Land"] },
-  { id: "3-DJI_0014_xn3a13", tags: ["Land"] },
-  { id: "DJI_0377_xl7frm",   tags: ["Commercial"] },
-  { id: "94-DJI_0259_e83rda",  tags: ["Construction"] },
-  { id: "112-DJI_0287_vmrise", tags: ["Construction"] },
-  { id: "DJI_0944_hlpmgh",   tags: ["Real Estate"] },
+  { id: "DJI_0322_khfwqi",   tags: ["Real Estate"] },
+  { id: "Showcase_nmenkd",   tags: [], archived: true },
+  { id: "Showcase_2_pkjbvm", tags: [], archived: true },
+  { id: "Showcase_3_n4gxow", tags: [], archived: true },
+  { id: "DJI_0011_zmbnvw",   tags: ["Land"] },
+  { id: "sola-florance-construction-aerial_oapibr", tags: ["Real Estate"] },
+  { id: "AB3BA538-17AE-4CB0-9614-64DACF77AD60_qdj1dz", tags: [], archived: true },
+  { id: "4-DJI_0960_etujxs", tags: ["Construction"] },
+  { id: "3-DJI_0014_xn3a13", tags: ["Construction"] },
+  { id: "DJI_0377_xl7frm",   tags: ["Cityscapes"] },
+  { id: "94-DJI_0259_e83rda",  tags: ["Real Estate"] },
+  { id: "112-DJI_0287_vmrise", tags: ["Real Estate"] },
+  { id: "DJI_0944_hlpmgh",   tags: ["Cityscapes"] },
   { id: "DJI_0715_gh4zrp",   tags: ["Real Estate"] },
-  { id: "DJI_0726_ffmdmr",   tags: ["Real Estate"] },
-  { id: "DJI_0036-HDR_bxyo9o", tags: ["Commercial"] },
-  { id: "DJI_0768_nvafya",   tags: ["Land"] },
-  { id: "DJI_0841_tmdv2e",   tags: ["Commercial"] },
-  { id: "DJI_0104_uzqlyr",   tags: ["Land"] },
-  { id: "DJI_0002_xzpfp5",   tags: ["Commercial"] },
-  { id: "map-snapshot_q3dk25", tags: ["Construction", "Land"] },
-  { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: ["Land"] },
-  { id: "DJI_0944_gho2t4",        tags: ["Real Estate"] },
-  { id: "DJI_0147-Pano-2_ewomdl", tags: ["Commercial"] },
-  { id: "5-DJI_0138-HDR_eroxlw",  tags: ["Commercial"] },
-  { id: "DJI_0726_c1ezfe",        tags: ["Commercial"] },
-  { id: "B8BF74C3-98E2-4C69-8958-D92124D1FE27_mlcue4", tags: ["Commercial"] },
+  { id: "DJI_0726_ffmdmr",   tags: ["Cityscapes"] },
+  { id: "DJI_0036-HDR_bxyo9o", tags: ["Real Estate"] },
+  { id: "DJI_0768_nvafya",   tags: ["Real Estate"] },
+  { id: "DJI_0841_tmdv2e",   tags: ["Cityscapes"] },
+  { id: "DJI_0104_uzqlyr",   tags: ["Cityscapes"] },
+  { id: "DJI_0002_xzpfp5",   tags: ["Land"] },
+  { id: "map-snapshot_q3dk25", tags: ["Mapping"] },
+  { id: "dji_fly_20230107_163233_917_1673141677255_photo_m5emzx", tags: [], archived: true },
+  { id: "DJI_0944_gho2t4",        tags: ["Cityscapes"], archived: true },
+  { id: "DJI_0147-Pano-2_ewomdl", tags: ["Cityscapes"] },
+  { id: "5-DJI_0138-HDR_eroxlw",  tags: ["Coastal"] },
+  { id: "DJI_0726_c1ezfe",        tags: ["Cityscapes"], archived: true },
+  { id: "B8BF74C3-98E2-4C69-8958-D92124D1FE27_mlcue4", tags: ["Coastal"] },
   { id: "dji_fly_20230107_145206_631_1673132863018_photo_m5emzx", tags: ["Commercial"] },
 ];
+
+// All 42 source records are retained, including missing Cloudinary IDs and duplicate aliases.
+// Only existing, unique images appear in the public grid and lightbox.
+const VISIBLE_PHOTOS = PHOTOS.filter(photo => !photo.archived);
+const PHOTO_ALIASES = {
+  "DJI_0944_gho2t4": "DJI_0944_hlpmgh",
+  "DJI_0726_c1ezfe": "DJI_0726_ffmdmr"
+};
 
 const VIDEOS = [
   { id: "clip_joey_updated_bbfclp", tags: ["Cinematic", "Real Estate"] },
@@ -85,8 +93,11 @@ const PHOTO_BUBBLES = [
   { label: "All",          icon: "",  color: "#00d4ff" },
   { label: "Real Estate",  icon: "", color: "#a78bfa" },
   { label: "Commercial",   icon: "", color: "#34d399" },
+  { label: "Cityscapes",   icon: "", color: "#a1b9a7" },
   { label: "Construction", icon: "", color: "#fb923c" },
+  { label: "Mapping",      icon: "", color: "#a9c5be" },
   { label: "Land",         icon: "", color: "#fbbf24" },
+  { label: "Coastal",      icon: "", color: "#a3c4d1" },
 ];
 
 const VIDEO_BUBBLES = [
@@ -842,7 +853,7 @@ function VideoCard({ item, onClick }) {
     >
       <img
         src={vThumb(item.id)}
-        alt=""
+        alt={"Aerial drone photography — "+(item.tags.length ? item.tags.join(", ") : "subject pending review")}
         loading="lazy"
         style={{ display: hov ? "none" : "block" }}
         onError={e => { const card = e.target.closest(".ps-card"); if(card) card.style.display="none"; }}
@@ -865,7 +876,7 @@ function VideoCard({ item, onClick }) {
         <div className="ps-card-tags">
           {item.tags.map(t => <span key={t} className="ps-card-tag">{t}</span>)}
         </div>
-        <p className="ps-card-title">Drone Video</p>
+        <p className="ps-card-title">{item.tags.length ? item.tags.join(" / ") : "Aerial Study"}</p>
       </div>
     </div>
   );
@@ -883,7 +894,7 @@ function PhotoCard({ item, onClick }) {
     >
       <img
         src={img(item.id)}
-        alt=""
+        alt={item.tags.length ? `Aerial photograph categorized as ${item.tags.join(", ")}` : "Aerial photograph, category not yet verified"}
         loading="lazy"
         onError={e => { const card = e.target.closest(".ps-card"); if(card) card.style.display="none"; }}
       />
@@ -891,7 +902,7 @@ function PhotoCard({ item, onClick }) {
         <div className="ps-card-tags">
           {item.tags.map(t => <span key={t} className="ps-card-tag">{t}</span>)}
         </div>
-        <p className="ps-card-title">Aerial Photography</p>
+        <p className="ps-card-title">{item.tags.length ? item.tags.join(" / ") : "Aerial Study"}</p>
       </div>
     </div>
   );
@@ -930,7 +941,6 @@ export default function PortfolioSection() {
   const [cat,    setCat]    = useState("photo"); // "photo" | "video"
   const [filter, setFilter] = useState("All");
   const [lbState, setLbState] = useState(null); // { items, idx }
-  const bgVideoRef = useRef(null);
 
   /* inject CSS once on mount */
   useEffect(() => {
@@ -944,21 +954,17 @@ export default function PortfolioSection() {
     return () => document.getElementById("ps-v2-styles")?.remove();
   }, []);
 
-  /* attempt bg video autoplay */
-  useEffect(() => {
-    bgVideoRef.current?.play().catch(() => {});
-  }, []);
-
   /* deep-linking: /portfolio?item=<cloudinary-id> opens that item directly —
      lets you text/email a client a link straight to a relevant job */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const itemId = params.get("item");
     if (!itemId) return;
-    const pIdx = PHOTOS.findIndex(x => x.id === itemId);
+    const canonicalId = PHOTO_ALIASES[itemId] || itemId;
+    const pIdx = VISIBLE_PHOTOS.findIndex(x => x.id === canonicalId);
     if (pIdx >= 0) {
       setCat("photo"); setFilter("All");
-      setLbState({ items: PHOTOS.map(x => ({ ...x, type: "photo" })), idx: pIdx });
+      setLbState({ items: VISIBLE_PHOTOS.map(x => ({ ...x, type: "photo" })), idx: pIdx });
       return;
     }
     const vIdx = VIDEOS.findIndex(x => x.id === itemId);
@@ -971,10 +977,10 @@ export default function PortfolioSection() {
   /* current data */
   const isPhoto  = cat === "photo";
   const rawItems = useMemo(
-    () => (isPhoto ? PHOTOS : VIDEOS).map(x => ({ ...x, type: isPhoto ? "photo" : "video" })),
+    () => (isPhoto ? VISIBLE_PHOTOS : VIDEOS).map(x => ({ ...x, type: isPhoto ? "photo" : "video" })),
     [isPhoto],
   );
-  const bubbles  = isPhoto ? PHOTO_BUBBLES : VIDEO_BUBBLES;
+  const allBubbles = isPhoto ? PHOTO_BUBBLES : VIDEO_BUBBLES;
 
   /* per-tag counts */
   const counts = useMemo(() => {
@@ -982,6 +988,10 @@ export default function PortfolioSection() {
     rawItems.forEach(it => it.tags.forEach(t => { m[t] = (m[t] || 0) + 1; }));
     return m;
   }, [rawItems]);
+
+  // Do not offer a subject filter unless the media catalogue actually contains it.
+  // Uncategorized media remain in All until visually reviewed and classified.
+  const bubbles = allBubbles.filter(b => b.label === "All" || (counts[b.label] ?? 0) > 0);
 
   const filtered = useMemo(
     () => filter === "All" ? rawItems : rawItems.filter(it => it.tags.includes(filter)),
@@ -1002,30 +1012,29 @@ export default function PortfolioSection() {
       <div className="ps-bg" aria-hidden="true" />
       <div className="ps-scanline" aria-hidden="true" />
 
-      {/* ── Hero video banner ── */}
-      <div className="ps-hero-banner">
-        {/*
-          Background loop — once your 720p renders are uploaded to Cloudinary,
-          swap "Copy_of_DJI_0939_pcc1dl" for your rendered video's public ID.
-        */}
-        <video
-          ref={bgVideoRef}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-        >
-          <source src={vSrc("Copy_of_DJI_0939_pcc1dl")} type="video/mp4" />
-        </video>
-        <div className="ps-hero-title-wrap">
-          <div className="ps-hero-eyebrow">Seraphic Sight · Portfolio</div>
-          <h1 className="ps-hero-h1">
-            Aerial <span>Precision</span>,<br />
-            Cinematic <span>Vision</span>
-          </h1>
+      <header className="ps-editorial-intro">
+        <p className="ps-ed-eyebrow">SELECTED IMAGES / WORK IN CONTEXT</p>
+        <h1>Seen from<br/><em>another angle.</em></h1>
+        <div className="ps-ed-description"><p>Property, land and construction documented from above. A curated look at how our imagery describes setting, scale and progress.</p>
+          <span>REAL PROJECT IMAGERY / SOUTHERN CALIFORNIA</span>
         </div>
-      </div>
+      </header>
+      <section className="ps-featured" aria-label="Featured aerial studies">
+        {[
+          {label:"01 / PROPERTY",title:"A sense of place",id:"DJI_0036-HDR_bxyo9o"},
+          {label:"02 / CONSTRUCTION",title:"The evolving site",id:"3-DJI_0014_xn3a13"},
+          {label:"03 / CITYSCAPES",title:"After dark",id:"DJI_0104_uzqlyr"}
+        ].map((featured,i)=>{
+          const idx=VISIBLE_PHOTOS.findIndex(photo=>photo.id===featured.id);
+          return <button className={"ps-featured-card ps-featured-"+i} type="button" key={featured.id}
+            onClick={()=>openLb(VISIBLE_PHOTOS.map(photo=>({...photo,type:"photo"})),idx)}>
+            <img src={img(featured.id,900,600)} loading={i===0?"eager":"lazy"}
+              alt={featured.title+" — aerial photography from Seraphic Sight"}/>
+            <span className="ps-featured-meta"><span>{featured.label}</span><strong>{featured.title}</strong><span aria-hidden="true">↗</span></span>
+          </button>;
+        })}
+      </section>
+      <div className="ps-archive-heading"><p className="ps-ed-eyebrow">BROWSE THE ARCHIVE</p><h2>Every perspective,<br/>on its own terms.</h2></div>
 
       {/* ── Main content ── */}
       <div className="ps-content">
@@ -1033,7 +1042,7 @@ export default function PortfolioSection() {
         {/* Category tabs */}
         <div className="ps-tabs" role="tablist" aria-label="Portfolio category">
           {[
-            { id: "photo", label: "Aerial Photography", count: PHOTOS.length },
+            { id: "photo", label: "Aerial Photography", count: VISIBLE_PHOTOS.length },
             { id: "video", label: "Drone Video",        count: VIDEOS.length },
           ].map(t => (
             <button
@@ -1051,8 +1060,8 @@ export default function PortfolioSection() {
 
         {/* Deliverable bubbles */}
         <div className="ps-bubbles-wrap">
-          <div className="ps-bubbles-label">{"// filter by deliverable type"}</div>
-          <div className="ps-bubbles" role="group" aria-label="Filter by deliverable type">
+          <div className="ps-bubbles-label">{isPhoto ? "FILTER BY SUBJECT" : "FILTER BY FILM TYPE"}</div>
+          <div className="ps-bubbles" role="group" aria-label={isPhoto ? "Filter photographs by subject" : "Filter video by film type"}>
             {bubbles.map(b => (
               <Bubble
                 key={b.label}
@@ -1076,7 +1085,7 @@ export default function PortfolioSection() {
 
         {/* Grid */}
         {filtered.length === 0 ? (
-          <div className="ps-empty">{"// No items match this filter yet."}</div>
+          <div className="ps-empty">No media match this filter.</div>
         ) : (
           <div className="ps-grid" key={`${cat}::${filter}`}>
             {filtered.map((item, i) =>
