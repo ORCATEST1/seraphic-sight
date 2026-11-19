@@ -30,3 +30,8 @@
 .ss-map-canvas .leaflet-control-attribution a{color:#d9e3d7!important}
 @media(max-width:900px){.ss-map-section{grid-template-columns:1fr}.ss-map-canvas,.ss-map-canvas-shell{height:440px;min-height:440px}.ss-region-list{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}.ss-travel-note{grid-template-columns:1fr;gap:25px;padding:70px 24px}}
 @media(max-width:560px){.ss-area-intro{padding:70px 24px 55px}.ss-area-lede{gap:24px}.ss-map-section{padding:0 24px 80px;gap:22px}.ss-map-canvas,.ss-map-canvas-shell{height:370px;min-height:370px}.ss-region-list{grid-template-columns:1fr}.ss-region-detail{padding-top:30px}}
+
+/* OSM standard tiles are available without a commercial basemap key. Darken only raster tiles; markers and attribution stay bright. */
+.ss-map-canvas .leaflet-tile-pane{filter:grayscale(1) invert(1) brightness(.72) contrast(.94)}
+.ss-map-canvas .leaflet-control-attribution{background:#14241bdf!important;color:#e1ebde!important}
+.ss-map-canvas .leaflet-control-attribution a{color:#e1ebde!important}
