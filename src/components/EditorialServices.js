@@ -7,10 +7,10 @@ import {
 import "./EditorialServices.css";
 
 const CLD="https://res.cloudinary.com/dpc1noikx/image/upload/";
-const photo=(id,w=1250)=>CLD+"w_"+w+",c_limit,f_auto,q_auto/"+id;
+const photo=(id)=>CLD+"w_900,h_600,c_fill,f_auto,q_auto/"+id;
 const PROPERTY_IMAGE=photo("DJI_0944_gho2t4");
 const SITE_IMAGE=photo("sola-florance-construction-aerial_oapibr");
-const MAP_IMAGE=photo("map-snapshot_q3dk25",1200);
+const MAP_IMAGE=photo("map-snapshot_q3dk25");
 
 const propertyOfferings=[
   {title:"Aerial photography",desc:"Show the property, its approach, surroundings and scale from angles that ground photography cannot reach."},
