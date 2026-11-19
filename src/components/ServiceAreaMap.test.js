@@ -25,3 +25,9 @@ test("map explains the contiguous shaded footprint is approximate, not a flight 
   expect(screen.getByText(/It is not a strict service limit or guaranteed flight zone/)).toBeInTheDocument();
   expect(screen.getByRole("button",{name:/VIEW FULL AREA/i})).toBeInTheDocument();
 });
+
+test("Montclair is expressly included in the Inland Empire service examples",()=>{
+  render(<MemoryRouter><ServiceAreaMap/></MemoryRouter>);
+  fireEvent.click(screen.getByRole("button",{name:/Riverside & San Bernardino/}));
+  expect(screen.getByText(/Ontario · Montclair · Rancho Cucamonga/)).toBeInTheDocument();
+});
