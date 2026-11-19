@@ -51,6 +51,8 @@ try{
  const loadedTiles=await page.locator("img.leaflet-tile-loaded").count();
  check("Leaflet initializes with 8 markers",markers>=8,"markers="+markers);
  check("Geographic tiles load",loadedTiles>0,"loaded tiles="+loadedTiles);
+ const tileSource=await page.locator(".leaflet-tile").first().getAttribute("src").catch(()=>"");
+ check("Basemap does not require a paid API key",tileSource?.startsWith("https://tile.openstreetmap.org/"),"tile source="+tileSource);
  await page.locator(".ss-region-tab").filter({hasText:"San Diego County"}).click();
  check("Region selector changes details",(await page.locator(".ss-region-detail h2").innerText()).includes("San Diego County"));
  await page.locator(".ss-region-tab").filter({hasText:"Orange County"}).click();
@@ -60,8 +62,8 @@ try{
  await go(page,"/portfolio");
  check("Portfolio has new editorial header",(await page.locator(".ps-editorial-intro h1").innerText()).includes("Seen from"));
  const countText=await page.locator(".ps-tab").filter({hasText:"Aerial Photography"}).innerText();
- check("35 unique portfolio images",/\b35\b/.test(countText),"tab="+countText.replace(/\n/g," "));
- const labels=await page.locator(".ps-bubble-label").allInnerTexts();
+ check("35 unique portfolio images",(await page.locator(".ps-tab").filter({hasText:"Aerial Photography"}).locator(".ps-tab-count").innerText()).trim()==="35","tab="+countText.replace(/\n/g," "));
+ const labels=await page.locator(".ps-bubbles-label").allInnerTexts();
  check("Correct photo filter title",labels.some(x=>x.includes("FILTER BY SUBJECT")));
  const subjects=["Real Estate","Commercial","Cityscapes","Construction","Mapping","Land","Coastal"];
  const bubbleText=await page.locator(".ps-bubbles").innerText();
