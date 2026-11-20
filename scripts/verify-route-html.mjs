@@ -41,4 +41,31 @@ assert.ok(routes.some(route => route.src === "^/showroom/?$" && route.status ===
   route.headers?.Location === "/portfolio"), "Archived showroom must redirect");
 assert.ok(!read("public/sitemap.xml").includes("/showroom"), "Archived showroom listed in sitemap");
 assert.ok(!existsSync(join("build", "showroom", "index.html")), "Showroom generated as standalone page");
+
+const preferredOrigin = "https://www.seraphicsight.com";
+const sitemap = read("public/sitemap.xml");
+const robots = read("public/robots.txt");
+assert.ok(robots.includes("Sitemap: " + preferredOrigin + "/sitemap.xml"), "Robots sitemap must target preferred www domain");
+const expectedPaths = ["/", ...expectedRoutes.map(slug => "/" + slug)];
+const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(match => match[1]);
+assert.deepEqual(sitemapUrls, expectedPaths.map(path => preferredOrigin + path), "Sitemap must contain only real, self-canonical public pages");
+assert.ok(!sitemap.includes("https://seraphicsight.com"), "Sitemap must not contain non-www redirecting URLs");
+
+const shells = [{ path: "/", html: htmlRoot }, ...expectedRoutes.map(slug => ({path:"/"+slug,html:read(join("build",slug,"index.html"))}))];
+for (const {path,html} of shells) {
+  const canonical = [...html.matchAll(/<link\\b[^>]*\\brel="canonical"[^>]*>/g)];
+  assert.equal(canonical.length,1,"Exactly one canonical expected for " + path);
+  assert.ok(canonical[0][0].includes('href="' + preferredOrigin + path + '"'),"Canonical must self-reference www URL for " + path);
+  assert.ok(html.includes('property="og:url" content="' + preferredOrigin + path + '"'),"Social URL must use preferred www URL for " + path);
+  assert.ok(!html.includes('name="robots" content="noindex"'),"Public " + path + " must remain indexable");
+}
+const jsonLdMatches = [...htmlRoot.matchAll(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/g)];
+assert.equal(jsonLdMatches.length,1,"Exactly one local-business JSON-LD block is expected");
+const business = JSON.parse(jsonLdMatches[0][1]);
+assert.equal(business.url,preferredOrigin+"/");
+assert.equal(business["@id"],preferredOrigin+"/#business");
+assert.equal(business.telephone,"+1-562-743-1698");
+assert.ok(!("aggregateRating" in business),"Unverified review count must not be claimed in structured data");
+assert.ok(!htmlRoot.includes('https://seraphicsight.com'),'Non-www absolute URLs must not remain in HTML head');
+
 console.log(`Verified ${expectedRoutes.length} generated route shells, app assets, sitemap and fallback routing.`);
