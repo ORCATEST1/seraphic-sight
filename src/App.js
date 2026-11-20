@@ -28,7 +28,7 @@ function usePageMeta(title, description) {
       if (!m) { m = document.createElement("meta"); m.name = "description"; document.head.appendChild(m); }
       m.setAttribute("content", description);
     }
-    const canonicalUrl = "https://seraphicsight.com" + (window.location.pathname === "/" ? "/" : window.location.pathname.replace(/\/$/, ""));
+    const canonicalUrl = "https://www.seraphicsight.com" + (window.location.pathname === "/" ? "/" : window.location.pathname.replace(/\/$/, ""));
     const previousNotFoundRobots = document.querySelector('meta[data-route-not-found="true"]');
     if (previousNotFoundRobots) previousNotFoundRobots.remove();
     let canonical = document.querySelector('link[rel="canonical"]');
