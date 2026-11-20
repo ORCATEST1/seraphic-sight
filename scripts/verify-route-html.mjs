@@ -47,19 +47,19 @@ const sitemap = read("public/sitemap.xml");
 const robots = read("public/robots.txt");
 assert.ok(robots.includes("Sitemap: " + preferredOrigin + "/sitemap.xml"), "Robots sitemap must target preferred www domain");
 const expectedPaths = ["/", ...expectedRoutes.map(slug => "/" + slug)];
-const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\\/loc>/g)].map(match => match[1]);
+const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]);
 assert.deepEqual(sitemapUrls, expectedPaths.map(path => preferredOrigin + path), "Sitemap must contain only real, self-canonical public pages");
 assert.ok(!sitemap.includes("https://seraphicsight.com"), "Sitemap must not contain non-www redirecting URLs");
 
 const shells = [{ path: "/", html: htmlRoot }, ...expectedRoutes.map(slug => ({path:"/"+slug,html:read(join("build",slug,"index.html"))}))];
 for (const {path,html} of shells) {
-  const canonical = [...html.matchAll(/<link\\b[^>]*\\brel="canonical"[^>]*>/g)];
+  const canonical = [...html.matchAll(/<link\b[^>]*\brel="canonical"[^>]*>/g)];
   assert.equal(canonical.length,1,"Exactly one canonical expected for " + path);
   assert.ok(canonical[0][0].includes('href="' + preferredOrigin + path + '"'),"Canonical must self-reference www URL for " + path);
   assert.ok(html.includes('property="og:url" content="' + preferredOrigin + path + '"'),"Social URL must use preferred www URL for " + path);
   assert.ok(!html.includes('name="robots" content="noindex"'),"Public " + path + " must remain indexable");
 }
-const jsonLdMatches = [...htmlRoot.matchAll(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/g)];
+const jsonLdMatches = [...htmlRoot.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
 assert.equal(jsonLdMatches.length,1,"Exactly one local-business JSON-LD block is expected");
 const business = JSON.parse(jsonLdMatches[0][1]);
 assert.equal(business.url,preferredOrigin+"/");
