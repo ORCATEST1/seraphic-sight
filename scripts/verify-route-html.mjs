@@ -16,7 +16,7 @@ const routeMeta = {
 const config = JSON.parse(read("vercel.json"));
 const expectedRoutes = Object.keys(routeMeta);
 assert.match(htmlRoot, /<title>Seraphic Sight/);
-assert.match(htmlRoot, /rel="canonical" href="https:\/\/seraphicsight\.com\/"/);
+assert.match(htmlRoot, /rel="canonical" href="https:\/\/www\.seraphicsight\.com\/"/);
 const srcRefs = [...htmlRoot.matchAll(/(?:src|href)="(\/static\/(?:js|css)\/[^"]+)"/g)].map(match => match[1]);
 assert.ok(srcRefs.length >= 1, "homepage must reference built assets");
 
@@ -25,8 +25,8 @@ for (const [slug, titlePart] of Object.entries(routeMeta)) {
   assert.ok(existsSync(path), `Missing generated shell for /${slug}`);
   const html = read(path);
   assert.ok(html.includes("<title>") && html.includes(titlePart), `Wrong title: /${slug}`);
-  assert.ok(html.includes(`rel="canonical" href="https://seraphicsight.com/${slug}"`), `Wrong canonical: /${slug}`);
-  assert.ok(html.includes(`property="og:url" content="https://seraphicsight.com/${slug}"`), `Wrong OG URL: /${slug}`);
+  assert.ok(html.includes(`rel="canonical" href="https://www.seraphicsight.com/${slug}"`), `Wrong canonical: /${slug}`);
+  assert.ok(html.includes(`property="og:url" content="https://www.seraphicsight.com/${slug}"`), `Wrong OG URL: /${slug}`);
   assert.ok(html.includes('name="description"'), `Missing description: /${slug}`);
   for (const ref of srcRefs) assert.ok(html.includes(ref), `Missing app asset in /${slug}: ${ref}`);
   assert.ok(config.routes.some(route => route.src === `^/${slug}/?$` && route.dest === `/${slug}/index.html`),
