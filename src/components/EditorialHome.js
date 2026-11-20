@@ -25,13 +25,13 @@ export default function EditorialHome() {
   React.useEffect(() => {
     document.title = "Seraphic Sight | Aerial Imaging Studio — Southern California";
     const canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) canonical.href = "https://seraphicsight.com/";
+    if (canonical) canonical.href = "https://www.seraphicsight.com/";
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.content = "Independent Southern California aerial imaging studio. Real estate photography, film, construction mapping and documentation.";
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute("content", document.title);
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute("content", "https://seraphicsight.com/");
+    if (ogUrl) ogUrl.setAttribute("content", "https://www.seraphicsight.com/");
     document.querySelector('meta[data-route-not-found="true"]')?.remove();
   }, []);
   const navLinks = [

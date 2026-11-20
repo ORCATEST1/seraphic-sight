@@ -5,7 +5,7 @@ import { join } from "node:path";
 
 const root = "build";
 const original = readFileSync(join(root, "index.html"), "utf8");
-const domain = "https://seraphicsight.com";
+const domain = "https://www.seraphicsight.com";
 const entries = {
   "property-marketing": {
     title: "Property Marketing | Aerial Photography & Film | Seraphic Sight",
